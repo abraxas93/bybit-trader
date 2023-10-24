@@ -1,0 +1,29 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "rootDir": "./src",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "noImplicitReturns": false,
+    "lib": [
+      "es2019",
+      "dom",
+      "esnext.array"
+    ],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": [
+    "src/*.ts",
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "config/*.ts",
+    "config/index.js", "config/dev.js", "config/staging.js", "config/production.js" ],
+  "exclude": [
+    "node_modules",
+  ],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}
