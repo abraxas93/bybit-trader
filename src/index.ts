@@ -4,7 +4,12 @@ import {container as app} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {createMongoClient} from './infrastructure/database/mongo/createMongoClient';
 import {MongoClient} from 'mongodb';
-import {WSClientConfigurableOptions, WebsocketClient} from 'bybit-api';
+import {
+  WSClientConfigurableOptions,
+  WebsocketClient,
+  RestClientV5,
+  OrderParamsV5,
+} from 'bybit-api';
 
 const logger = initLogger(__filename);
 
@@ -37,7 +42,24 @@ async function main() {
   console.log(wsOptions);
   const ws = new WebsocketClient(wsOptions, logger);
 
-  ws.subscribeV5(['kline.1.BTCUSDT'], 'linear').catch(err => console.log(err));
+  const client = new RestClientV5({
+    key: process.env.API_KEY,
+    secret: process.env.API_SECRET,
+    testnet: true,
+  });
+  // BUY 1 BTC for 20000
+  const order: OrderParamsV5 = {
+    symbol: 'BTCUSDT',
+    side: 'Buy',
+    orderType: 'Limit',
+    qty: '1',
+    price: '20000',
+    category: 'linear',
+  };
+  const response = await client.submitOrder(order); // getAllCoinsBalance({accountType: 'CONTRACT'});
+  console.log(response);
+
+  // ws.subscribeV5(['kline.1.BTCUSDT'], 'linear').catch(err => console.log(err));
 
   // ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
 

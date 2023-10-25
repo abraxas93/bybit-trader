@@ -16,3 +16,7 @@ export const SERVER_PORT = process.env.SERVER_PORT;
 // password
 export const PASSWORD_SALT = process.env.PASSWORD_SALT || '';
 export const PASSWORD_LENGTH = parseInt(process.env.PASSWORD_LENGTH || '');
+
+// ByBit secrets
+export const API_KEY = process.env.API_KEY;
+export const API_SECRET = process.env.API_SECRET;
