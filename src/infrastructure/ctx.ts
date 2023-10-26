@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import {container as app} from 'tsyringe';
+import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
-import {createMongoClient} from './infrastructure/database/mongo/createMongoClient';
+import {createMongoClient} from './database/mongo/createMongoClient';
 import {MongoClient} from 'mongodb';
 import {
   WSClientConfigurableOptions,
@@ -9,7 +9,7 @@ import {
   RestClientV5,
 } from 'bybit-api';
 
-export async function bootstrapApp() {
+export async function bootstrapCtx() {
   const mongoClient = await createMongoClient();
   const eventEmitter = new EventEmitter();
 
@@ -28,10 +28,14 @@ export async function bootstrapApp() {
     testnet: true,
   });
 
-  app.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
-  app.register<MongoClient>('MongoClient', {useValue: mongoClient});
-  app.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
-  app.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
+  container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
+  container.register<MongoClient>('MongoClient', {useValue: mongoClient});
+  container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
+  container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
 
-  return app;
+  eventEmitter.on('EVENT', () => console.log());
+
+  eventEmitter.on('SUBMIT_ORDER', () => {
+    eventEmitter.emit('EVENT');
+  });
 }

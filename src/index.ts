@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import {initLogger} from './logger';
-import {container as app} from 'tsyringe';
+import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {createMongoClient} from './infrastructure/database/mongo/createMongoClient';
 import {MongoClient} from 'mongodb';
@@ -9,64 +9,45 @@ import {
   WebsocketClient,
   RestClientV5,
   OrderParamsV5,
+  GetKlineParamsV5,
 } from 'bybit-api';
+import {bootstrapCtx} from './infrastructure/ctx';
+import {GET_LAST_KLINE_LOW_PRICE} from './constants';
 
 const logger = initLogger(__filename);
 
-const logger2 = {
-  silly: (...params: any) => {},
-  debug: (...params: any) => {},
-  notice: (...params: any) => {},
-  info: (...params: any) => {},
-  warning: (...params: any) => {},
-  error: (...params: any) => {},
-};
+function bootstrapEvents() {
+  const emitter = container.resolve<EventEmitter>('EventEmitter');
+  const bybitClient = container.resolve<RestClientV5>('RestClientV5');
 
-export async function bootstrapDependencies() {
-  const mongoClient = await createMongoClient();
-  const eventEmitter = new EventEmitter();
-
-  app.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
-  app.register<MongoClient>('MongoClient', {useValue: mongoClient});
+  emitter.on(GET_LAST_KLINE_LOW_PRICE, async () => {
+    const request: GetKlineParamsV5 = {
+      category: 'linear',
+      symbol: 'BTCUSDT',
+      interval: '1',
+    };
+    const response = await bybitClient.getKline(request);
+    const [, , , , lowPrice] = response.result.list[0];
+    // BUY 1 BTC for 20000
+    const order: OrderParamsV5 = {
+      symbol: 'BTCUSDT',
+      side: 'Buy',
+      orderType: 'Limit',
+      qty: '1',
+      price: '20000',
+      category: 'linear',
+    };
+    const ordResponse = await bybitClient.submitOrder(order);
+  });
 }
 
-async function main() {
-  logger.info('bootstrap app dependencies');
-  await bootstrapDependencies();
-  const wsOptions: WSClientConfigurableOptions = {
-    key: process.env.API_KEY,
-    secret: process.env.API_SECRET,
-    testnet: true,
-    market: 'v5',
-  };
-  console.log(wsOptions);
-  const ws = new WebsocketClient(wsOptions, logger);
+function bootstrapSockets(ws: WebsocketClient) {
+  ws.subscribeV5(['kline.1.BTCUSDT'], 'linear').catch(err => console.log(err));
 
-  const client = new RestClientV5({
-    key: process.env.API_KEY,
-    secret: process.env.API_SECRET,
-    testnet: true,
-  });
-  // BUY 1 BTC for 20000
-  const order: OrderParamsV5 = {
-    symbol: 'BTCUSDT',
-    side: 'Buy',
-    orderType: 'Limit',
-    qty: '1',
-    price: '20000',
-    category: 'linear',
-  };
-  const response = await client.submitOrder(order); // getAllCoinsBalance({accountType: 'CONTRACT'});
-  console.log(response);
-
-  // ws.subscribeV5(['kline.1.BTCUSDT'], 'linear').catch(err => console.log(err));
-
-  // ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
-
-  // ws.subscribeV5('position', 'linear').catch(err => console.log(err));
+  ws.subscribeV5('position', 'linear').catch(err => console.log(err));
 
   ws.on('update', data => {
-    console.log('update', data);
+    console.log(data);
   });
 
   // Optional: Listen to websocket connection open event (automatic after subscribing to one or more topics)
@@ -88,6 +69,13 @@ async function main() {
   ws.on('error', err => {
     console.error('error', err);
   });
+}
+
+async function main() {
+  logger.info('bootstrap app dependencies');
+  await bootstrapCtx();
+  const ws = container.resolve<WebsocketClient>('WebsocketClient');
+  bootstrapSockets(ws);
 }
 
 main().catch(err => console.log(err));

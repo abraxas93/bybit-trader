@@ -17,6 +17,9 @@
     "plugin:prettier/recommended"
   ],
   "rules": {
+    "@typescript-eslint/no-misused-promises": ["error", {
+      "checksVoidReturn": false
+    }],
     "prettier/prettier": [
       "error",
       {

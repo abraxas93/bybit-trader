@@ -20,3 +20,8 @@ export const PASSWORD_LENGTH = parseInt(process.env.PASSWORD_LENGTH || '');
 // ByBit secrets
 export const API_KEY = process.env.API_KEY;
 export const API_SECRET = process.env.API_SECRET;
+
+// config
+
+export const SYMBOL = 'BTCUSDT';
+export const TIME_FRAME = '1';
