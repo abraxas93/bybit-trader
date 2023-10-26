@@ -12,40 +12,31 @@ import {
   GetKlineParamsV5,
 } from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
-import {GET_LAST_KLINE_LOW_PRICE} from './constants';
+import {OPEN_POSITION} from './constants';
 import {Store} from './domain/entities/Store';
+import {OpenStartPosition} from './application';
 
 const logger = initLogger(__filename);
 
 function bootstrapEvents() {
   const emitter = container.resolve<EventEmitter>('EventEmitter');
-  const bybitClient = container.resolve<RestClientV5>('RestClientV5');
 
-  emitter.on(GET_LAST_KLINE_LOW_PRICE, async () => {
-    const request: GetKlineParamsV5 = {
-      category: 'linear',
-      symbol: 'BTCUSDT',
-      interval: '1',
-    };
-    const response = await bybitClient.getKline(request);
-    const [, , , , lowPrice] = response.result.list[0];
-    // BUY 1 BTC for 20000
-    const order: OrderParamsV5 = {
-      symbol: 'BTCUSDT',
-      side: 'Buy',
-      orderType: 'Limit',
-      qty: '1',
-      price: '20000',
-      category: 'linear',
-    };
-    const ordResponse = await bybitClient.submitOrder(order);
-  });
+  emitter.on(OPEN_POSITION, () => console.log('...'));
 }
 
-function bootstrapSockets(ws: WebsocketClient) {
-  ws.subscribeV5(['kline.1.BTCUSDT'], 'linear').catch(err => console.log(err));
+function bootstrapSockets() {
+  const ws = container.resolve<WebsocketClient>('WebsocketClient');
+  const store = container.resolve<Store>('Store');
+  const symbol = store.symbol;
+  const category = store.category;
 
-  ws.subscribeV5('position', 'linear').catch(err => console.log(err));
+  // ws.subscribeV5([`publicTrade.${symbol}`], category).catch(err =>
+  //   console.log(err)
+  // );
+
+  ws.subscribeV5(['order', 'position', 'execution'], 'linear', true).catch(
+    err => console.log(err)
+  );
 
   ws.on('update', data => {
     console.log(data);
@@ -75,10 +66,10 @@ function bootstrapSockets(ws: WebsocketClient) {
 async function main() {
   logger.info('bootstrap app dependencies');
   await bootstrapCtx();
-  const ws = container.resolve<WebsocketClient>('WebsocketClient');
-  const store = container.resolve<Store>('Store');
-  console.log(store);
-  bootstrapSockets(ws);
+  // bootstrapSockets();
+
+  const useCase = container.resolve<OpenStartPosition>('OpenStartPosition');
+  console.log(useCase.execute());
 }
 
 main().catch(err => console.log(err));

@@ -2,7 +2,7 @@
 export const EVENT_ERROR = 'EVENT_ERROR';
 
 export const SUBMIT_ORDER = 'SUBMIT_ORDER';
-export const GET_LAST_KLINE_LOW_PRICE = 'GET_LAST_KLINE_LOW_PRICE';
+export const OPEN_POSITION = 'OPEN_POSITION';
 
 // errors
 export const ERR_USER_NOT_FOUND = 'ERR_USER_NOT_FOUND';

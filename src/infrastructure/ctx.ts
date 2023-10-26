@@ -10,6 +10,7 @@ import {
 } from 'bybit-api';
 import {Store} from '../domain/entities/Store';
 import {SYMBOL} from '../config';
+import {OpenStartPosition} from '../application';
 
 export async function bootstrapCtx() {
   const mongoClient = await createMongoClient();
@@ -21,7 +22,7 @@ export async function bootstrapCtx() {
     testnet: true,
     market: 'v5',
   };
-
+  console.log(wsOptions);
   const bybitWs = new WebsocketClient(wsOptions);
 
   const bybitClient = new RestClientV5({
@@ -34,6 +35,8 @@ export async function bootstrapCtx() {
   container.register<MongoClient>('MongoClient', {useValue: mongoClient});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
+
+  container.register<OpenStartPosition>('OpenStartPosition', OpenStartPosition);
 
   container.register<Store>('Store', {
     useFactory: () => new Store(SYMBOL),
