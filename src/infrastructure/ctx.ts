@@ -8,6 +8,8 @@ import {
   WebsocketClient,
   RestClientV5,
 } from 'bybit-api';
+import {Store} from '../domain/entities/Store';
+import {SYMBOL} from '../config';
 
 export async function bootstrapCtx() {
   const mongoClient = await createMongoClient();
@@ -32,6 +34,10 @@ export async function bootstrapCtx() {
   container.register<MongoClient>('MongoClient', {useValue: mongoClient});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
+
+  container.register<Store>('Store', {
+    useFactory: () => new Store(SYMBOL),
+  });
 
   eventEmitter.on('EVENT', () => console.log());
 

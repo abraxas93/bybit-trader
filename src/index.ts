@@ -13,6 +13,7 @@ import {
 } from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
 import {GET_LAST_KLINE_LOW_PRICE} from './constants';
+import {Store} from './domain/entities/Store';
 
 const logger = initLogger(__filename);
 
@@ -75,6 +76,8 @@ async function main() {
   logger.info('bootstrap app dependencies');
   await bootstrapCtx();
   const ws = container.resolve<WebsocketClient>('WebsocketClient');
+  const store = container.resolve<Store>('Store');
+  console.log(store);
   bootstrapSockets(ws);
 }
 
