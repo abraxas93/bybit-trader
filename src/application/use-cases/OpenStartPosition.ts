@@ -31,7 +31,7 @@ export class OpenStartPosition {
       const ordResponse = await this.client.submitOrder(order);
       const {retCode, result} = ordResponse;
       if (retCode === 0) {
-        this.store.addOrder(result.orderId, 'OPEN_POSITION');
+        this.store.addOrder(result.orderId, 'OPEN_ORDER');
       }
       return {data: ordResponse, error: null};
     } catch (error) {

@@ -1,16 +1,16 @@
 import {injectable} from 'tsyringe';
 
-type OrderType = 'OPEN_POSITION';
+export type OrderClass = 'OPEN_ORDER' | 'TAKE_PROFIT_ORDER';
 
 @injectable()
 export class Store {
   readonly category = 'linear';
-  readonly orderBook: Record<string, OrderType> = {};
+  readonly orderBook: Record<string, OrderClass> = {};
   constructor(private readonly _symbol: string) {}
   get symbol() {
     return this._symbol;
   }
-  addOrder(orderId: string, type: OrderType) {
+  addOrder(orderId: string, type: OrderClass) {
     this.orderBook[orderId] = type;
   }
   removeOrder(orderId: string) {
