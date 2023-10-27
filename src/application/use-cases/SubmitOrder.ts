@@ -1,10 +1,7 @@
-import {OrderClass, Store} from '../../domain/entities/Store';
-import {OrderParamsV5, RestClientV5} from 'bybit-api';
+import {SubmitOrderParams} from '../../types';
+import {Store} from '../../domain/entities/Store';
+import {RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
-
-type SubmitOrderParams = OrderParamsV5 & {
-  orderClass: OrderClass;
-};
 
 @injectable()
 export class SubmitOrder {

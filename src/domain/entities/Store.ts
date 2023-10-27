@@ -1,6 +1,6 @@
 import {injectable} from 'tsyringe';
 
-export type OrderClass = 'OPEN_ORDER' | 'TAKE_PROFIT_ORDER';
+export type OrderClass = 'OPEN_ORDER' | 'TAKE_PROFIT_ORDER' | 'AVERAGE_ORDER';
 
 @injectable()
 export class Store {
@@ -16,5 +16,8 @@ export class Store {
   }
   removeOrder(orderId: string) {
     delete this.orderBook[orderId];
+  }
+  getOrderClass(orderId: string) {
+    return this.orderBook[orderId];
   }
 }

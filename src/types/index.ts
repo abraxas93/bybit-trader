@@ -1,3 +1,6 @@
+import {OrderClass} from '@/domain/entities/Store';
+import {OrderParamsV5} from 'bybit-api';
+
 export type Success<T> = {
   data: T;
   error: null;
@@ -13,3 +16,15 @@ export type UseCaseResult<T> = Success<T> | Failure;
 export interface IUseCase<I, O> {
   execute(data: I): O;
 }
+
+export type Topic = {
+  topic: string;
+  id: string;
+  creationTime: number;
+  wsKey: string;
+  data: unknown[];
+};
+
+export type SubmitOrderParams = OrderParamsV5 & {
+  orderClass: OrderClass;
+};
