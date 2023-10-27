@@ -66,7 +66,7 @@ function bootstrapSockets() {
 async function main() {
   logger.info('bootstrap app dependencies');
   await bootstrapCtx();
-  // bootstrapSockets();
+  bootstrapSockets();
 
   const useCase = container.resolve<OpenStartPosition>('OpenStartPosition');
   console.log(useCase.execute());

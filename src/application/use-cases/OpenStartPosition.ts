@@ -12,21 +12,26 @@ export class OpenStartPosition {
   ) {}
   async execute() {
     try {
+      const symbol = this.store.symbol;
+      const category = this.store.category;
+      const qty = this.store.quantity;
+
       const request: GetKlineParamsV5 = {
-        category: 'linear',
-        symbol: 'BTCUSDT',
+        category: category,
+        symbol: symbol,
         interval: '1',
       };
+
       const response = await this.client.getKline(request);
       const [, , , , lowPrice] = response.result.list[0];
-      // BUY 1 BTC for 20000
+
       const order: OrderParamsV5 = {
-        symbol: 'BTCUSDT',
+        symbol: symbol,
         side: 'Buy',
         orderType: 'Limit',
-        qty: '1',
+        qty,
         price: lowPrice,
-        category: 'linear',
+        category: category,
       };
       const ordResponse = await this.client.submitOrder(order);
       const {retCode, result} = ordResponse;

@@ -4,6 +4,7 @@ export type OrderClass = 'OPEN_ORDER' | 'TAKE_PROFIT_ORDER';
 
 @injectable()
 export class Store {
+  public quantity = '0.05';
   readonly category = 'linear';
   readonly orderBook: Record<string, OrderClass> = {};
   constructor(private readonly _symbol: string) {}
