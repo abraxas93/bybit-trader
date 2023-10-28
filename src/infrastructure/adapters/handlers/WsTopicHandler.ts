@@ -7,6 +7,7 @@ import {NOT_IMPLEMENTED, OPEN_POSITION, SUBMIT_ORDER} from '../../../constants';
 type OrderData = {
   orderId: string;
   avgPrice: string;
+  orderStatus: string;
 };
 
 @injectable()
@@ -17,20 +18,20 @@ export class WsTopicHandler {
     @inject('EventEmitter')
     private readonly emitter: EventEmitter
   ) {}
-  processTopic(socketData: Topic) {
+  processTopic = (socketData: Topic) => {
     const {topic, data} = socketData;
-
     if (topic === 'order') {
       const [orderData] = data;
-      const {orderId, avgPrice} = orderData as OrderData;
+      const {orderId, avgPrice, orderStatus} = orderData as OrderData;
+      console.log(this.store);
       const orderClass = this.store.getOrderClass(orderId);
+
       if (!orderClass) throw new Error(NOT_IMPLEMENTED);
 
-      this.store.removeOrder(orderId);
       const category = this.store.category;
       const symbol = this.store.symbol;
       const qty = this.store.quantity;
-      if (orderClass === 'OPEN_ORDER') {
+      if (orderClass === 'OPEN_ORDER' && orderStatus === 'Filled') {
         const params: SubmitOrderParams = {
           symbol,
           orderClass: 'TAKE_PROFIT_ORDER',
@@ -50,6 +51,8 @@ export class WsTopicHandler {
       if (orderClass === 'AVERAGE_ORDER') {
         this.emitter.emit(SUBMIT_ORDER, {});
       }
+
+      this.store.removeOrder(orderId);
     }
-  }
+  };
 }

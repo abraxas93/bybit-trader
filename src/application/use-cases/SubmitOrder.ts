@@ -14,6 +14,7 @@ export class SubmitOrder {
 
   async execute(data: SubmitOrderParams) {
     try {
+      console.log(data);
       const {orderClass, ...body} = data;
       const ordResponse = await this.client.submitOrder(body);
       const {retCode, result} = ordResponse;

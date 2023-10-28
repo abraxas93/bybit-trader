@@ -12,6 +12,7 @@ import {Store} from '../domain/entities/Store';
 import {SYMBOL} from '../config';
 import {OpenStartPosition} from '../application';
 import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
+import {SubmitOrder} from '@/application/use-cases/SubmitOrder';
 
 export async function bootstrapCtx() {
   const mongoClient = await createMongoClient();
@@ -23,13 +24,17 @@ export async function bootstrapCtx() {
     testnet: true,
     market: 'v5',
   };
-  console.log(wsOptions);
+
   const bybitWs = new WebsocketClient(wsOptions);
 
   const bybitClient = new RestClientV5({
     key: process.env.API_KEY,
     secret: process.env.API_SECRET,
     testnet: true,
+  });
+
+  container.register<Store>('Store', {
+    useValue: new Store(SYMBOL),
   });
 
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
@@ -40,14 +45,5 @@ export async function bootstrapCtx() {
   container.register<WsTopicHandler>('WsTopicHandler', WsTopicHandler);
 
   container.register<OpenStartPosition>('OpenStartPosition', OpenStartPosition);
-
-  container.register<Store>('Store', {
-    useFactory: () => new Store(SYMBOL),
-  });
-
-  eventEmitter.on('EVENT', () => console.log());
-
-  eventEmitter.on('SUBMIT_ORDER', () => {
-    eventEmitter.emit('EVENT');
-  });
+  container.register<SubmitOrder>('SubmitOrder', SubmitOrder);
 }

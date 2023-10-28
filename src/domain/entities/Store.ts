@@ -3,6 +3,7 @@ import {injectable} from 'tsyringe';
 
 @injectable()
 export class Store {
+  id = Date.now();
   public quantity = '0.05';
   readonly category = 'linear';
   readonly orderBook: Record<string, OrderClass> = {};
@@ -10,13 +11,16 @@ export class Store {
   get symbol() {
     return this._symbol;
   }
-  addOrder(orderId: string, type: OrderClass) {
+  addOrder = (orderId: string, type: OrderClass) => {
     this.orderBook[orderId] = type;
-  }
-  removeOrder(orderId: string) {
+  };
+  removeOrder = (orderId: string) => {
     delete this.orderBook[orderId];
-  }
-  getOrderClass(orderId: string) {
+  };
+  getOrderClass = (orderId: string) => {
+    console.log({orderId});
+    console.log(this.orderBook[orderId]);
+    console.log(this.orderBook);
     return this.orderBook[orderId];
-  }
+  };
 }

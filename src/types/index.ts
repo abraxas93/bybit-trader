@@ -1,4 +1,3 @@
-import {OrderClass} from '../domain/entities/Store';
 import {OrderParamsV5} from 'bybit-api';
 
 export type Success<T> = {

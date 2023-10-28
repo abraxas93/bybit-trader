@@ -12,23 +12,33 @@ import {
   GetKlineParamsV5,
 } from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
-import {OPEN_POSITION} from './constants';
+import {OPEN_POSITION, SUBMIT_ORDER} from './constants';
 import {Store} from './domain/entities/Store';
 import {OpenStartPosition} from './application';
+import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
+import {SubmitOrderParams, Topic} from './types';
+import {SubmitOrder} from './application/use-cases/SubmitOrder';
 
 const logger = initLogger(__filename);
 
 function bootstrapEvents() {
+  const submitOrder = container.resolve<SubmitOrder>('SubmitOrder');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
 
-  emitter.on(OPEN_POSITION, () => console.log('...'));
+  emitter.on(SUBMIT_ORDER, params =>
+    submitOrder.execute(params as SubmitOrderParams)
+  );
 }
 
 function bootstrapSockets() {
   const ws = container.resolve<WebsocketClient>('WebsocketClient');
   const store = container.resolve<Store>('Store');
+  const wsHandler = container.resolve<WsTopicHandler>('WsTopicHandler');
   const symbol = store.symbol;
   const category = store.category;
+
+  // store.addOrder('fa9fe9db-a3a4-4757-a9fb-8e4278030726', 'OPEN_ORDER');
+  // console.log(store.getOrderClass('fa9fe9db-a3a4-4757-a9fb-8e4278030726'));
 
   // ws.subscribeV5([`publicTrade.${symbol}`], category).catch(err =>
   //   console.log(err)
@@ -38,9 +48,7 @@ function bootstrapSockets() {
     err => console.log(err)
   );
 
-  ws.on('update', data => {
-    console.log(data);
-  });
+  ws.on('update', data => wsHandler.processTopic(data as Topic));
 
   // Optional: Listen to websocket connection open event (automatic after subscribing to one or more topics)
   ws.on('open', ({wsKey, event}) => {
@@ -67,9 +75,9 @@ async function main() {
   logger.info('bootstrap app dependencies');
   await bootstrapCtx();
   bootstrapSockets();
-
+  bootstrapEvents();
   const useCase = container.resolve<OpenStartPosition>('OpenStartPosition');
-  console.log(useCase.execute());
+  console.log(await useCase.execute());
 }
 
 main().catch(err => console.log(err));
