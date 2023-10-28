@@ -1,6 +1,5 @@
+import {OrderClass} from '../../types';
 import {injectable} from 'tsyringe';
-
-export type OrderClass = 'OPEN_ORDER' | 'TAKE_PROFIT_ORDER' | 'AVERAGE_ORDER';
 
 @injectable()
 export class Store {

@@ -11,6 +11,7 @@ import {
 import {Store} from '../domain/entities/Store';
 import {SYMBOL} from '../config';
 import {OpenStartPosition} from '../application';
+import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
 
 export async function bootstrapCtx() {
   const mongoClient = await createMongoClient();
@@ -35,6 +36,8 @@ export async function bootstrapCtx() {
   container.register<MongoClient>('MongoClient', {useValue: mongoClient});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
+
+  container.register<WsTopicHandler>('WsTopicHandler', WsTopicHandler);
 
   container.register<OpenStartPosition>('OpenStartPosition', OpenStartPosition);
 

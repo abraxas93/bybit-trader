@@ -1,4 +1,4 @@
-import {OrderClass} from '@/domain/entities/Store';
+import {OrderClass} from '../domain/entities/Store';
 import {OrderParamsV5} from 'bybit-api';
 
 export type Success<T> = {
@@ -25,6 +25,7 @@ export type Topic = {
   data: unknown[];
 };
 
+export type OrderClass = 'OPEN_ORDER' | 'TAKE_PROFIT_ORDER' | 'AVERAGE_ORDER';
 export type SubmitOrderParams = OrderParamsV5 & {
   orderClass: OrderClass;
 };
