@@ -12,7 +12,7 @@ import {Store} from '../domain/entities/Store';
 import {SYMBOL} from '../config';
 import {OpenStartPosition} from '../application';
 import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
-import {SubmitOrder} from '@/application/use-cases/SubmitOrder';
+import {SubmitOrder} from '../application/use-cases/SubmitOrder';
 
 export async function bootstrapCtx() {
   const mongoClient = await createMongoClient();

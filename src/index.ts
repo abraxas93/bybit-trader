@@ -23,11 +23,15 @@ const logger = initLogger(__filename);
 
 function bootstrapEvents() {
   const submitOrder = container.resolve<SubmitOrder>('SubmitOrder');
+  const openStartPosition =
+    container.resolve<OpenStartPosition>('OpenStartPosition');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
 
   emitter.on(SUBMIT_ORDER, params =>
     submitOrder.execute(params as SubmitOrderParams)
   );
+
+  emitter.on(OPEN_POSITION, () => openStartPosition.execute());
 }
 
 function bootstrapSockets() {

@@ -23,7 +23,6 @@ export class WsTopicHandler {
     if (topic === 'order') {
       const [orderData] = data;
       const {orderId, avgPrice, orderStatus} = orderData as OrderData;
-      console.log(this.store);
       const orderClass = this.store.getOrderClass(orderId);
 
       if (!orderClass) throw new Error(NOT_IMPLEMENTED);
@@ -38,18 +37,28 @@ export class WsTopicHandler {
           qty,
           side: 'Sell',
           orderType: 'Limit',
-          price: String(Number(avgPrice) + Number(avgPrice) * 0.05),
+          price: String(Number(avgPrice) + Number(avgPrice) * 0.01),
           category: category,
         };
         this.emitter.emit(SUBMIT_ORDER, params);
+        // start count N candles by timeframe
       }
 
-      if (orderClass === 'TAKE_PROFIT_ORDER') {
-        this.emitter.emit(OPEN_POSITION, {});
+      if (orderClass === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
+        this.emitter.emit(OPEN_POSITION);
       }
 
-      if (orderClass === 'AVERAGE_ORDER') {
-        this.emitter.emit(SUBMIT_ORDER, {});
+      if (orderClass === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
+        const params: SubmitOrderParams = {
+          symbol,
+          orderClass: 'TAKE_PROFIT_ORDER',
+          qty,
+          side: 'Sell',
+          orderType: 'Limit',
+          price: String(Number(avgPrice) + Number(avgPrice) * 0.01),
+          category: category,
+        };
+        this.emitter.emit(SUBMIT_ORDER, params);
       }
 
       this.store.removeOrder(orderId);

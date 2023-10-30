@@ -18,9 +18,6 @@ export class Store {
     delete this.orderBook[orderId];
   };
   getOrderClass = (orderId: string) => {
-    console.log({orderId});
-    console.log(this.orderBook[orderId]);
-    console.log(this.orderBook);
     return this.orderBook[orderId];
   };
 }
