@@ -47,10 +47,12 @@ function bootstrapSockets() {
   // ws.subscribeV5([`publicTrade.${symbol}`], category).catch(err =>
   //   console.log(err)
   // );
+  // 'order', 'position', 'execution',
+  // ws.subscribeV5(`kline.1.BTCUSDT`, 'linear').catch(err => console.log(err));
 
-  ws.subscribeV5(['order', 'position', 'execution'], 'linear', true).catch(
-    err => console.log(err)
-  );
+  ws.subscribeV5(['tickers.BTCUSDT'], 'linear').catch(err => console.log(err));
+
+  // ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
 
   ws.on('update', data => wsHandler.processTopic(data as Topic));
 
@@ -85,3 +87,4 @@ async function main() {
 }
 
 main().catch(err => console.log(err));
+// 101

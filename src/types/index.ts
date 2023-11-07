@@ -22,6 +22,7 @@ export type Topic = {
   creationTime: number;
   wsKey: string;
   data: unknown[];
+  ts: number;
 };
 
 export type OrderClass = 'OPEN_ORDER' | 'TAKE_PROFIT_ORDER' | 'AVERAGE_ORDER';

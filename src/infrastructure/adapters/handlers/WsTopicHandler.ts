@@ -3,11 +3,13 @@ import {EventEmitter} from 'events';
 import {SubmitOrderParams, Topic} from '../../../types';
 import {Store} from '../../../domain/entities/Store';
 import {NOT_IMPLEMENTED, OPEN_POSITION, SUBMIT_ORDER} from '../../../constants';
+import moment from 'moment';
 
 type OrderData = {
   orderId: string;
   avgPrice: string;
   orderStatus: string;
+  lastPrice?: string;
 };
 
 @injectable()
@@ -18,8 +20,9 @@ export class WsTopicHandler {
     @inject('EventEmitter')
     private readonly emitter: EventEmitter
   ) {}
+
   processTopic = (socketData: Topic) => {
-    const {topic, data} = socketData;
+    const {topic, data, ts} = socketData;
     if (topic === 'order') {
       const [orderData] = data;
       const {orderId, avgPrice, orderStatus} = orderData as OrderData;
@@ -62,6 +65,12 @@ export class WsTopicHandler {
       }
 
       this.store.removeOrder(orderId);
+    }
+
+    if (topic.includes('tickers')) {
+      const {lastPrice} = data as unknown as OrderData;
+      this.store.setLowPrice(lastPrice);
+      this.store.setLastCandleLowPrice(ts);
     }
   };
 }
