@@ -3,7 +3,6 @@ import {EventEmitter} from 'events';
 import {SubmitOrderParams, Topic} from '../../../types';
 import {Store} from '../../../domain/entities/Store';
 import {NOT_IMPLEMENTED, OPEN_POSITION, SUBMIT_ORDER} from '../../../constants';
-import moment from 'moment';
 
 type OrderData = {
   orderId: string;
@@ -44,7 +43,7 @@ export class WsTopicHandler {
           category: category,
         };
         this.emitter.emit(SUBMIT_ORDER, params);
-        // start count N candles by timeframe
+        this.store.resetCandlesCount();
       }
 
       if (orderClass === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {

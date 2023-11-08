@@ -11,6 +11,10 @@ export class Store {
   private _lastCandleLowPrice = 0;
   private readonly _timeFrame = 10;
   private _nextCandleTimeFrame = 0;
+
+  private candlesCount = 0;
+  private candlesToWait = 10;
+
   public quantity = '0.05';
   readonly category = 'linear';
   readonly orderBook: Record<string, OrderClass> = {};
@@ -22,6 +26,10 @@ export class Store {
 
   get lastCandleLowPrice() {
     return this._lastCandleLowPrice;
+  }
+
+  resetCandlesCount() {
+    this.candlesCount = 0;
   }
 
   private roundToNearestTen(number: number) {
@@ -76,6 +84,7 @@ export class Store {
         this._lastCandleLowPrice = this._candleLowPrice;
         this._nextCandleTimeFrame += this._timeFrame;
         this.isNewCandle = true;
+        this.candlesCount += 1;
         console.log(
           `Last candle lowest price: ${this._candleLowPrice}, next candle in: ${this._nextCandleTimeFrame}`
         );
@@ -93,6 +102,7 @@ export class Store {
         this._lastCandleLowPrice = this._candleLowPrice;
         this._nextCandleTimeFrame += this._timeFrame;
         this.isNewCandle = true;
+        this.candlesCount += 1;
         console.log(
           `Last candle lowest price: ${this._candleLowPrice}, next candle in: ${this._nextCandleTimeFrame}`
         );
