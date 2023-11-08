@@ -5,10 +5,12 @@ import {injectable} from 'tsyringe';
 @injectable()
 export class Store {
   id = Date.now();
+  private started = false;
+  private isNewCandle = false;
   private _candleLowPrice = 0;
   private _lastCandleLowPrice = 0;
   private readonly _timeFrame = 10;
-  private _nextCandleTimeFrame = null;
+  private _nextCandleTimeFrame = 0;
   public quantity = '0.05';
   readonly category = 'linear';
   readonly orderBook: Record<string, OrderClass> = {};
@@ -43,16 +45,58 @@ export class Store {
   };
 
   setLowPrice(lastPrice: string | undefined) {
-    if (this._candleLowPrice === 0 && lastPrice)
+    if (!this.started) return;
+    if (this.isNewCandle && lastPrice) {
       this._candleLowPrice = Number(lastPrice);
+      this.isNewCandle = false;
+    }
     if (Number(lastPrice) && Number(lastPrice) < this._candleLowPrice) {
       this._candleLowPrice = Number(lastPrice);
-      console.log(`CURRENT LOWEST PRICE: ${this._candleLowPrice}`);
     }
   }
 
   setLastCandleLowPrice(ts: number) {
-    // if ts seconds more or equal then next candle frame ( then set lowest candle price)
-    // set next candle shift
+    const seconds = moment(ts).seconds();
+    if (!this.started && seconds === 0) {
+      this.started = true;
+      this.isNewCandle = true;
+      const nearest = this.roundToNearestTen(seconds);
+      this._nextCandleTimeFrame = nearest + this._timeFrame;
+      console.log(
+        `Candle started: ${this._candleLowPrice}, next candle in: ${this._nextCandleTimeFrame} and seconds: ${seconds}`
+      );
+    }
+
+    if (this.started) {
+      if (
+        seconds >= 10 &&
+        seconds >= this._nextCandleTimeFrame &&
+        this._nextCandleTimeFrame !== 0
+      ) {
+        this._lastCandleLowPrice = this._candleLowPrice;
+        this._nextCandleTimeFrame += this._timeFrame;
+        this.isNewCandle = true;
+        console.log(
+          `Last candle lowest price: ${this._candleLowPrice}, next candle in: ${this._nextCandleTimeFrame}`
+        );
+      }
+
+      if (this._nextCandleTimeFrame === 60) {
+        this._nextCandleTimeFrame = 0;
+      }
+
+      if (
+        seconds < 10 &&
+        this._nextCandleTimeFrame === 0 &&
+        seconds >= this._nextCandleTimeFrame
+      ) {
+        this._lastCandleLowPrice = this._candleLowPrice;
+        this._nextCandleTimeFrame += this._timeFrame;
+        this.isNewCandle = true;
+        console.log(
+          `Last candle lowest price: ${this._candleLowPrice}, next candle in: ${this._nextCandleTimeFrame}`
+        );
+      }
+    }
   }
 }
