@@ -38,7 +38,6 @@ export class OpenStartPosition {
 
       if (retCode === 0) {
         this.store.addOrder(result.orderId, 'OPEN_ORDER');
-        console.log(this.store);
       }
       return {data: ordResponse, error: null};
     } catch (error) {

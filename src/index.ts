@@ -42,7 +42,6 @@ function bootstrapEvents() {
       const category = store.category;
       const symbol = store.symbol;
       const qty = store.quantity;
-      const avgPrice = store.avgFilledPrice;
 
       const params: SubmitOrderParams = {
         symbol,
@@ -50,7 +49,7 @@ function bootstrapEvents() {
         qty,
         side: 'Buy',
         orderType: 'Limit',
-        price: String(Number(avgPrice) - Number(avgPrice) * 0.01),
+        price: String(store.getAverageOrderPrice()),
         category: category,
       };
 
@@ -75,7 +74,9 @@ function bootstrapSockets() {
   // 'order', 'position', 'execution',
   // ws.subscribeV5(`kline.1.BTCUSDT`, 'linear').catch(err => console.log(err));
 
-  ws.subscribeV5(['tickers.BTCUSDT'], 'linear').catch(err => console.log(err));
+  ws.subscribeV5(['tickers.BTCUSDT', 'order'], 'linear').catch(err =>
+    console.log(err)
+  );
 
   // ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
 
@@ -108,7 +109,7 @@ async function main() {
   bootstrapSockets();
   bootstrapEvents();
   const useCase = container.resolve<OpenStartPosition>('OpenStartPosition');
-  console.log(await useCase.execute());
+  await useCase.execute();
 }
 
 main().catch(err => console.log(err));

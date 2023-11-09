@@ -34,6 +34,7 @@ export class WsTopicHandler {
       const symbol = this.store.symbol;
       const qty = this.store.quantity;
       if (orderClass === 'OPEN_ORDER' && orderStatus === 'Filled') {
+        this.store.recalcAvgPrice(avgPrice);
         const params: SubmitOrderParams = {
           symbol,
           orderClass: 'TAKE_PROFIT_ORDER',
@@ -44,18 +45,28 @@ export class WsTopicHandler {
           category: category,
         };
         this.emitter.emit(SUBMIT_ORDER, params);
-        this.store.resetCandlesCount();
-        this.store.recalcAvgPrice(avgPrice);
       }
 
       if (orderClass === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
-        this.emitter.emit(OPEN_POSITION);
+        const lastCandleLowPrice = this.store.getLastCandleLowPrice();
+        this.store.resetAvgPrice();
+        // cancel average order
+        const params: SubmitOrderParams = {
+          symbol,
+          orderClass: 'OPEN_ORDER',
+          qty,
+          side: 'Buy',
+          orderType: 'Limit',
+          price: String(lastCandleLowPrice),
+          category: category,
+        };
+        this.emitter.emit(OPEN_POSITION, params);
       }
 
       if (orderClass === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
-        // recalculate average price in store
         this.store.recalcAvgPrice(avgPrice);
-        const avgOrderPrice = this.store.avgFilledPrice;
+        this.store.setAvgOrderFilled();
+
         const params: SubmitOrderParams = {
           symbol,
           orderClass: 'TAKE_PROFIT_ORDER',

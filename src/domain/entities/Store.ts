@@ -6,7 +6,6 @@ import {CANDLE_CLOSED} from '../../constants';
 
 @injectable()
 export class Store {
-  id = Date.now();
   private started = false;
   private isNewCandle = false;
 
@@ -36,8 +35,8 @@ export class Store {
     return this._symbol;
   }
 
-  resetCandlesCount() {
-    this.candlesCount = 0;
+  getLastCandleLowPrice() {
+    return this.lastCandleLowPrice;
   }
 
   private roundToNearestTen(number: number) {
@@ -48,12 +47,25 @@ export class Store {
     }
   }
 
+  resetAvgPrice() {
+    this.avgFilledPrice = 0;
+  }
+
+  setAvgOrderOpened() {
+    this.isAverageOrderOpened = true;
+  }
+
+  setAvgOrderFilled() {
+    this.isAverageOrderOpened = false;
+  }
+
   recalcAvgPrice(newPrice: string) {
     if (!this.avgFilledPrice) {
       this.avgFilledPrice = Number(newPrice);
     } else {
       this.avgFilledPrice = (this.avgFilledPrice + Number(newPrice)) / 2;
     }
+    this.candlesCount = 0;
   }
 
   getAvgPositionPrice() {
