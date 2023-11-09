@@ -34,7 +34,7 @@ export async function bootstrapCtx() {
   });
 
   container.register<Store>('Store', {
-    useValue: new Store(SYMBOL),
+    useValue: new Store(SYMBOL, eventEmitter),
   });
 
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});

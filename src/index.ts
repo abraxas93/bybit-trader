@@ -12,7 +12,7 @@ import {
   GetKlineParamsV5,
 } from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
-import {OPEN_POSITION, SUBMIT_ORDER} from './constants';
+import {CANDLE_CLOSED, OPEN_POSITION, SUBMIT_ORDER} from './constants';
 import {Store} from './domain/entities/Store';
 import {OpenStartPosition} from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
@@ -32,6 +32,7 @@ function bootstrapEvents() {
   );
 
   emitter.on(OPEN_POSITION, () => openStartPosition.execute());
+  emitter.on(CANDLE_CLOSED, data => console.log('EVENT DATA:', data));
 }
 
 function bootstrapSockets() {

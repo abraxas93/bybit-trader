@@ -29,3 +29,10 @@ export type OrderClass = 'OPEN_ORDER' | 'TAKE_PROFIT_ORDER' | 'AVERAGE_ORDER';
 export type SubmitOrderParams = OrderParamsV5 & {
   orderClass: OrderClass;
 };
+
+export type CandleEvent = {
+  count: number;
+  isAverageOrderOpened: boolean;
+  lastCandleLowPrice: number;
+  nextCandleTimeFrame: number;
+};

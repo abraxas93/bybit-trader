@@ -1,12 +1,17 @@
 import moment from 'moment';
-import {OrderClass} from '../../types';
-import {injectable} from 'tsyringe';
+import {EventEmitter} from 'events';
+import {CandleEvent, OrderClass} from '../../types';
+import {inject, injectable} from 'tsyringe';
+import {CANDLE_CLOSED} from '../../constants';
 
 @injectable()
 export class Store {
   id = Date.now();
   private started = false;
   private isNewCandle = false;
+
+  private isAverageOrderOpened = false;
+
   private _candleLowPrice = 0;
   private _lastCandleLowPrice = 0;
   private readonly _timeFrame = 10;
@@ -18,7 +23,11 @@ export class Store {
   public quantity = '0.05';
   readonly category = 'linear';
   readonly orderBook: Record<string, OrderClass> = {};
-  constructor(private readonly _symbol: string) {}
+  constructor(
+    private readonly _symbol: string,
+    @inject('EventEmitter')
+    private readonly _emitter: EventEmitter
+  ) {}
 
   get symbol() {
     return this._symbol;
@@ -63,6 +72,25 @@ export class Store {
     }
   }
 
+  private updateLastCandleData() {
+    this._lastCandleLowPrice = this._candleLowPrice;
+    this._nextCandleTimeFrame += this._timeFrame;
+    this.isNewCandle = true;
+    this.candlesCount += 1;
+
+    const data: CandleEvent = {
+      count: this.candlesCount,
+      isAverageOrderOpened: this.isAverageOrderOpened,
+      lastCandleLowPrice: this._lastCandleLowPrice,
+      nextCandleTimeFrame: this._nextCandleTimeFrame,
+    };
+    this._emitter.emit(CANDLE_CLOSED, data);
+  }
+
+  setAverageOrderOpened() {
+    this.isAverageOrderOpened = true;
+  }
+
   setLastCandleLowPrice(ts: number) {
     const seconds = moment(ts).seconds();
     if (!this.started && seconds === 0) {
@@ -81,13 +109,7 @@ export class Store {
         seconds >= this._nextCandleTimeFrame &&
         this._nextCandleTimeFrame !== 0
       ) {
-        this._lastCandleLowPrice = this._candleLowPrice;
-        this._nextCandleTimeFrame += this._timeFrame;
-        this.isNewCandle = true;
-        this.candlesCount += 1;
-        console.log(
-          `Last candle lowest price: ${this._candleLowPrice}, next candle in: ${this._nextCandleTimeFrame}`
-        );
+        this.updateLastCandleData();
       }
 
       if (this._nextCandleTimeFrame === 60) {
@@ -99,13 +121,7 @@ export class Store {
         this._nextCandleTimeFrame === 0 &&
         seconds >= this._nextCandleTimeFrame
       ) {
-        this._lastCandleLowPrice = this._candleLowPrice;
-        this._nextCandleTimeFrame += this._timeFrame;
-        this.isNewCandle = true;
-        this.candlesCount += 1;
-        console.log(
-          `Last candle lowest price: ${this._candleLowPrice}, next candle in: ${this._nextCandleTimeFrame}`
-        );
+        this.updateLastCandleData();
       }
     }
   }
