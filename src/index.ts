@@ -16,13 +16,15 @@ import {CANDLE_CLOSED, OPEN_POSITION, SUBMIT_ORDER} from './constants';
 import {Store} from './domain/entities/Store';
 import {OpenStartPosition} from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
-import {SubmitOrderParams, Topic} from './types';
+import {CandleEvent, SubmitOrderParams, Topic} from './types';
 import {SubmitOrder} from './application/use-cases/SubmitOrder';
 
 const logger = initLogger(__filename);
 
 function bootstrapEvents() {
   const submitOrder = container.resolve<SubmitOrder>('SubmitOrder');
+  const store = container.resolve<Store>('Store');
+
   const openStartPosition =
     container.resolve<OpenStartPosition>('OpenStartPosition');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
@@ -32,15 +34,37 @@ function bootstrapEvents() {
   );
 
   emitter.on(OPEN_POSITION, () => openStartPosition.execute());
-  emitter.on(CANDLE_CLOSED, data => console.log('EVENT DATA:', data));
+
+  emitter.on(CANDLE_CLOSED, (data: CandleEvent) => {
+    const {isAverageOrderOpened, count} = data;
+
+    if (!isAverageOrderOpened && count === 10) {
+      const category = store.category;
+      const symbol = store.symbol;
+      const qty = store.quantity;
+      const avgPrice = store.avgFilledPrice;
+
+      const params: SubmitOrderParams = {
+        symbol,
+        orderClass: 'AVERAGE_ORDER',
+        qty,
+        side: 'Buy',
+        orderType: 'Limit',
+        price: String(Number(avgPrice) - Number(avgPrice) * 0.01),
+        category: category,
+      };
+
+      emitter.emit(SUBMIT_ORDER, params);
+    }
+  });
 }
 
 function bootstrapSockets() {
   const ws = container.resolve<WebsocketClient>('WebsocketClient');
-  const store = container.resolve<Store>('Store');
+  // const store = container.resolve<Store>('Store');
   const wsHandler = container.resolve<WsTopicHandler>('WsTopicHandler');
-  const symbol = store.symbol;
-  const category = store.category;
+  // const symbol = store.symbol;
+  // const category = store.category;
 
   // store.addOrder('fa9fe9db-a3a4-4757-a9fb-8e4278030726', 'OPEN_ORDER');
   // console.log(store.getOrderClass('fa9fe9db-a3a4-4757-a9fb-8e4278030726'));

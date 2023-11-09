@@ -24,6 +24,7 @@ export class WsTopicHandler {
     const {topic, data, ts} = socketData;
     if (topic === 'order') {
       const [orderData] = data;
+
       const {orderId, avgPrice, orderStatus} = orderData as OrderData;
       const orderClass = this.store.getOrderClass(orderId);
 
@@ -39,11 +40,12 @@ export class WsTopicHandler {
           qty,
           side: 'Sell',
           orderType: 'Limit',
-          price: String(Number(avgPrice) + Number(avgPrice) * 0.01),
+          price: String(this.store.getTakeProfitOrderPrice()),
           category: category,
         };
         this.emitter.emit(SUBMIT_ORDER, params);
         this.store.resetCandlesCount();
+        this.store.recalcAvgPrice(avgPrice);
       }
 
       if (orderClass === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
@@ -51,13 +53,16 @@ export class WsTopicHandler {
       }
 
       if (orderClass === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
+        // recalculate average price in store
+        this.store.recalcAvgPrice(avgPrice);
+        const avgOrderPrice = this.store.avgFilledPrice;
         const params: SubmitOrderParams = {
           symbol,
           orderClass: 'TAKE_PROFIT_ORDER',
           qty,
           side: 'Sell',
           orderType: 'Limit',
-          price: String(Number(avgPrice) + Number(avgPrice) * 0.01),
+          price: String(this.store.getTakeProfitOrderPrice()),
           category: category,
         };
         this.emitter.emit(SUBMIT_ORDER, params);

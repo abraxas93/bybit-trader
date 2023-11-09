@@ -12,10 +12,10 @@ export class Store {
 
   private isAverageOrderOpened = false;
 
-  private _candleLowPrice = 0;
-  private _lastCandleLowPrice = 0;
-  private readonly _timeFrame = 10;
-  private _nextCandleTimeFrame = 0;
+  private candleLowPrice = 0;
+  private lastCandleLowPrice = 0;
+  private readonly timeFrame = 10;
+  private nextCandleTimeFrame = 0;
 
   private candlesCount = 0;
   private candlesToWait = 10;
@@ -23,6 +23,9 @@ export class Store {
   public quantity = '0.05';
   readonly category = 'linear';
   readonly orderBook: Record<string, OrderClass> = {};
+
+  public avgFilledPrice = 0;
+
   constructor(
     private readonly _symbol: string,
     @inject('EventEmitter')
@@ -31,10 +34,6 @@ export class Store {
 
   get symbol() {
     return this._symbol;
-  }
-
-  get lastCandleLowPrice() {
-    return this._lastCandleLowPrice;
   }
 
   resetCandlesCount() {
@@ -47,6 +46,26 @@ export class Store {
     } else {
       return Math.floor(number / 10) * 10;
     }
+  }
+
+  recalcAvgPrice(newPrice: string) {
+    if (!this.avgFilledPrice) {
+      this.avgFilledPrice = Number(newPrice);
+    } else {
+      this.avgFilledPrice = (this.avgFilledPrice + Number(newPrice)) / 2;
+    }
+  }
+
+  getAvgPositionPrice() {
+    return this.avgFilledPrice;
+  }
+
+  getTakeProfitOrderPrice() {
+    return this.avgFilledPrice * 1.01; // TODO: сhange this to const
+  }
+
+  getAverageOrderPrice() {
+    return this.avgFilledPrice * 0.99; // TODO: change this to const
   }
 
   addOrder = (orderId: string, type: OrderClass) => {
@@ -64,25 +83,25 @@ export class Store {
   setLowPrice(lastPrice: string | undefined) {
     if (!this.started) return;
     if (this.isNewCandle && lastPrice) {
-      this._candleLowPrice = Number(lastPrice);
+      this.candleLowPrice = Number(lastPrice);
       this.isNewCandle = false;
     }
-    if (Number(lastPrice) && Number(lastPrice) < this._candleLowPrice) {
-      this._candleLowPrice = Number(lastPrice);
+    if (Number(lastPrice) && Number(lastPrice) < this.candleLowPrice) {
+      this.candleLowPrice = Number(lastPrice);
     }
   }
 
   private updateLastCandleData() {
-    this._lastCandleLowPrice = this._candleLowPrice;
-    this._nextCandleTimeFrame += this._timeFrame;
+    this.lastCandleLowPrice = this.candleLowPrice;
+    this.nextCandleTimeFrame += this.timeFrame;
     this.isNewCandle = true;
     this.candlesCount += 1;
 
     const data: CandleEvent = {
       count: this.candlesCount,
       isAverageOrderOpened: this.isAverageOrderOpened,
-      lastCandleLowPrice: this._lastCandleLowPrice,
-      nextCandleTimeFrame: this._nextCandleTimeFrame,
+      lastCandleLowPrice: this.lastCandleLowPrice,
+      nextCandleTimeFrame: this.nextCandleTimeFrame,
     };
     this._emitter.emit(CANDLE_CLOSED, data);
   }
@@ -97,29 +116,29 @@ export class Store {
       this.started = true;
       this.isNewCandle = true;
       const nearest = this.roundToNearestTen(seconds);
-      this._nextCandleTimeFrame = nearest + this._timeFrame;
+      this.nextCandleTimeFrame = nearest + this.timeFrame;
       console.log(
-        `Candle started: ${this._candleLowPrice}, next candle in: ${this._nextCandleTimeFrame} and seconds: ${seconds}`
+        `Candle started: ${this.candleLowPrice}, next candle in: ${this.nextCandleTimeFrame} and seconds: ${seconds}`
       );
     }
 
     if (this.started) {
       if (
         seconds >= 10 &&
-        seconds >= this._nextCandleTimeFrame &&
-        this._nextCandleTimeFrame !== 0
+        seconds >= this.nextCandleTimeFrame &&
+        this.nextCandleTimeFrame !== 0
       ) {
         this.updateLastCandleData();
       }
 
-      if (this._nextCandleTimeFrame === 60) {
-        this._nextCandleTimeFrame = 0;
+      if (this.nextCandleTimeFrame === 60) {
+        this.nextCandleTimeFrame = 0;
       }
 
       if (
         seconds < 10 &&
-        this._nextCandleTimeFrame === 0 &&
-        seconds >= this._nextCandleTimeFrame
+        this.nextCandleTimeFrame === 0 &&
+        seconds >= this.nextCandleTimeFrame
       ) {
         this.updateLastCandleData();
       }
