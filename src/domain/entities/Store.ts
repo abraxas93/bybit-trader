@@ -9,7 +9,8 @@ export class Store {
   private started = false;
   private isNewCandle = false;
 
-  private isAverageOrderOpened = false;
+  public isAverageOrderOpened = false;
+  public isPositionOpened = false;
 
   private candleLowPrice = 0;
   private lastCandleLowPrice = 0;
@@ -19,11 +20,11 @@ export class Store {
   private candlesCount = 0;
   private candlesToWait = 10;
 
-  public quantity = '0.05';
+  public quantity = '15';
   readonly category = 'linear';
   readonly orderBook: Record<string, OrderClass> = {};
 
-  public avgFilledPrice = 0;
+  public avgFilledPrice = '0';
 
   constructor(
     private readonly _symbol: string,
@@ -48,7 +49,7 @@ export class Store {
   }
 
   resetAvgPrice() {
-    this.avgFilledPrice = 0;
+    this.avgFilledPrice = '0';
   }
 
   setAvgOrderOpened() {
@@ -60,10 +61,13 @@ export class Store {
   }
 
   recalcAvgPrice(newPrice: string) {
-    if (!this.avgFilledPrice) {
-      this.avgFilledPrice = Number(newPrice);
+    if (this.avgFilledPrice === '0') {
+      this.avgFilledPrice = newPrice;
     } else {
-      this.avgFilledPrice = (this.avgFilledPrice + Number(newPrice)) / 2;
+      this.avgFilledPrice = (
+        (Number(this.avgFilledPrice) + Number(newPrice)) /
+        2
+      ).toFixed(4);
     }
     this.candlesCount = 0;
   }
@@ -73,11 +77,11 @@ export class Store {
   }
 
   getTakeProfitOrderPrice() {
-    return this.avgFilledPrice * 1.01; // TODO: сhange this to const
+    return (Number(this.avgFilledPrice) * 1.01).toFixed(4); // TODO: сhange this to const
   }
 
   getAverageOrderPrice() {
-    return this.avgFilledPrice * 0.99; // TODO: change this to const
+    return (Number(this.avgFilledPrice) * 0.99).toFixed(4); // TODO: change this to const
   }
 
   addOrder = (orderId: string, type: OrderClass) => {
@@ -90,6 +94,13 @@ export class Store {
 
   getOrderClass = (orderId: string) => {
     return this.orderBook[orderId];
+  };
+
+  getOrderIdbyClass = (ordClass: OrderClass) => {
+    for (const orderId in this.orderBook) {
+      if (this.orderBook[orderId] === ordClass) return orderId;
+    }
+    return null;
   };
 
   setLowPrice(lastPrice: string | undefined) {

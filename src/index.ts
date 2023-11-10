@@ -18,6 +18,7 @@ import {OpenStartPosition} from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {CandleEvent, SubmitOrderParams, Topic} from './types';
 import {SubmitOrder} from './application/use-cases/SubmitOrder';
+import {SYMBOL} from './config';
 
 const logger = initLogger(__filename);
 
@@ -36,9 +37,10 @@ function bootstrapEvents() {
   emitter.on(OPEN_POSITION, () => openStartPosition.execute());
 
   emitter.on(CANDLE_CLOSED, (data: CandleEvent) => {
+    console.log(data);
     const {isAverageOrderOpened, count} = data;
 
-    if (!isAverageOrderOpened && count === 10) {
+    if (!isAverageOrderOpened && count >= 10 && store.isPositionOpened) {
       const category = store.category;
       const symbol = store.symbol;
       const qty = store.quantity;
@@ -74,7 +76,7 @@ function bootstrapSockets() {
   // 'order', 'position', 'execution',
   // ws.subscribeV5(`kline.1.BTCUSDT`, 'linear').catch(err => console.log(err));
 
-  ws.subscribeV5(['tickers.BTCUSDT', 'order'], 'linear').catch(err =>
+  ws.subscribeV5([`tickers.${SYMBOL}`, 'order'], 'linear').catch(err =>
     console.log(err)
   );
 
@@ -108,8 +110,10 @@ async function main() {
   await bootstrapCtx();
   bootstrapSockets();
   bootstrapEvents();
-  const useCase = container.resolve<OpenStartPosition>('OpenStartPosition');
-  await useCase.execute();
+  setTimeout(async () => {
+    const useCase = container.resolve<OpenStartPosition>('OpenStartPosition');
+    await useCase.execute();
+  }, 4000);
 }
 
 main().catch(err => console.log(err));

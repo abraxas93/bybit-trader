@@ -2,7 +2,8 @@ import {inject, injectable} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {SubmitOrderParams, Topic} from '../../../types';
 import {Store} from '../../../domain/entities/Store';
-import {NOT_IMPLEMENTED, OPEN_POSITION, SUBMIT_ORDER} from '../../../constants';
+import {OPEN_POSITION, SUBMIT_ORDER} from '../../../constants';
+import {RestClientV5} from 'bybit-api';
 
 type OrderData = {
   orderId: string;
@@ -17,24 +18,28 @@ export class WsTopicHandler {
     @inject('Store')
     private readonly store: Store,
     @inject('EventEmitter')
-    private readonly emitter: EventEmitter
+    private readonly emitter: EventEmitter,
+    @inject('RestClientV5')
+    private readonly client: RestClientV5
   ) {}
 
-  processTopic = (socketData: Topic) => {
+  processTopic = async (socketData: Topic) => {
     const {topic, data, ts} = socketData;
     if (topic === 'order') {
       const [orderData] = data;
 
       const {orderId, avgPrice, orderStatus} = orderData as OrderData;
       const orderClass = this.store.getOrderClass(orderId);
-
-      if (!orderClass) throw new Error(NOT_IMPLEMENTED);
+      console.log({orderClass, orderId, orderStatus, avgPrice});
 
       const category = this.store.category;
       const symbol = this.store.symbol;
       const qty = this.store.quantity;
+
       if (orderClass === 'OPEN_ORDER' && orderStatus === 'Filled') {
         this.store.recalcAvgPrice(avgPrice);
+        this.store.isPositionOpened = true;
+
         const params: SubmitOrderParams = {
           symbol,
           orderClass: 'TAKE_PROFIT_ORDER',
@@ -50,7 +55,14 @@ export class WsTopicHandler {
       if (orderClass === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
         const lastCandleLowPrice = this.store.getLastCandleLowPrice();
         this.store.resetAvgPrice();
-        // cancel average order
+
+        const orderId = this.store.getOrderIdbyClass('AVERAGE_ORDER');
+        if (orderId) {
+          await this.client.cancelOrder({orderId, category, symbol});
+        }
+
+        this.store.isPositionOpened = false;
+
         const params: SubmitOrderParams = {
           symbol,
           orderClass: 'OPEN_ORDER',
@@ -79,7 +91,9 @@ export class WsTopicHandler {
         this.emitter.emit(SUBMIT_ORDER, params);
       }
 
-      this.store.removeOrder(orderId);
+      if (orderStatus === 'Filled') {
+        this.store.removeOrder(orderId);
+      }
     }
 
     if (topic.includes('tickers')) {

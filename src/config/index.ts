@@ -23,5 +23,5 @@ export const API_SECRET = process.env.API_SECRET;
 
 // config
 
-export const SYMBOL = 'BTCUSDT';
+export const SYMBOL = 'GASUSDT';
 export const TIME_FRAME = '1';
