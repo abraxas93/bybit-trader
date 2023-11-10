@@ -21,6 +21,9 @@ export class SubmitOrder {
       console.log('Response, ', ordResponse);
       if (retCode === 0) {
         this.store.addOrder(result.orderId, orderClass);
+        if (orderClass === 'AVERAGE_ORDER') {
+          this.store.isAverageOrderOpened = true;
+        }
       }
       return {data: ordResponse, error: null};
     } catch (error) {

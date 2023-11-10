@@ -4,6 +4,7 @@ import {CandleEvent, OrderClass} from '../../types';
 import {inject, injectable} from 'tsyringe';
 import {CANDLE_CLOSED} from '../../constants';
 
+// остаток в сделке умножаем на мартинг гейл, чтобы получить количество
 @injectable()
 export class Store {
   private started = false;
@@ -50,14 +51,6 @@ export class Store {
 
   resetAvgPrice() {
     this.avgFilledPrice = '0';
-  }
-
-  setAvgOrderOpened() {
-    this.isAverageOrderOpened = true;
-  }
-
-  setAvgOrderFilled() {
-    this.isAverageOrderOpened = false;
   }
 
   recalcAvgPrice(newPrice: string) {

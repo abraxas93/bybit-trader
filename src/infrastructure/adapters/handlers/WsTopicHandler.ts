@@ -59,6 +59,7 @@ export class WsTopicHandler {
         const orderId = this.store.getOrderIdbyClass('AVERAGE_ORDER');
         if (orderId) {
           await this.client.cancelOrder({orderId, category, symbol});
+          this.store.isAverageOrderOpened = false;
         }
 
         this.store.isPositionOpened = false;
@@ -77,7 +78,12 @@ export class WsTopicHandler {
 
       if (orderClass === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
         this.store.recalcAvgPrice(avgPrice);
-        this.store.setAvgOrderFilled();
+        this.store.isAverageOrderOpened = false;
+
+        const orderId = this.store.getOrderIdbyClass('TAKE_PROFIT_ORDER');
+        if (orderId) {
+          await this.client.cancelOrder({orderId, category, symbol});
+        }
 
         const params: SubmitOrderParams = {
           symbol,

@@ -25,3 +25,4 @@ export const API_SECRET = process.env.API_SECRET;
 
 export const SYMBOL = 'GASUSDT';
 export const TIME_FRAME = '1';
+export const MARTIN_GALE = 2;

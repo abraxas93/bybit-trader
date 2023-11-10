@@ -2,15 +2,7 @@ import 'reflect-metadata';
 import {initLogger} from './logger';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
-import {createMongoClient} from './infrastructure/database/mongo/createMongoClient';
-import {MongoClient} from 'mongodb';
-import {
-  WSClientConfigurableOptions,
-  WebsocketClient,
-  RestClientV5,
-  OrderParamsV5,
-  GetKlineParamsV5,
-} from 'bybit-api';
+import {WebsocketClient} from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
 import {CANDLE_CLOSED, OPEN_POSITION, SUBMIT_ORDER} from './constants';
 import {Store} from './domain/entities/Store';
