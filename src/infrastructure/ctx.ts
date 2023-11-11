@@ -10,7 +10,11 @@ import {
 } from 'bybit-api';
 import {Store} from '../domain/entities/Store';
 import {SYMBOL} from '../config';
-import {SubmitOpenOrder} from '../application';
+import {
+  SubmitAvgOrder,
+  SubmitOpenOrder,
+  SubmitProfitOrder,
+} from '../application';
 import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
 import {SubmitOrder} from '../application/use-cases/SubmitOrder';
 
@@ -45,5 +49,7 @@ export async function bootstrapCtx() {
   container.register<WsTopicHandler>('WsTopicHandler', WsTopicHandler);
 
   container.register<SubmitOpenOrder>('SubmitOpenOrder', SubmitOpenOrder);
+  container.register<SubmitProfitOrder>('SubmitProfitOrder', SubmitProfitOrder);
+  container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
   container.register<SubmitOrder>('SubmitOrder', SubmitOrder);
 }

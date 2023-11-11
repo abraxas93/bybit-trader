@@ -6,7 +6,7 @@ import {WebsocketClient} from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
 import {CANDLE_CLOSED, OPEN_POSITION, SUBMIT_ORDER} from './constants';
 import {Store} from './domain/entities/Store';
-import {SubmitOpenOrder} from './application';
+import {SubmitAvgOrder, SubmitOpenOrder} from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {CandleEvent, SubmitOrderParams, Topic} from './types';
 import {SubmitOrder} from './application/use-cases/SubmitOrder';
@@ -16,6 +16,7 @@ const logger = initLogger(__filename);
 
 function bootstrapEvents() {
   const submitOrder = container.resolve<SubmitOrder>('SubmitOrder');
+  const submitAvgOrder = container.resolve<SubmitAvgOrder>('SubmitAvgOrder');
   const store = container.resolve<Store>('Store');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
 
@@ -24,22 +25,9 @@ function bootstrapEvents() {
   );
 
   emitter.on(CANDLE_CLOSED, (data: CandleEvent) => {
+    console.log(data);
     if (store.canOpenAvgOrder) {
-      const category = store.category;
-      const symbol = store.symbol;
-      const qty = store.quantity;
-
-      const params: SubmitOrderParams = {
-        symbol,
-        orderClass: 'AVERAGE_ORDER',
-        qty,
-        side: 'Buy',
-        orderType: 'Limit',
-        price: String(store.getAverageOrderPrice()),
-        category: category,
-      };
-
-      emitter.emit(SUBMIT_ORDER, params);
+      submitAvgOrder.execute().catch(err => console.log(err));
     }
   });
 }

@@ -22,7 +22,7 @@ export class SubmitAvgOrder {
         qty,
         side: 'Buy',
         orderType: 'Limit',
-        price: String(this.store.getAverageOrderPrice()), // TODO: change this to getter
+        price: this.store.avgOrderPrice,
         category: category,
       };
 

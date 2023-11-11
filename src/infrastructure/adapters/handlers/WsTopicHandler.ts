@@ -24,7 +24,8 @@ export class WsTopicHandler {
 
       const {orderId, avgPrice, orderStatus} = orderData as OrderData;
       const orderClass = this.store.getOrderClass(orderId);
-      console.log({orderClass, orderId, orderStatus, avgPrice});
+
+      console.log(orderData);
 
       const category = this.store.category;
       const symbol = this.store.symbol;
@@ -75,8 +76,11 @@ export class WsTopicHandler {
         this.store.isAverageOrderOpened = false;
 
         const orderId = this.store.getOrderIdbyClass('TAKE_PROFIT_ORDER');
+        console.log('CANCEL TAKE_PROFIT_ORDER: ', orderId);
         if (orderId) {
-          await this.client.cancelOrder({orderId, category, symbol});
+          console.log(
+            await this.client.cancelOrder({orderId, category, symbol})
+          );
         }
 
         const params: SubmitOrderParams = {

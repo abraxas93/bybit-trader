@@ -40,6 +40,10 @@ export class Store {
     return this._symbol;
   }
 
+  get avgOrderPrice() {
+    return (Number(this.avgFilledPrice) * 0.99).toFixed(4); // TODO: change this to const
+  }
+
   get canOpenAvgOrder(): boolean {
     return (
       !this.isAverageOrderOpened &&
@@ -102,10 +106,6 @@ export class Store {
 
   getTakeProfitOrderPrice() {
     return (Number(this.avgFilledPrice) * 1.01).toFixed(4); // TODO: сhange this to const
-  }
-
-  getAverageOrderPrice() {
-    return (Number(this.avgFilledPrice) * 0.99).toFixed(4); // TODO: change this to const
   }
 
   addOrder = (orderId: string, type: OrderClass) => {
