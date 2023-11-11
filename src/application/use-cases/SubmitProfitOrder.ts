@@ -6,7 +6,7 @@ import {initLogger} from '../../logger';
 const logger = initLogger(__filename);
 
 @injectable()
-export class OpenTakeProfitOrder {
+export class SubmitProfitOrder {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,

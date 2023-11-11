@@ -1,9 +1,9 @@
 import {Store} from '../../domain/entities/Store';
-import {GetKlineParamsV5, OrderParamsV5, RestClientV5} from 'bybit-api';
+import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 
 @injectable()
-export class OpenStartPosition {
+export class SubmitOpenOrder {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,
@@ -15,22 +15,24 @@ export class OpenStartPosition {
       const symbol = this.store.symbol;
       const category = this.store.category;
       const qty = this.store.quantity;
+      let lastCandleLowPrice = this.store.lastCandleLowPrice;
 
-      const request: GetKlineParamsV5 = {
-        category: category,
-        symbol: symbol,
-        interval: '1',
-      };
-
-      const response = await this.client.getKline(request);
-      const [, , , , lowPrice] = response.result.list[0];
+      if (lastCandleLowPrice === '0') {
+        const response = await this.client.getKline({
+          category: category,
+          symbol: symbol,
+          interval: '1',
+        });
+        const [, , , , lowPrice] = response.result.list[0];
+        lastCandleLowPrice = lowPrice;
+      }
 
       const order: OrderParamsV5 = {
         symbol: symbol,
         side: 'Buy',
         orderType: 'Limit',
         qty,
-        price: lowPrice,
+        price: lastCandleLowPrice,
         category: category,
       };
       const ordResponse = await this.client.submitOrder(order);

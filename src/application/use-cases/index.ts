@@ -1,2 +1,3 @@
-export * from './OpenStartPosition';
-export * from './OpenTakeProfitOrder';
+export * from './SubmitOpenOrder';
+export * from './SubmitProfitOrder';
+export * from './SubmitAvgOrder';

@@ -6,7 +6,7 @@ import {WebsocketClient} from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
 import {CANDLE_CLOSED, OPEN_POSITION, SUBMIT_ORDER} from './constants';
 import {Store} from './domain/entities/Store';
-import {OpenStartPosition} from './application';
+import {SubmitOpenOrder} from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {CandleEvent, SubmitOrderParams, Topic} from './types';
 import {SubmitOrder} from './application/use-cases/SubmitOrder';
@@ -24,10 +24,7 @@ function bootstrapEvents() {
   );
 
   emitter.on(CANDLE_CLOSED, (data: CandleEvent) => {
-    console.log(data);
-    const {isAverageOrderOpened, count} = data;
-
-    if (!isAverageOrderOpened && count >= 10 && store.isPositionOpened) {
+    if (store.canOpenAvgOrder) {
       const category = store.category;
       const symbol = store.symbol;
       const qty = store.quantity;
@@ -98,7 +95,7 @@ async function main() {
   bootstrapSockets();
   bootstrapEvents();
   setTimeout(async () => {
-    const useCase = container.resolve<OpenStartPosition>('OpenStartPosition');
+    const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
     await useCase.execute();
   }, 4000);
 }

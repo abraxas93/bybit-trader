@@ -15,7 +15,7 @@ export class Store {
   // public isTakeProfitOpened = false;
 
   private candleLowPrice = 0;
-  private lastCandleLowPrice = 0;
+  public lastCandleLowPrice = '0';
   private readonly timeFrame = 10;
   private nextCandleTimeFrame = 0;
 
@@ -38,6 +38,14 @@ export class Store {
 
   get symbol() {
     return this._symbol;
+  }
+
+  get canOpenAvgOrder(): boolean {
+    return (
+      !this.isAverageOrderOpened &&
+      this.candlesCount >= 10 &&
+      this.isPositionOpened
+    );
   }
 
   openPosition(price: string) {
