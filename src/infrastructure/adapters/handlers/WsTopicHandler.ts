@@ -1,6 +1,6 @@
 import {inject, injectable} from 'tsyringe';
 import {EventEmitter} from 'events';
-import {OrderData, SubmitOrderParams, Topic} from '../../../types';
+import {OrderData, SubmitOrderParams, TickerData, Topic} from '../../../types';
 import {Store} from '../../../domain/entities/Store';
 import {SUBMIT_ORDER} from '../../../constants';
 import {RestClientV5} from 'bybit-api';
@@ -16,11 +16,9 @@ export class WsTopicHandler {
     private readonly client: RestClientV5
   ) {}
 
-  handleOrderTopic = (socketData: Topic) => {};
-
   processTopic = async (socketData: Topic) => {
     const {topic, data, ts} = socketData;
-
+    // console.log(socketData);
     if (topic === 'order') {
       const [orderData] = data;
 
@@ -100,7 +98,7 @@ export class WsTopicHandler {
     }
 
     if (topic.includes('tickers')) {
-      const {lastPrice} = data as unknown as OrderData; // TODO: change this type to ticker data
+      const {lastPrice} = data as unknown as TickerData;
       this.store.setLowPrice(lastPrice);
       this.store.setLastCandleLowPrice(ts);
     }

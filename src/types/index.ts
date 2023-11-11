@@ -37,6 +37,20 @@ export type CandleEvent = {
   nextCandleTimeFrame: number;
 };
 
+export type TickerData = {
+  symbol: string;
+  price24hPcnt: string;
+  markPrice: string;
+  indexPrice: string;
+  lastPrice: string;
+  openInterestValue: string;
+  fundingRate: string;
+  bid1Price: string;
+  bid1Size: string;
+  ask1Price: string;
+  ask1Size: string;
+};
+
 export type OrderData = {
   avgPrice: string;
   blockTradeId: string;
@@ -47,6 +61,7 @@ export type OrderData = {
   cumExecFee: string;
   cumExecQty: string;
   cumExecValue: string;
+  lastExecQty: string;
   leavesQty: string;
   leavesValue: string;
   orderId: string;

@@ -12,6 +12,7 @@ export class Store {
 
   public isAverageOrderOpened = false;
   public isPositionOpened = false;
+  // public isTakeProfitOpened = false;
 
   private candleLowPrice = 0;
   private lastCandleLowPrice = 0;
@@ -27,6 +28,8 @@ export class Store {
 
   public avgFilledPrice = '0';
 
+  private avgPositionPrice = '0';
+
   constructor(
     private readonly _symbol: string,
     @inject('EventEmitter')
@@ -35,6 +38,26 @@ export class Store {
 
   get symbol() {
     return this._symbol;
+  }
+
+  openPosition(price: string) {
+    this.isPositionOpened = true;
+    this.avgPositionPrice = price;
+  }
+
+  closePosition() {
+    this.isPositionOpened = false;
+    this.avgPositionPrice = '0';
+  }
+
+  closeAvgOrder(price: string, qty: string) {
+    // TODO: implement this
+    this.isAverageOrderOpened = false;
+  }
+
+  openAvgOrder(orderId: string) {
+    this.addOrder(orderId, 'AVERAGE_ORDER');
+    this.isAverageOrderOpened = true;
   }
 
   getLastCandleLowPrice() {
