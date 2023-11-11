@@ -1,16 +1,9 @@
 import {inject, injectable} from 'tsyringe';
 import {EventEmitter} from 'events';
-import {SubmitOrderParams, Topic} from '../../../types';
+import {OrderData, SubmitOrderParams, Topic} from '../../../types';
 import {Store} from '../../../domain/entities/Store';
-import {OPEN_POSITION, SUBMIT_ORDER} from '../../../constants';
+import {SUBMIT_ORDER} from '../../../constants';
 import {RestClientV5} from 'bybit-api';
-
-type OrderData = {
-  orderId: string;
-  avgPrice: string;
-  orderStatus: string;
-  lastPrice?: string;
-};
 
 @injectable()
 export class WsTopicHandler {
@@ -23,8 +16,11 @@ export class WsTopicHandler {
     private readonly client: RestClientV5
   ) {}
 
+  handleOrderTopic = (socketData: Topic) => {};
+
   processTopic = async (socketData: Topic) => {
     const {topic, data, ts} = socketData;
+
     if (topic === 'order') {
       const [orderData] = data;
 
@@ -73,7 +69,7 @@ export class WsTopicHandler {
           price: String(lastCandleLowPrice),
           category: category,
         };
-        this.emitter.emit(OPEN_POSITION, params);
+        this.emitter.emit(SUBMIT_ORDER, params);
       }
 
       if (orderClass === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
@@ -98,12 +94,13 @@ export class WsTopicHandler {
       }
 
       if (orderStatus === 'Filled') {
+        // TODO: should remove order when cancel it
         this.store.removeOrder(orderId);
       }
     }
 
     if (topic.includes('tickers')) {
-      const {lastPrice} = data as unknown as OrderData;
+      const {lastPrice} = data as unknown as OrderData; // TODO: change this type to ticker data
       this.store.setLowPrice(lastPrice);
       this.store.setLastCandleLowPrice(ts);
     }

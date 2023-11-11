@@ -17,16 +17,11 @@ const logger = initLogger(__filename);
 function bootstrapEvents() {
   const submitOrder = container.resolve<SubmitOrder>('SubmitOrder');
   const store = container.resolve<Store>('Store');
-
-  const openStartPosition =
-    container.resolve<OpenStartPosition>('OpenStartPosition');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
 
   emitter.on(SUBMIT_ORDER, params =>
     submitOrder.execute(params as SubmitOrderParams)
   );
-
-  emitter.on(OPEN_POSITION, () => openStartPosition.execute());
 
   emitter.on(CANDLE_CLOSED, (data: CandleEvent) => {
     console.log(data);
