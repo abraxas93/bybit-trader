@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import moment from 'moment';
+import BigJs from 'big.js';
 import {EventEmitter} from 'events';
 import {CandleEvent, OrderClass} from '../../types';
 import {inject, injectable} from 'tsyringe';
 import {CANDLE_CLOSED} from '../../constants';
+import {BASE_QUANTITY} from '../../config';
 
 // остаток в сделке умножаем на мартинг гейл, чтобы получить количество
 @injectable()
@@ -12,7 +15,6 @@ export class Store {
 
   public isAverageOrderOpened = false;
   public isPositionOpened = false;
-  // public isTakeProfitOpened = false;
 
   private candleLowPrice = 0;
   public lastCandleLowPrice = '0';
@@ -22,11 +24,12 @@ export class Store {
   private candlesCount = 0;
   private candlesToWait = 10;
 
-  public quantity = '15';
-  readonly category = 'linear';
-  readonly orderBook: Record<string, OrderClass> = {};
+  public quantity: string[] = [];
 
-  public avgFilledPrice = '0';
+  public positionQty = BASE_QUANTITY;
+
+  readonly category = 'linear'; // TODO: change to constant
+  readonly orderBook: Record<string, OrderClass> = {};
 
   private avgPositionPrice = '0';
 
@@ -41,7 +44,7 @@ export class Store {
   }
 
   get avgOrderPrice() {
-    return (Number(this.avgFilledPrice) * 0.99).toFixed(4); // TODO: change this to const
+    return (Number(this.avgPositionPrice) * 0.99).toFixed(4); // TODO: change this to const
   }
 
   get canOpenAvgOrder(): boolean {
@@ -52,9 +55,10 @@ export class Store {
     );
   }
 
-  openPosition(price: string) {
+  openPosition(avgPrice: string, qty: string) {
     this.isPositionOpened = true;
-    this.avgPositionPrice = price;
+    this.avgPositionPrice = avgPrice;
+    this.quantity = [qty];
   }
 
   closePosition() {
@@ -62,9 +66,17 @@ export class Store {
     this.avgPositionPrice = '0';
   }
 
-  closeAvgOrder(price: string, qty: string) {
-    // TODO: implement this
+  closeAvgOrder(price: string, qty: string, value: string) {
     this.isAverageOrderOpened = false;
+    const totalQty = this.quantity.reduce((prev: string, cur: string) =>
+      new BigJs(prev).add(cur).toString()
+    );
+    const numerator = new BigJs(totalQty)
+      .mul(this.avgPositionPrice)
+      .plus(value);
+    const denominator = new BigJs(totalQty).add(qty);
+    this.quantity.push(qty);
+    this.avgPositionPrice = new BigJs(numerator).div(denominator).toString();
   }
 
   openAvgOrder(orderId: string) {
@@ -85,15 +97,15 @@ export class Store {
   }
 
   resetAvgPrice() {
-    this.avgFilledPrice = '0';
+    this.avgPositionPrice = '0';
   }
 
   recalcAvgPrice(newPrice: string) {
-    if (this.avgFilledPrice === '0') {
-      this.avgFilledPrice = newPrice;
+    if (this.avgPositionPrice === '0') {
+      this.avgPositionPrice = newPrice;
     } else {
-      this.avgFilledPrice = (
-        (Number(this.avgFilledPrice) + Number(newPrice)) /
+      this.avgPositionPrice = (
+        (Number(this.avgPositionPrice) + Number(newPrice)) /
         2
       ).toFixed(4);
     }
@@ -101,11 +113,11 @@ export class Store {
   }
 
   getAvgPositionPrice() {
-    return this.avgFilledPrice;
+    return this.avgPositionPrice;
   }
 
   getTakeProfitOrderPrice() {
-    return (Number(this.avgFilledPrice) * 1.01).toFixed(4); // TODO: сhange this to const
+    return (Number(this.avgPositionPrice) * 1.01).toFixed(4); // TODO: сhange this to const
   }
 
   addOrder = (orderId: string, type: OrderClass) => {

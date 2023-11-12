@@ -80,13 +80,19 @@ function bootstrapSockets() {
 async function main() {
   logger.info('bootstrap app dependencies');
   await bootstrapCtx();
-  bootstrapSockets();
-  bootstrapEvents();
-  setTimeout(async () => {
-    const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
-    await useCase.execute();
-  }, 4000);
+  const store = container.resolve<Store>('Store');
+  store.openPosition('10', '10', '100');
+  store.closeAvgOrder('15', '10', '150');
+  store.closeAvgOrder('20', '10', '200');
+  store.closeAvgOrder('10', '10', '100');
+  console.log(store);
+  // bootstrapSockets();
+  // bootstrapEvents();
+  // setTimeout(async () => {
+  //   const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
+  //   await useCase.execute();
+  // }, 4000);
 }
-
+// 12.5
 main().catch(err => console.log(err));
 // 101

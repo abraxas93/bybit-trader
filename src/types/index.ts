@@ -61,7 +61,7 @@ export type OrderData = {
   cumExecFee: string;
   cumExecQty: string;
   cumExecValue: string;
-  lastExecQty: string;
+  lastExecQty?: string;
   leavesQty: string;
   leavesValue: string;
   orderId: string;

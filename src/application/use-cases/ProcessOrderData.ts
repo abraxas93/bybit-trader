@@ -41,7 +41,7 @@ export class ProcessOrderData {
   // TODO: add paritally filled cases
   async execute(data: OrderData) {
     try {
-      const {orderId, orderStatus, avgPrice, lastExecQty} = data;
+      const {orderId, orderStatus, avgPrice, cumExecQty, cumExecValue} = data;
       const orderCls = this.store.getOrderClass(orderId);
 
       if (orderStatus === 'Filled') {
@@ -49,7 +49,7 @@ export class ProcessOrderData {
       }
 
       if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {
-        this.store.openPosition(avgPrice);
+        this.store.openPosition(avgPrice, cumExecQty);
         return {data: 'TAKE_PROFIT_ORDER', error: null};
       }
 
@@ -60,7 +60,7 @@ export class ProcessOrderData {
       }
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
-        this.store.closeAvgOrder(avgPrice, lastExecQty);
+        this.store.closeAvgOrder(avgPrice, cumExecQty, cumExecValue);
         await this.cancelTakeProfitOrder(); // TODO: add error handling
         return {data: 'TAKE_PROFIT_ORDER', error: null};
       }
