@@ -4,32 +4,40 @@ import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {WebsocketClient} from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
-import {CANDLE_CLOSED, OPEN_POSITION, SUBMIT_ORDER} from './constants';
+import {
+  CANDLE_CLOSED,
+  SUBMIT_OPEN_ORDER,
+  SUBMIT_PROFIT_ORDER,
+} from './constants';
 import {Store} from './domain/entities/Store';
-import {SubmitAvgOrder, SubmitOpenOrder} from './application';
+import {
+  SubmitAvgOrder,
+  SubmitOpenOrder,
+  SubmitProfitOrder,
+} from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
-import {CandleEvent, SubmitOrderParams, Topic} from './types';
-import {SubmitOrder} from './application/use-cases/SubmitOrder';
+import {Topic} from './types';
 import {SYMBOL} from './config';
 
 const logger = initLogger(__filename);
 
 function bootstrapEvents() {
-  const submitOrder = container.resolve<SubmitOrder>('SubmitOrder');
+  const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
+  const submitProfitOrder =
+    container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
   const submitAvgOrder = container.resolve<SubmitAvgOrder>('SubmitAvgOrder');
   const store = container.resolve<Store>('Store');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
 
-  emitter.on(SUBMIT_ORDER, params =>
-    submitOrder.execute(params as SubmitOrderParams)
-  );
+  emitter.on(SUBMIT_OPEN_ORDER, () => submitOpenOrder.execute());
+  emitter.on(SUBMIT_PROFIT_ORDER, () => submitProfitOrder.execute());
 
-  emitter.on(CANDLE_CLOSED, (data: CandleEvent) => {
-    console.log(data);
-    if (store.canOpenAvgOrder) {
-      submitAvgOrder.execute().catch(err => console.log(err));
-    }
-  });
+  emitter.on(
+    CANDLE_CLOSED,
+    () =>
+      store.canOpenAvgOrder &&
+      submitAvgOrder.execute().catch(err => console.log(err))
+  );
 }
 
 function bootstrapSockets() {
@@ -80,18 +88,14 @@ function bootstrapSockets() {
 async function main() {
   logger.info('bootstrap app dependencies');
   await bootstrapCtx();
-  const store = container.resolve<Store>('Store');
-  store.openPosition('10', '10', '100');
-  store.closeAvgOrder('15', '10', '150');
-  store.closeAvgOrder('20', '10', '200');
-  store.closeAvgOrder('10', '10', '100');
-  console.log(store);
-  // bootstrapSockets();
-  // bootstrapEvents();
-  // setTimeout(async () => {
-  //   const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
-  //   await useCase.execute();
-  // }, 4000);
+  //const store = container.resolve<Store>('Store');
+
+  bootstrapSockets();
+  bootstrapEvents();
+  setTimeout(async () => {
+    const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
+    await useCase.execute();
+  }, 4000);
 }
 // 12.5
 main().catch(err => console.log(err));

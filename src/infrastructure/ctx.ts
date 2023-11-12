@@ -51,5 +51,5 @@ export async function bootstrapCtx() {
   container.register<SubmitOpenOrder>('SubmitOpenOrder', SubmitOpenOrder);
   container.register<SubmitProfitOrder>('SubmitProfitOrder', SubmitProfitOrder);
   container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
-  container.register<SubmitOrder>('SubmitOrder', SubmitOrder);
+  //container.register<SubmitOrder>('SubmitOrder', SubmitOrder);
 }
