@@ -22,7 +22,7 @@ export class SubmitAvgOrder {
       logger.info(SUBMIT_AVG_ORDER);
       const category = this.store.category;
       const symbol = this.store.symbol;
-      const qty = this.store.posQty;
+      const qty = this.store.avgQty;
 
       const body: OrderParamsV5 = {
         symbol,
@@ -32,7 +32,7 @@ export class SubmitAvgOrder {
         price: this.store.avgOrderPrice,
         category: category,
       };
-
+      console.log(body);
       const ordResponse = await this.client.submitOrder(body);
       const {retCode, result} = ordResponse;
 

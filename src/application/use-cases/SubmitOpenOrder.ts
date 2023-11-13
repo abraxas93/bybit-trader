@@ -45,7 +45,7 @@ export class SubmitOpenOrder {
         this.store.setLastLowCandlePrice(lowPrice);
       }
 
-      const order: OrderParamsV5 = {
+      const body: OrderParamsV5 = {
         symbol: symbol,
         side: 'Buy',
         orderType: 'Limit',
@@ -53,7 +53,8 @@ export class SubmitOpenOrder {
         price: lastCandleLowPrice,
         category: category,
       };
-      const ordResponse = await this.client.submitOrder(order);
+      console.log(body);
+      const ordResponse = await this.client.submitOrder(body);
 
       const {retCode, result} = ordResponse;
 

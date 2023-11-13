@@ -5,7 +5,12 @@ import {EventEmitter} from 'events';
 import {OrderClass} from '../../types';
 import {inject, injectable} from 'tsyringe';
 import {CANDLE_CLOSED} from '../../constants';
-import {BASE_QUANTITY} from '../../config';
+import {
+  AVG_BUY_RATE,
+  BASE_QUANTITY,
+  MARTIN_GALE,
+  TAKE_PROFIT_RATE,
+} from '../../config';
 
 // остаток в сделке умножаем на мартинг гейл, чтобы получить количество
 @injectable()
@@ -42,7 +47,11 @@ export class Store {
   }
 
   get avgOrderPrice() {
-    return (Number(this.avgPositionPrice) * 0.99).toFixed(4); // TODO: change this to const
+    return new BigJs(this.avgPositionPrice).mul(AVG_BUY_RATE).toFixed(4);
+  }
+
+  get profitOrderPrice() {
+    return new BigJs(this.avgPositionPrice).mul(TAKE_PROFIT_RATE).toFixed(4);
   }
 
   get canOpenAvgOrder(): boolean {
@@ -65,19 +74,28 @@ export class Store {
     return result;
   }
 
+  get avgQty() {
+    return this.quantity.length > 1
+      ? new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(4)
+      : this.posQty;
+  }
+
   openPosition(avgPrice: string, qty: string) {
     this.isPositionOpened = true;
     this.avgPositionPrice = avgPrice;
     this.quantity = [qty];
+    this.candlesCount = 0;
   }
 
   closePosition() {
     this.isPositionOpened = false;
     this.avgPositionPrice = '0';
+    this.quantity = [];
   }
 
   closeAvgOrder(price: string, qty: string, value: string) {
     this.isAverageOrderOpened = false;
+    this.candlesCount = 0;
     const totalQty = this.quantity.reduce((prev: string, cur: string) =>
       new BigJs(prev).add(cur).toString()
     );

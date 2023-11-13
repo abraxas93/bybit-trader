@@ -33,7 +33,7 @@ export class SubmitProfitOrder {
         price: String(this.store.getTakeProfitOrderPrice()),
         category: category,
       };
-
+      console.log(body);
       const response = await this.client.submitOrder(body);
       const {retCode, result} = response;
 
