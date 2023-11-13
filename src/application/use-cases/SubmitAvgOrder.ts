@@ -1,21 +1,28 @@
+import {EventEmitter} from 'events';
 import {Store} from '../../domain/entities/Store';
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
+import {SUBMIT_AVG_ORDER} from '../../constants';
+import {initLogger} from '../../logger';
 
+const logger = initLogger(__filename);
 @injectable()
 export class SubmitAvgOrder {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,
     @inject('Store')
-    private readonly store: Store
+    private readonly store: Store,
+    @inject('EventEmitter')
+    private readonly emitter: EventEmitter
   ) {}
 
   async execute() {
     try {
+      logger.info(SUBMIT_AVG_ORDER);
       const category = this.store.category;
       const symbol = this.store.symbol;
-      const qty = this.store.quantity;
+      const qty = this.store.posQty;
 
       const body: OrderParamsV5 = {
         symbol,

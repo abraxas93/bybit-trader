@@ -16,7 +16,7 @@ import {
   SubmitProfitOrder,
 } from '../application';
 import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
-import {SubmitOrder} from '../application/use-cases/SubmitOrder';
+import {ProcessOrderData} from '../application/use-cases/ProcessOrderData';
 
 export async function bootstrapCtx() {
   const mongoClient = await createMongoClient();
@@ -45,6 +45,8 @@ export async function bootstrapCtx() {
   container.register<MongoClient>('MongoClient', {useValue: mongoClient});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
+
+  container.register<ProcessOrderData>('ProcessOrderData', ProcessOrderData);
 
   container.register<WsTopicHandler>('WsTopicHandler', WsTopicHandler);
 

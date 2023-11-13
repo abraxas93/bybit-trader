@@ -6,6 +6,7 @@ import {WebsocketClient} from 'bybit-api';
 import {bootstrapCtx} from './infrastructure/ctx';
 import {
   CANDLE_CLOSED,
+  ERROR_EVENT,
   SUBMIT_OPEN_ORDER,
   SUBMIT_PROFIT_ORDER,
 } from './constants';
@@ -29,15 +30,21 @@ function bootstrapEvents() {
   const store = container.resolve<Store>('Store');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
 
-  emitter.on(SUBMIT_OPEN_ORDER, () => submitOpenOrder.execute());
-  emitter.on(SUBMIT_PROFIT_ORDER, () => submitProfitOrder.execute());
+  emitter.on(SUBMIT_OPEN_ORDER, () => {
+    submitOpenOrder.execute().catch(err => logger.error(err));
+  });
+  emitter.on(SUBMIT_PROFIT_ORDER, () => {
+    submitProfitOrder.execute().catch(err => logger.error(err));
+  });
+  emitter.on(ERROR_EVENT, data => logger.error(data));
 
-  emitter.on(
-    CANDLE_CLOSED,
-    () =>
-      store.canOpenAvgOrder &&
-      submitAvgOrder.execute().catch(err => console.log(err))
-  );
+  emitter.on(CANDLE_CLOSED, () => {
+    store.canOpenAvgOrder &&
+      submitAvgOrder.execute().catch(err => logger.error(err));
+
+    !store.isPositionOpened &&
+      submitOpenOrder.execute().catch(err => logger.error(err));
+  });
 }
 
 function bootstrapSockets() {
@@ -62,7 +69,7 @@ function bootstrapSockets() {
 
   // ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
 
-  ws.on('update', data => wsHandler.processTopic(data as Topic));
+  ws.on('update', data => wsHandler.handle(data as Topic));
 
   // Optional: Listen to websocket connection open event (automatic after subscribing to one or more topics)
   ws.on('open', ({wsKey, event}) => {

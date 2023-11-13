@@ -30,12 +30,12 @@ export type SubmitOrderParams = OrderParamsV5 & {
   orderClass: OrderClass;
 };
 
-export type CandleEvent = {
-  count: number;
-  isAverageOrderOpened: boolean;
-  lastCandleLowPrice: number;
-  nextCandleTimeFrame: number;
-};
+// export type CandleEvent = {
+//   count: number;
+//   isAverageOrderOpened: boolean;
+//   lastCandleLowPrice: number;
+//   nextCandleTimeFrame: number;
+// };
 
 export type TickerData = {
   symbol: string;

@@ -2,7 +2,7 @@
 import moment from 'moment';
 import BigJs from 'big.js';
 import {EventEmitter} from 'events';
-import {CandleEvent, OrderClass} from '../../types';
+import {OrderClass} from '../../types';
 import {inject, injectable} from 'tsyringe';
 import {CANDLE_CLOSED} from '../../constants';
 import {BASE_QUANTITY} from '../../config';
@@ -10,13 +10,13 @@ import {BASE_QUANTITY} from '../../config';
 // остаток в сделке умножаем на мартинг гейл, чтобы получить количество
 @injectable()
 export class Store {
-  private started = false;
+  private klineStarted = false;
   private isNewCandle = false;
 
   public isAverageOrderOpened = false;
   public isPositionOpened = false;
 
-  private candleLowPrice = 0;
+  private candleLowPrice = '0';
   public lastCandleLowPrice = '0';
   private readonly timeFrame = 10;
   private nextCandleTimeFrame = 0;
@@ -25,8 +25,6 @@ export class Store {
   private candlesToWait = 10;
 
   public quantity: string[] = [];
-
-  public positionQty = BASE_QUANTITY;
 
   readonly category = 'linear'; // TODO: change to constant
   readonly orderBook: Record<string, OrderClass> = {};
@@ -53,6 +51,18 @@ export class Store {
       this.candlesCount >= 10 &&
       this.isPositionOpened
     );
+  }
+
+  get baseQty() {
+    return BASE_QUANTITY;
+  }
+
+  get posQty() {
+    const result = this.quantity.reduce((prev, cur) =>
+      new BigJs(prev).add(cur).toFixed(4)
+    );
+
+    return result;
   }
 
   openPosition(avgPrice: string, qty: string) {
@@ -139,14 +149,17 @@ export class Store {
     return null;
   };
 
+  setLastLowCandlePrice(price: string) {
+    this.candleLowPrice = price;
+  }
+
   setLowPrice(lastPrice: string | undefined) {
-    if (!this.started) return;
+    if (!this.klineStarted) return;
     if (this.isNewCandle && lastPrice) {
-      this.candleLowPrice = Number(lastPrice);
+      this.candleLowPrice = lastPrice;
       this.isNewCandle = false;
-    }
-    if (Number(lastPrice) && Number(lastPrice) < this.candleLowPrice) {
-      this.candleLowPrice = Number(lastPrice);
+    } else if (lastPrice && Number(lastPrice) < Number(this.candleLowPrice)) {
+      this.candleLowPrice = lastPrice;
     }
   }
 
@@ -155,33 +168,29 @@ export class Store {
     this.nextCandleTimeFrame += this.timeFrame;
     this.isNewCandle = true;
     this.candlesCount += 1;
-
-    const data: CandleEvent = {
-      count: this.candlesCount,
-      isAverageOrderOpened: this.isAverageOrderOpened,
-      lastCandleLowPrice: this.lastCandleLowPrice,
-      nextCandleTimeFrame: this.nextCandleTimeFrame,
-    };
-    this._emitter.emit(CANDLE_CLOSED, data);
+    console.log(
+      `Candld closed: ${this.lastCandleLowPrice}, next candle: ${this.nextCandleTimeFrame}, count: ${this.candlesCount}`
+    );
+    this._emitter.emit(CANDLE_CLOSED);
   }
 
   setAverageOrderOpened() {
     this.isAverageOrderOpened = true;
   }
 
-  setLastCandleLowPrice(ts: number) {
+  updateLastCandleLowPrice(ts: number) {
     const seconds = moment(ts).seconds();
-    if (!this.started && seconds === 0) {
-      this.started = true;
+    if (!this.klineStarted && seconds % this.timeFrame === 0) {
+      this.klineStarted = true;
       this.isNewCandle = true;
       const nearest = this.roundToNearestTen(seconds);
       this.nextCandleTimeFrame = nearest + this.timeFrame;
       console.log(
-        `Candle started: ${this.candleLowPrice}, next candle in: ${this.nextCandleTimeFrame} and seconds: ${seconds}`
+        `Candle klineStarted: ${this.candleLowPrice}, next candle in: ${this.nextCandleTimeFrame} and seconds: ${seconds}`
       );
     }
 
-    if (this.started) {
+    if (this.klineStarted) {
       if (
         seconds >= 10 &&
         seconds >= this.nextCandleTimeFrame &&

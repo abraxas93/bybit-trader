@@ -1,7 +1,9 @@
+import {EventEmitter} from 'events';
 import {Store} from '../../domain/entities/Store';
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {initLogger} from '../../logger';
+import {SUBMIT_PROFIT_ORDER} from '../../constants';
 
 const logger = initLogger(__filename);
 
@@ -11,14 +13,17 @@ export class SubmitProfitOrder {
     @inject('RestClientV5')
     private readonly client: RestClientV5,
     @inject('Store')
-    private readonly store: Store
+    private readonly store: Store,
+    @inject('EventEmitter')
+    private readonly emitter: EventEmitter
   ) {}
 
   async execute() {
     try {
+      logger.info(SUBMIT_PROFIT_ORDER);
       const category = this.store.category;
       const symbol = this.store.symbol;
-      const qty = this.store.quantity; // TODO: change this to position quantity
+      const qty = this.store.posQty;
 
       const body: OrderParamsV5 = {
         symbol,
@@ -29,12 +34,8 @@ export class SubmitProfitOrder {
         category: category,
       };
 
-      logger.info('ORDER , ', {...body, type: 'TAKE_PROFIT_ORDER'});
-
       const response = await this.client.submitOrder(body);
       const {retCode, result} = response;
-
-      logger.info('RESPONSE ,', response);
 
       if (retCode === 0) {
         this.store.addOrder(result.orderId, 'TAKE_PROFIT_ORDER');

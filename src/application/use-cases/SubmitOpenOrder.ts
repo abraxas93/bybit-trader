@@ -1,6 +1,11 @@
-import {Store} from '../../domain/entities/Store';
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
+import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
+import {Store} from '../../domain/entities/Store';
+import {ERROR_EVENT, SUBMIT_OPEN_ORDER} from '../../constants';
+import {initLogger} from '../../logger';
+
+const logger = initLogger(__filename);
 
 @injectable()
 export class SubmitOpenOrder {
@@ -8,13 +13,25 @@ export class SubmitOpenOrder {
     @inject('RestClientV5')
     private readonly client: RestClientV5,
     @inject('Store')
-    private readonly store: Store
+    private readonly store: Store,
+    @inject('EventEmitter')
+    private readonly emitter: EventEmitter
   ) {}
   async execute() {
     try {
+      logger.info(SUBMIT_OPEN_ORDER);
       const symbol = this.store.symbol;
       const category = this.store.category;
-      const qty = this.store.quantity;
+      const qty: string = this.store.baseQty;
+      const cancelResponse = await this.client.cancelAllOrders({
+        symbol,
+        category,
+      });
+
+      if (cancelResponse.retCode) {
+        this.emitter.emit(ERROR_EVENT, cancelResponse);
+      }
+
       let lastCandleLowPrice = this.store.lastCandleLowPrice;
 
       if (lastCandleLowPrice === '0') {
@@ -25,6 +42,7 @@ export class SubmitOpenOrder {
         });
         const [, , , , lowPrice] = response.result.list[0];
         lastCandleLowPrice = lowPrice;
+        this.store.setLastLowCandlePrice(lowPrice);
       }
 
       const order: OrderParamsV5 = {
@@ -36,6 +54,7 @@ export class SubmitOpenOrder {
         category: category,
       };
       const ordResponse = await this.client.submitOrder(order);
+
       const {retCode, result} = ordResponse;
 
       if (retCode === 0) {
