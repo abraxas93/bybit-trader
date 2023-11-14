@@ -57,7 +57,7 @@ export class SubmitOpenOrder {
       const ordResponse = await this.client.submitOrder(body);
 
       const {retCode, result} = ordResponse;
-
+      logger.warn(ordResponse);
       if (retCode === 0) {
         this.store.addOrder(result.orderId, 'OPEN_ORDER');
       }

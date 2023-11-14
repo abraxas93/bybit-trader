@@ -49,17 +49,7 @@ function bootstrapEvents() {
 
 function bootstrapSockets() {
   const ws = container.resolve<WebsocketClient>('WebsocketClient');
-  // const store = container.resolve<Store>('Store');
   const wsHandler = container.resolve<WsTopicHandler>('WsTopicHandler');
-  // const symbol = store.symbol;
-  // const category = store.category;
-
-  // store.addOrder('fa9fe9db-a3a4-4757-a9fb-8e4278030726', 'OPEN_ORDER');
-  // console.log(store.getOrderClass('fa9fe9db-a3a4-4757-a9fb-8e4278030726'));
-
-  // ws.subscribeV5([`publicTrade.${symbol}`], category).catch(err =>
-  //   console.log(err)
-  // );
   // 'order', 'position', 'execution',
   // ws.subscribeV5(`kline.1.BTCUSDT`, 'linear').catch(err => console.log(err));
 
@@ -95,8 +85,6 @@ function bootstrapSockets() {
 async function main() {
   logger.info('bootstrap app dependencies');
   await bootstrapCtx();
-  //const store = container.resolve<Store>('Store');
-
   bootstrapSockets();
   bootstrapEvents();
   setTimeout(async () => {
@@ -104,6 +92,5 @@ async function main() {
     await useCase.execute();
   }, 4000);
 }
-// 12.5
+
 main().catch(err => console.log(err));
-// 101

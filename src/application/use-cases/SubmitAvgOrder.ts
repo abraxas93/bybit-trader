@@ -35,7 +35,7 @@ export class SubmitAvgOrder {
       console.log(body);
       const ordResponse = await this.client.submitOrder(body);
       const {retCode, result} = ordResponse;
-
+      logger.warn(ordResponse);
       if (retCode === 0) this.store.openAvgOrder(result.orderId);
 
       return {data: ordResponse, error: null};

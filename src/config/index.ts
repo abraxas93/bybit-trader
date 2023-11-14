@@ -23,9 +23,11 @@ export const API_SECRET = process.env.API_SECRET;
 
 // config
 
-export const SYMBOL = 'TOKENUSDT';
-export const BASE_QUANTITY = '15';
-export const TIME_FRAME = '1';
+export const SYMBOL = '1000FLOKIUSDT';
+export const BASE_QUANTITY = '10';
+export const TIME_FRAME = 10;
 export const MARTIN_GALE = 2;
 export const TAKE_PROFIT_RATE = 1.007;
 export const AVG_BUY_RATE = 0.995;
+export const MAX_AVG_ORDER_COUNT = 10;
+export const CANDLES_TO_WAIT = 10;

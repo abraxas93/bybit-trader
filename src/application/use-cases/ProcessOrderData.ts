@@ -68,7 +68,7 @@ export class ProcessOrderData {
         lastExecQty,
       } = data;
       const orderCls = this.store.getOrderClass(orderId);
-      console.log({orderId, orderStatus, lastExecQty});
+      console.log({orderId, orderStatus, lastExecQty, orderCls});
       if (orderStatus === 'Filled') {
         this.store.removeOrder(orderId);
       }
@@ -81,7 +81,7 @@ export class ProcessOrderData {
       if (orderCls === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
         this.store.closePosition();
         await this.cancelAvgOrder(); // TODO: add error handling
-        return {data: SUBMIT_OPEN_ORDER, error: null};
+        // return {data: SUBMIT_OPEN_ORDER, error: null};
       }
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {

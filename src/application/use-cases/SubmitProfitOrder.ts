@@ -30,11 +30,12 @@ export class SubmitProfitOrder {
         qty,
         side: 'Sell',
         orderType: 'Limit',
-        price: String(this.store.getTakeProfitOrderPrice()),
+        price: this.store.profitOrderPrice,
         category: category,
       };
       console.log(body);
       const response = await this.client.submitOrder(body);
+      logger.warn(response);
       const {retCode, result} = response;
 
       if (retCode === 0) {

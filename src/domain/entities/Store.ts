@@ -8,8 +8,11 @@ import {CANDLE_CLOSED} from '../../constants';
 import {
   AVG_BUY_RATE,
   BASE_QUANTITY,
+  CANDLES_TO_WAIT,
   MARTIN_GALE,
+  MAX_AVG_ORDER_COUNT,
   TAKE_PROFIT_RATE,
+  TIME_FRAME,
 } from '../../config';
 
 // остаток в сделке умножаем на мартинг гейл, чтобы получить количество
@@ -23,11 +26,10 @@ export class Store {
 
   private candleLowPrice = '0';
   public lastCandleLowPrice = '0';
-  private readonly timeFrame = 10;
+  private readonly timeFrame = TIME_FRAME;
   private nextCandleTimeFrame = 0;
 
   private candlesCount = 0;
-  private candlesToWait = 10;
 
   public quantity: string[] = [];
 
@@ -35,6 +37,8 @@ export class Store {
   readonly orderBook: Record<string, OrderClass> = {};
 
   private avgPositionPrice = '0';
+  public lastAvgOrderPrice = '0';
+  private avgOrderCount = 0;
 
   constructor(
     private readonly _symbol: string,
@@ -47,7 +51,7 @@ export class Store {
   }
 
   get avgOrderPrice() {
-    return new BigJs(this.avgPositionPrice).mul(AVG_BUY_RATE).toFixed(4);
+    return new BigJs(this.lastAvgOrderPrice).mul(AVG_BUY_RATE).toFixed(4);
   }
 
   get profitOrderPrice() {
@@ -57,8 +61,9 @@ export class Store {
   get canOpenAvgOrder(): boolean {
     return (
       !this.isAverageOrderOpened &&
-      this.candlesCount >= 10 &&
-      this.isPositionOpened
+      this.candlesCount >= CANDLES_TO_WAIT &&
+      this.isPositionOpened &&
+      this.avgOrderCount <= MAX_AVG_ORDER_COUNT
     );
   }
 
@@ -75,9 +80,10 @@ export class Store {
   }
 
   get avgQty() {
-    return this.quantity.length > 1
-      ? new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(4)
-      : this.posQty;
+    return new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(4);
+    // return this.quantity.length > 1
+    //   ? new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(4)
+    //   : this.posQty;
   }
 
   openPosition(avgPrice: string, qty: string) {
@@ -85,12 +91,14 @@ export class Store {
     this.avgPositionPrice = avgPrice;
     this.quantity = [qty];
     this.candlesCount = 0;
+    this.lastAvgOrderPrice = avgPrice;
   }
 
   closePosition() {
     this.isPositionOpened = false;
     this.avgPositionPrice = '0';
     this.quantity = [];
+    this.avgOrderCount = 0;
   }
 
   closeAvgOrder(price: string, qty: string, value: string) {
@@ -105,6 +113,8 @@ export class Store {
     const denominator = new BigJs(totalQty).add(qty);
     this.quantity.push(qty);
     this.avgPositionPrice = new BigJs(numerator).div(denominator).toString();
+    this.lastAvgOrderPrice = price;
+    this.avgOrderCount += 1;
   }
 
   openAvgOrder(orderId: string) {
@@ -140,13 +150,13 @@ export class Store {
     this.candlesCount = 0;
   }
 
-  getAvgPositionPrice() {
-    return this.avgPositionPrice;
-  }
+  // getAvgPositionPrice() {
+  //   return this.avgPositionPrice;
+  // }
 
-  getTakeProfitOrderPrice() {
-    return (Number(this.avgPositionPrice) * 1.01).toFixed(4); // TODO: сhange this to const
-  }
+  // getTakeProfitOrderPrice() {
+  //   return (Number(this.avgPositionPrice) * 1.01).toFixed(4); // TODO: сhange this to const
+  // }
 
   addOrder = (orderId: string, type: OrderClass) => {
     this.orderBook[orderId] = type;

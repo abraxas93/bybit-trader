@@ -31,6 +31,7 @@ export class WsTopicHandler {
       const {data: event, error} = await this.useCase
         .execute(orderData as OrderData)
         .catch(err => logger.error(err));
+      console.log({EVENT: event});
       if (error) this.emitter.emit(ERROR_EVENT, error);
       else this.emitter.emit(event as string);
     }
