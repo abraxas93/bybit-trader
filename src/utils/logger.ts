@@ -6,18 +6,18 @@ import {format, transports, createLogger} from 'winston';
 const colorizer = format.colorize();
 const outputFormat = format.printf(info => {
   const {timestamp, label, message, level} = info;
-  return `${colorizer.colorize(level, timestamp)} ${colorizer.colorize(
+  return `${colorizer.colorize(level, timestamp)}${colorizer.colorize(
     level,
     label
-  )} ${colorizer.colorize(level, message)}`;
+  )}${colorizer.colorize(level, message)}`;
 });
 
-export function initLogger(file: string) {
-  const parsed = file.split('/');
-  const label = parsed.pop();
+export function initLogger(label: string, logFileName: string) {
+  // const parsed = file.split('/');
+  // const label = parsed.pop();
   return createLogger({
     format: format.combine(
-      format.label({label: `[${label}]:`}),
+      format.label({label: `|${label}|`}),
       format.timestamp(),
       outputFormat
     ),
@@ -25,7 +25,7 @@ export function initLogger(file: string) {
     transports: [
       new transports.Console(),
       new transports.File({
-        filename: 'logs.log',
+        filename: logFileName,
         silent: process.env.LOGS ? false : true,
       }),
     ],
