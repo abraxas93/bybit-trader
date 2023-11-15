@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npm run test",
     "run:dev": "cross-env NODE_ENV=dev ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
-    "run:dev:testen": "cross-env NODE_ENV=test ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts"
+    "run:dev:testnet": "cross-env NODE_ENV=test ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts"
   },
   "repository": {
     "type": "git",
