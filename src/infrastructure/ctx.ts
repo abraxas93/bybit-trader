@@ -17,7 +17,7 @@ import {
 } from '../application';
 import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
 import {ProcessOrderData} from '../application/use-cases/ProcessOrderData';
-console.log(process.env.NODE_ENV);
+
 export function bootstrapCtx() {
   // const mongoClient = await createMongoClient();
   const eventEmitter = new EventEmitter();

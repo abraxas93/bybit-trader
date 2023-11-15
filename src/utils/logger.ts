@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format, transports, createLogger} from 'winston';
-import os from 'os';
 
 const colorizer = format.colorize();
 const outputFormat = format.printf(info => {
@@ -27,7 +26,7 @@ export function initLogger(file: string) {
       new transports.Console(),
       new transports.File({
         filename: 'logs.log',
-        silent: true,
+        silent: process.env.LOGS ? false : true,
       }),
     ],
   });
