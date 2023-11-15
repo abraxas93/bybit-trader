@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format, transports, createLogger} from 'winston';
+import os from 'os';
 
 const colorizer = format.colorize();
 const outputFormat = format.printf(info => {
@@ -18,10 +19,16 @@ export function initLogger(file: string) {
   return createLogger({
     format: format.combine(
       format.label({label: `[${label}]:`}),
-      format.timestamp({format: 'DD/MM/YYYY HH:mm:ss'}),
+      format.timestamp(),
       outputFormat
     ),
     exitOnError: true,
-    transports: [new transports.Console()],
+    transports: [
+      new transports.Console(),
+      new transports.File({
+        filename: 'logs.log',
+        silent: true,
+      }),
+    ],
   });
 }

@@ -3,7 +3,7 @@ import {Store} from '../../domain/entities/Store';
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {SUBMIT_AVG_ORDER} from '../../constants';
-import {initLogger} from '../../logger';
+import {initLogger} from '../../utils/logger';
 
 const logger = initLogger(__filename);
 @injectable()

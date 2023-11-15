@@ -2,7 +2,7 @@ import {EventEmitter} from 'events';
 import {Store} from '../../domain/entities/Store';
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
-import {initLogger} from '../../logger';
+import {initLogger} from '../../utils/logger';
 import {SUBMIT_PROFIT_ORDER} from '../../constants';
 
 const logger = initLogger(__filename);

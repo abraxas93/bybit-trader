@@ -3,7 +3,7 @@ import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {Store} from '../../domain/entities/Store';
 import {ERROR_EVENT, SUBMIT_OPEN_ORDER} from '../../constants';
-import {initLogger} from '../../logger';
+import {initLogger} from '../../utils/logger';
 
 const logger = initLogger(__filename);
 

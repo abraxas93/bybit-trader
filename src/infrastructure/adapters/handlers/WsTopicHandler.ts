@@ -5,7 +5,7 @@ import {Store} from '../../../domain/entities/Store';
 // import {SUBMIT_ORDER} from '../../../constants';
 import {RestClientV5} from 'bybit-api';
 import {ProcessOrderData} from '../../../application/use-cases/ProcessOrderData';
-import {initLogger} from '../../../logger';
+import {initLogger} from '../../../utils/logger';
 import {ERROR_EVENT} from '../../../constants';
 import moment from 'moment';
 

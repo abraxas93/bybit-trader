@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
-import {createMongoClient} from './database/mongo/createMongoClient';
-import {MongoClient} from 'mongodb';
+// import {createMongoClient} from './database/mongo/createMongoClient';
+// import {MongoClient} from 'mongodb';
 import {
   WSClientConfigurableOptions,
   WebsocketClient,
@@ -18,8 +18,8 @@ import {
 import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
 import {ProcessOrderData} from '../application/use-cases/ProcessOrderData';
 
-export async function bootstrapCtx() {
-  const mongoClient = await createMongoClient();
+export function bootstrapCtx() {
+  // const mongoClient = await createMongoClient();
   const eventEmitter = new EventEmitter();
 
   const wsOptions: WSClientConfigurableOptions = {
@@ -42,7 +42,6 @@ export async function bootstrapCtx() {
   });
 
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
-  container.register<MongoClient>('MongoClient', {useValue: mongoClient});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
 
@@ -53,5 +52,4 @@ export async function bootstrapCtx() {
   container.register<SubmitOpenOrder>('SubmitOpenOrder', SubmitOpenOrder);
   container.register<SubmitProfitOrder>('SubmitProfitOrder', SubmitProfitOrder);
   container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
-  //container.register<SubmitOrder>('SubmitOrder', SubmitOrder);
 }

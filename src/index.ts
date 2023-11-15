@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import {initLogger} from './logger';
+import {initLogger} from './utils/logger';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {WebsocketClient} from 'bybit-api';
