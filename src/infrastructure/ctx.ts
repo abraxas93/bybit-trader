@@ -25,7 +25,7 @@ export function bootstrapCtx() {
   const wsOptions: WSClientConfigurableOptions = {
     key: process.env.API_KEY,
     secret: process.env.API_SECRET,
-    testnet: true,
+    testnet: process.env.NODE_ENV === 'testnet' ? true : false,
     market: 'v5',
   };
 
@@ -34,7 +34,7 @@ export function bootstrapCtx() {
   const bybitClient = new RestClientV5({
     key: process.env.API_KEY,
     secret: process.env.API_SECRET,
-    testnet: true,
+    testnet: process.env.NODE_ENV === 'testnet' ? true : false,
   });
 
   container.register<Store>('Store', {
