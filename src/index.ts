@@ -1,3 +1,4 @@
+/* eslint-disable no-process-exit */
 import 'reflect-metadata';
 import {initLogger} from './utils/logger';
 import {container} from 'tsyringe';
@@ -20,7 +21,10 @@ import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler'
 import {Topic} from './types';
 import {SYMBOL} from './config';
 
-const logger = initLogger(__filename);
+const errLogger = initLogger('index.ts', 'logs/errors.log');
+const logsLogger = initLogger('index.ts', 'logs/logs.log');
+
+const SESSION_ID = Date.now();
 
 function bootstrapEvents() {
   const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
@@ -31,19 +35,19 @@ function bootstrapEvents() {
   const emitter = container.resolve<EventEmitter>('EventEmitter');
 
   emitter.on(SUBMIT_OPEN_ORDER, () => {
-    submitOpenOrder.execute().catch(err => logger.error(err));
+    submitOpenOrder.execute().catch(err => errLogger.error(err));
   });
   emitter.on(SUBMIT_PROFIT_ORDER, () => {
-    submitProfitOrder.execute().catch(err => logger.error(err));
+    submitProfitOrder.execute().catch(err => errLogger.error(err));
   });
-  emitter.on(ERROR_EVENT, data => logger.error(data));
+  emitter.on(ERROR_EVENT, data => errLogger.error(data));
 
   emitter.on(CANDLE_CLOSED, () => {
     store.canOpenAvgOrder &&
-      submitAvgOrder.execute().catch(err => logger.error(err));
+      submitAvgOrder.execute().catch(err => errLogger.error(err));
 
     !store.isPositionOpened &&
-      submitOpenOrder.execute().catch(err => logger.error(err));
+      submitOpenOrder.execute().catch(err => errLogger.error(err));
   });
 }
 
@@ -82,9 +86,9 @@ function bootstrapSockets() {
   });
 }
 
-async function main() {
-  logger.info('bootstrap app dependencies');
-  await bootstrapCtx();
+function main() {
+  logsLogger.info(`--- start:${SESSION_ID} ---`);
+  bootstrapCtx();
   bootstrapSockets();
   bootstrapEvents();
   setTimeout(async () => {
@@ -93,4 +97,14 @@ async function main() {
   }, 4000);
 }
 
-main().catch(err => console.log(err));
+main();
+
+process.on('SIGINT', () => {
+  logsLogger.info(`--- end:${SESSION_ID} ---`);
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  logsLogger.info(`--- end:${SESSION_ID} ---`);
+  process.exit(0);
+});

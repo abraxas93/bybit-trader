@@ -5,7 +5,6 @@ import {inject, injectable} from 'tsyringe';
 import {SUBMIT_AVG_ORDER} from '../../constants';
 import {initLogger} from '../../utils/logger';
 
-const logger = initLogger(__filename);
 @injectable()
 export class SubmitAvgOrder {
   constructor(
@@ -19,7 +18,6 @@ export class SubmitAvgOrder {
 
   async execute() {
     try {
-      logger.info(SUBMIT_AVG_ORDER);
       const category = this.store.category;
       const symbol = this.store.symbol;
       const qty = this.store.avgQty;
@@ -32,10 +30,10 @@ export class SubmitAvgOrder {
         price: this.store.avgOrderPrice,
         category: category,
       };
-      console.log(body);
+
       const ordResponse = await this.client.submitOrder(body);
       const {retCode, result} = ordResponse;
-      logger.warn(ordResponse);
+
       if (retCode === 0) this.store.openAvgOrder(result.orderId);
 
       return {data: ordResponse, error: null};

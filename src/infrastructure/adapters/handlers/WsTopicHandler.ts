@@ -9,7 +9,7 @@ import {initLogger} from '../../../utils/logger';
 import {ERROR_EVENT} from '../../../constants';
 import moment from 'moment';
 
-const logger = initLogger(__filename);
+const logger = initLogger('WsTopicHandler', 'logs/error.log');
 
 @injectable()
 export class WsTopicHandler {
@@ -31,13 +31,12 @@ export class WsTopicHandler {
       const {data: event, error} = await this.useCase
         .execute(orderData as OrderData)
         .catch(err => logger.error(err));
-      console.log({EVENT: event});
+
       if (error) this.emitter.emit(ERROR_EVENT, error);
       else this.emitter.emit(event as string);
     }
 
     if (topic.includes('tickers')) {
-      logger.info(`seconds: ${moment(ts).seconds()}`);
       const {lastPrice} = data as unknown as TickerData;
       this.store.setLowPrice(lastPrice);
       this.store.updateLastCandleLowPrice(ts);

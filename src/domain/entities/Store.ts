@@ -9,6 +9,7 @@ import {
   AVG_BUY_RATE,
   BASE_QUANTITY,
   CANDLES_TO_WAIT,
+  DIGITS_AFTER_COMMA,
   MARTIN_GALE,
   MAX_AVG_ORDER_COUNT,
   TAKE_PROFIT_RATE,
@@ -51,11 +52,15 @@ export class Store {
   }
 
   get avgOrderPrice() {
-    return new BigJs(this.lastAvgOrderPrice).mul(AVG_BUY_RATE).toFixed(4);
+    return new BigJs(this.lastAvgOrderPrice)
+      .mul(AVG_BUY_RATE)
+      .toFixed(DIGITS_AFTER_COMMA);
   }
 
   get profitOrderPrice() {
-    return new BigJs(this.avgPositionPrice).mul(TAKE_PROFIT_RATE).toFixed(4);
+    return new BigJs(this.avgPositionPrice)
+      .mul(TAKE_PROFIT_RATE)
+      .toFixed(DIGITS_AFTER_COMMA);
   }
 
   get canOpenAvgOrder(): boolean {
@@ -73,16 +78,16 @@ export class Store {
 
   get posQty() {
     const result = this.quantity.reduce((prev, cur) =>
-      new BigJs(prev).add(cur).toFixed(4)
+      new BigJs(prev).add(cur).toFixed(DIGITS_AFTER_COMMA)
     );
 
     return result;
   }
 
   get avgQty() {
-    return new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(4);
+    return new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(DIGITS_AFTER_COMMA);
     // return this.quantity.length > 1
-    //   ? new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(4)
+    //   ? new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(DIGITS_AFTER_COMMA)
     //   : this.posQty;
   }
 
@@ -145,7 +150,7 @@ export class Store {
       this.avgPositionPrice = (
         (Number(this.avgPositionPrice) + Number(newPrice)) /
         2
-      ).toFixed(4);
+      ).toFixed(DIGITS_AFTER_COMMA);
     }
     this.candlesCount = 0;
   }
@@ -155,7 +160,7 @@ export class Store {
   // }
 
   // getTakeProfitOrderPrice() {
-  //   return (Number(this.avgPositionPrice) * 1.01).toFixed(4); // TODO: сhange this to const
+  //   return (Number(this.avgPositionPrice) * 1.01).toFixed(DIGITS_AFTER_COMMA); // TODO: сhange this to const
   // }
 
   addOrder = (orderId: string, type: OrderClass) => {

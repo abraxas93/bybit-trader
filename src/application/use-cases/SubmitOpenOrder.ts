@@ -5,7 +5,7 @@ import {Store} from '../../domain/entities/Store';
 import {ERROR_EVENT, SUBMIT_OPEN_ORDER} from '../../constants';
 import {initLogger} from '../../utils/logger';
 
-const logger = initLogger(__filename);
+const apiLogger = initLogger('SubmitOpenOrder', 'logs/api.log');
 
 @injectable()
 export class SubmitOpenOrder {
@@ -19,15 +19,17 @@ export class SubmitOpenOrder {
   ) {}
   async execute() {
     try {
-      logger.info(SUBMIT_OPEN_ORDER);
       const symbol = this.store.symbol;
       const category = this.store.category;
       const qty: string = this.store.baseQty;
+      apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
       const cancelResponse = await this.client.cancelAllOrders({
         symbol,
         category,
       });
-
+      apiLogger.info(
+        `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
+      );
       if (cancelResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
@@ -35,11 +37,13 @@ export class SubmitOpenOrder {
       let lastCandleLowPrice = this.store.lastCandleLowPrice;
 
       if (lastCandleLowPrice === '0') {
+        apiLogger.info(`REQUEST|getKline|${symbol} ${category} 1|`);
         const response = await this.client.getKline({
           category: category,
           symbol: symbol,
           interval: '1',
         });
+        apiLogger.info(`RESPONSE|getKline|${JSON.stringify(response)}|`);
         const [, , , , lowPrice] = response.result.list[0];
         lastCandleLowPrice = lowPrice;
         this.store.setLastLowCandlePrice(lowPrice);
@@ -53,11 +57,11 @@ export class SubmitOpenOrder {
         price: lastCandleLowPrice,
         category: category,
       };
-      console.log(body);
+      apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
       const ordResponse = await this.client.submitOrder(body);
-
+      apiLogger.info(`RESPONSE|getKline|${JSON.stringify(ordResponse)}|`);
       const {retCode, result} = ordResponse;
-      logger.warn(ordResponse);
+
       if (retCode === 0) {
         this.store.addOrder(result.orderId, 'OPEN_ORDER');
       }
