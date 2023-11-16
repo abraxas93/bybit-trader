@@ -9,7 +9,8 @@ import {initLogger} from '../../../utils/logger';
 import {ERROR_EVENT} from '../../../constants';
 import moment from 'moment';
 
-const logger = initLogger('WsTopicHandler', 'logs/error.log');
+const errLogger = initLogger('WsTopicHandler', 'logs/errors.log');
+const socketLogger = initLogger('WsTopicHandler', 'logs/sockets.log', true);
 
 @injectable()
 export class WsTopicHandler {
@@ -26,11 +27,12 @@ export class WsTopicHandler {
 
   async handle(socketData: Topic) {
     const {topic, data, ts} = socketData;
+    socketLogger.info(JSON.stringify(socketData));
     if (topic === 'order') {
       const [orderData] = data;
       const {data: event, error} = await this.useCase
         .execute(orderData as OrderData)
-        .catch(err => logger.error(err));
+        .catch(err => errLogger.error(err));
 
       if (error) this.emitter.emit(ERROR_EVENT, error);
       else this.emitter.emit(event as string);

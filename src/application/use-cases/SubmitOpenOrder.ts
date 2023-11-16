@@ -2,7 +2,7 @@ import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {Store} from '../../domain/entities/Store';
-import {ERROR_EVENT, SUBMIT_OPEN_ORDER} from '../../constants';
+import {ERROR_EVENT} from '../../constants';
 import {initLogger} from '../../utils/logger';
 
 const apiLogger = initLogger('SubmitOpenOrder', 'logs/api.log');
@@ -59,7 +59,7 @@ export class SubmitOpenOrder {
       };
       apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
       const ordResponse = await this.client.submitOrder(body);
-      apiLogger.info(`RESPONSE|getKline|${JSON.stringify(ordResponse)}|`);
+      apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(ordResponse)}|`);
       const {retCode, result} = ordResponse;
 
       if (retCode === 0) {
