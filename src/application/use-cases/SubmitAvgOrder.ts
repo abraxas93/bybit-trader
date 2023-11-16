@@ -2,8 +2,9 @@ import {EventEmitter} from 'events';
 import {Store} from '../../domain/entities/Store';
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
-import {SUBMIT_AVG_ORDER} from '../../constants';
 import {initLogger} from '../../utils/logger';
+
+const apiLogger = initLogger('SubmitAvgOrder', 'logs/api.log');
 
 @injectable()
 export class SubmitAvgOrder {
@@ -30,8 +31,9 @@ export class SubmitAvgOrder {
         price: this.store.avgOrderPrice,
         category: category,
       };
-
+      apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
       const ordResponse = await this.client.submitOrder(body);
+      apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(ordResponse)}|`);
       const {retCode, result} = ordResponse;
 
       if (retCode === 0) this.store.openAvgOrder(result.orderId);

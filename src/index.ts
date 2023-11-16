@@ -8,6 +8,7 @@ import {bootstrapCtx} from './infrastructure/ctx';
 import {
   CANDLE_CLOSED,
   ERROR_EVENT,
+  LOG_EVENT,
   SUBMIT_OPEN_ORDER,
   SUBMIT_PROFIT_ORDER,
 } from './constants';
@@ -23,6 +24,8 @@ import {SYMBOL} from './config';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
 const logsLogger = initLogger('index.ts', 'logs/logs.log');
+const socketLogger = initLogger('index.ts', 'logs/sockets.log', true);
+const storeLogger = initLogger('', 'logs/store.log', true);
 
 const SESSION_ID = Date.now();
 
@@ -49,16 +52,19 @@ function bootstrapEvents() {
     !store.isPositionOpened &&
       submitOpenOrder.execute().catch(err => errLogger.error(err));
   });
+
+  emitter.on(LOG_EVENT, data => {
+    storeLogger.info(JSON.stringify(data));
+  });
 }
 
 function bootstrapSockets() {
   const ws = container.resolve<WebsocketClient>('WebsocketClient');
   const wsHandler = container.resolve<WsTopicHandler>('WsTopicHandler');
-  // 'order', 'position', 'execution',
-  // ws.subscribeV5(`kline.1.BTCUSDT`, 'linear').catch(err => console.log(err));
+  // 'order', 'position', 'execution'
 
   ws.subscribeV5([`tickers.${SYMBOL}`, 'order'], 'linear').catch(err =>
-    console.log(err)
+    socketLogger.error(JSON.stringify(err))
   );
 
   // ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
@@ -67,22 +73,25 @@ function bootstrapSockets() {
 
   // Optional: Listen to websocket connection open event (automatic after subscribing to one or more topics)
   ws.on('open', ({wsKey, event}) => {
-    console.log('connection open for websocket with ID: ' + wsKey);
+    socketLogger.info(
+      'connection open for websocket with ID: ' + wsKey + ' event: ',
+      JSON.stringify(event)
+    );
   });
 
   // Optional: Listen to responses to websocket queries (e.g. the response after subscribing to a topic)
   ws.on('response', response => {
-    console.log('response', response);
+    socketLogger.warn(JSON.stringify(response));
   });
 
   // Optional: Listen to connection close event. Unexpected connection closes are automatically reconnected.
   ws.on('close', () => {
-    console.log('connection closed');
+    socketLogger.warn('connection closed');
   });
 
   // Optional: Listen to raw error events. Recommended.
   ws.on('error', err => {
-    console.error('error', err);
+    socketLogger.error(JSON.stringify(err));
   });
 }
 

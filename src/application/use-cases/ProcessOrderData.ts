@@ -3,11 +3,10 @@ import {OrderData} from '../../types';
 import {Store} from '../../domain/entities/Store';
 import {RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
-import {
-  ERROR_EVENT,
-  SUBMIT_OPEN_ORDER,
-  SUBMIT_PROFIT_ORDER,
-} from '../../constants';
+import {ERROR_EVENT, SUBMIT_PROFIT_ORDER} from '../../constants';
+import {initLogger} from '../../utils/logger';
+
+const apiLogger = initLogger('ProcessOrderData', 'logs/api.log');
 
 @injectable()
 export class ProcessOrderData {
@@ -26,10 +25,14 @@ export class ProcessOrderData {
 
     const orderId = this.store.getOrderIdbyClass('AVERAGE_ORDER');
     if (orderId) {
+      apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
       const cancelResponse = await this.client.cancelAllOrders({
         category,
         symbol,
       });
+      apiLogger.info(
+        `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
+      );
       this.store.isAverageOrderOpened = false;
       this.store.removeOrder(orderId);
 
@@ -44,11 +47,14 @@ export class ProcessOrderData {
     const category = this.store.category;
     const orderId = this.store.getOrderIdbyClass('TAKE_PROFIT_ORDER');
     if (orderId) {
+      apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
       const cancelResponse = await this.client.cancelAllOrders({
         category,
         symbol,
       });
-
+      apiLogger.info(
+        `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
+      );
       if (!cancelResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
@@ -68,7 +74,7 @@ export class ProcessOrderData {
         lastExecQty,
       } = data;
       const orderCls = this.store.getOrderClass(orderId);
-      console.log({orderId, orderStatus, lastExecQty, orderCls});
+
       if (orderStatus === 'Filled') {
         this.store.removeOrder(orderId);
       }

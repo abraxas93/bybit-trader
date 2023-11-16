@@ -4,7 +4,7 @@ import BigJs from 'big.js';
 import {EventEmitter} from 'events';
 import {OrderClass} from '../../types';
 import {inject, injectable} from 'tsyringe';
-import {CANDLE_CLOSED} from '../../constants';
+import {CANDLE_CLOSED, LOG_EVENT} from '../../constants';
 import {
   AVG_BUY_RATE,
   BASE_QUANTITY,
@@ -15,8 +15,10 @@ import {
   TAKE_PROFIT_RATE,
   TIME_FRAME,
 } from '../../config';
+import {initLogger} from '../../utils/logger';
 
-// остаток в сделке умножаем на мартинг гейл, чтобы получить количество
+const logger = initLogger('Store', 'logs/logs.log');
+
 @injectable()
 export class Store {
   private klineStarted = false;
@@ -46,6 +48,31 @@ export class Store {
     @inject('EventEmitter')
     private readonly _emitter: EventEmitter
   ) {}
+
+  getSnapshot = (action: string) => {
+    const snapshot = {
+      action,
+      posQty: this.posQty,
+      avgQty: this.avgQty,
+      candleLowPrice: this.candleLowPrice,
+      lastCandleLowPrice: this.lastCandleLowPrice,
+      avgPositionPrice: this.avgPositionPrice,
+      lastAvgOrderPrice: this.lastAvgOrderPrice,
+      avgOrderCount: this.avgOrderCount,
+      avgOrderPrice: this.avgOrderPrice,
+      profitOrderPrice: this.profitOrderPrice,
+      canOpenAvgOrder: this.canOpenAvgOrder,
+      isNewCandle: this.isNewCandle,
+      isAverageOrderOpened: this.isAverageOrderOpened,
+      isPositionOpened: this.isPositionOpened,
+      nextCandleTimeFrame: this.nextCandleTimeFrame,
+      candlesCount: this.candlesCount,
+      quantity: this.quantity,
+      orderBook: this.orderBook,
+      klineStarted: this.klineStarted,
+    };
+    return snapshot;
+  };
 
   get symbol() {
     return this._symbol;
@@ -77,6 +104,7 @@ export class Store {
   }
 
   get posQty() {
+    if (!this.quantity.length) return 0;
     const result = this.quantity.reduce((prev, cur) =>
       new BigJs(prev).add(cur).toFixed(DIGITS_AFTER_COMMA)
     );
@@ -86,9 +114,6 @@ export class Store {
 
   get avgQty() {
     return new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(DIGITS_AFTER_COMMA);
-    // return this.quantity.length > 1
-    //   ? new BigJs(this.posQty).mul(MARTIN_GALE).toFixed(DIGITS_AFTER_COMMA)
-    //   : this.posQty;
   }
 
   openPosition(avgPrice: string, qty: string) {
@@ -97,6 +122,7 @@ export class Store {
     this.quantity = [qty];
     this.candlesCount = 0;
     this.lastAvgOrderPrice = avgPrice;
+    this._emitter.emit(LOG_EVENT, this.getSnapshot('openPosition'));
   }
 
   closePosition() {
@@ -104,6 +130,8 @@ export class Store {
     this.avgPositionPrice = '0';
     this.quantity = [];
     this.avgOrderCount = 0;
+
+    this._emitter.emit(LOG_EVENT, this.getSnapshot('closePosition'));
   }
 
   closeAvgOrder(price: string, qty: string, value: string) {
@@ -120,11 +148,14 @@ export class Store {
     this.avgPositionPrice = new BigJs(numerator).div(denominator).toString();
     this.lastAvgOrderPrice = price;
     this.avgOrderCount += 1;
+
+    this._emitter.emit(LOG_EVENT, this.getSnapshot('closeAvgOrder'));
   }
 
   openAvgOrder(orderId: string) {
     this.addOrder(orderId, 'AVERAGE_ORDER');
     this.isAverageOrderOpened = true;
+    this._emitter.emit(LOG_EVENT, this.getSnapshot('openAvgOrder'));
   }
 
   getLastCandleLowPrice() {
@@ -139,36 +170,14 @@ export class Store {
     }
   }
 
-  resetAvgPrice() {
-    this.avgPositionPrice = '0';
-  }
-
-  recalcAvgPrice(newPrice: string) {
-    if (this.avgPositionPrice === '0') {
-      this.avgPositionPrice = newPrice;
-    } else {
-      this.avgPositionPrice = (
-        (Number(this.avgPositionPrice) + Number(newPrice)) /
-        2
-      ).toFixed(DIGITS_AFTER_COMMA);
-    }
-    this.candlesCount = 0;
-  }
-
-  // getAvgPositionPrice() {
-  //   return this.avgPositionPrice;
-  // }
-
-  // getTakeProfitOrderPrice() {
-  //   return (Number(this.avgPositionPrice) * 1.01).toFixed(DIGITS_AFTER_COMMA); // TODO: сhange this to const
-  // }
-
   addOrder = (orderId: string, type: OrderClass) => {
     this.orderBook[orderId] = type;
+    this._emitter.emit(LOG_EVENT, this.getSnapshot('addOrder'));
   };
 
   removeOrder = (orderId: string) => {
     delete this.orderBook[orderId];
+    this._emitter.emit(LOG_EVENT, this.getSnapshot('removeOrder'));
   };
 
   getOrderClass = (orderId: string) => {
@@ -184,6 +193,7 @@ export class Store {
 
   setLastLowCandlePrice(price: string) {
     this.candleLowPrice = price;
+    this._emitter.emit(LOG_EVENT, this.getSnapshot('setLastLowCandlePrice'));
   }
 
   setLowPrice(lastPrice: string | undefined) {
@@ -191,8 +201,10 @@ export class Store {
     if (this.isNewCandle && lastPrice) {
       this.candleLowPrice = lastPrice;
       this.isNewCandle = false;
+      this._emitter.emit(LOG_EVENT, this.getSnapshot('setLowPrice'));
     } else if (lastPrice && Number(lastPrice) < Number(this.candleLowPrice)) {
       this.candleLowPrice = lastPrice;
+      this._emitter.emit(LOG_EVENT, this.getSnapshot('setLowPrice'));
     }
   }
 
@@ -201,14 +213,11 @@ export class Store {
     this.nextCandleTimeFrame += this.timeFrame;
     this.isNewCandle = true;
     this.candlesCount += 1;
-    console.log(
+    logger.info(
       `Candld closed: ${this.lastCandleLowPrice}, next candle: ${this.nextCandleTimeFrame}, count: ${this.candlesCount}`
     );
     this._emitter.emit(CANDLE_CLOSED);
-  }
-
-  setAverageOrderOpened() {
-    this.isAverageOrderOpened = true;
+    this._emitter.emit(LOG_EVENT, this.getSnapshot('updateLastCandleData'));
   }
 
   updateLastCandleLowPrice(ts: number) {
@@ -218,8 +227,12 @@ export class Store {
       this.isNewCandle = true;
       const nearest = this.roundToNearestTen(seconds);
       this.nextCandleTimeFrame = nearest + this.timeFrame;
-      console.log(
+      logger.info(
         `Candle klineStarted: ${this.candleLowPrice}, next candle in: ${this.nextCandleTimeFrame} and seconds: ${seconds}`
+      );
+      this._emitter.emit(
+        LOG_EVENT,
+        this.getSnapshot('updateLastCandleLowPrice')
       );
     }
 

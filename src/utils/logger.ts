@@ -12,7 +12,7 @@ const outputFormat = format.printf(info => {
   )}${colorizer.colorize(level, message)}`;
 });
 
-export function initLogger(label: string, logFileName: string) {
+export function initLogger(label: string, logFileName: string, mute? = false) {
   // const parsed = file.split('/');
   // const label = parsed.pop();
   return createLogger({
@@ -23,7 +23,9 @@ export function initLogger(label: string, logFileName: string) {
     ),
     exitOnError: true,
     transports: [
-      new transports.Console(),
+      new transports.Console({
+        silent: mute,
+      }),
       new transports.File({
         filename: logFileName,
         silent: process.env.LOGS ? false : true,

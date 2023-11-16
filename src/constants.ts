@@ -8,6 +8,7 @@ export const SUBMIT_AVG_ORDER = 'SUBMIT_AVG_ORDER';
 export const SUBMIT_PROFIT_ORDER = 'SUBMIT_PROFIT_ORDER';
 
 export const ERROR_EVENT = 'ERROR_EVENT';
+export const LOG_EVENT = 'LOG_EVENT';
 
 // errors
 export const ERR_USER_NOT_FOUND = 'ERR_USER_NOT_FOUND';

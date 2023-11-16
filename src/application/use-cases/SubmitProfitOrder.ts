@@ -3,7 +3,8 @@ import {Store} from '../../domain/entities/Store';
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {initLogger} from '../../utils/logger';
-import {SUBMIT_PROFIT_ORDER} from '../../constants';
+
+const apiLogger = initLogger('SubmitProfitOrder', 'logs/api.log');
 
 @injectable()
 export class SubmitProfitOrder {
@@ -30,9 +31,9 @@ export class SubmitProfitOrder {
         price: this.store.profitOrderPrice,
         category: category,
       };
-
+      apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
       const response = await this.client.submitOrder(body);
-
+      apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(response)}|`);
       const {retCode, result} = response;
 
       if (retCode === 0) {
