@@ -30,7 +30,7 @@ export class SubmitOpenOrder {
       apiLogger.info(
         `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
       );
-      if (cancelResponse.retCode) {
+      if (!cancelResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
 
