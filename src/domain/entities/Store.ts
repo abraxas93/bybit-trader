@@ -104,7 +104,7 @@ export class Store {
   }
 
   get posQty() {
-    if (!this.quantity.length) return 0;
+    if (!this.quantity.length) return '0';
     const result = this.quantity.reduce((prev, cur) =>
       new BigJs(prev).add(cur).toFixed(DIGITS_AFTER_COMMA)
     );
