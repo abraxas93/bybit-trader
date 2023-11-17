@@ -15,6 +15,8 @@ export const ERR_USER_NOT_FOUND = 'ERR_USER_NOT_FOUND';
 export const ERR_INVALID_PASSWORD = 'ERR_INVALID_PASSWORD';
 export const NOT_IMPLEMENTED = 'NOT_IMPLEMENTED';
 
+export const NULL_KEY = 'NULL_KEY';
+
 export const RKEYS: Record<string, string> = {
   KLINE_STARTED: 'store:kline_started',
   IS_NEW_CANDLE: 'store:is_new_candle',
