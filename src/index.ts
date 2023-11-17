@@ -21,6 +21,7 @@ import {
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {Topic} from './types';
 import {SYMBOL} from './config';
+import {setupTradeOptions} from './scripts';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
 const logsLogger = initLogger('index.ts', 'logs/logs.log');
@@ -28,6 +29,16 @@ const socketLogger = initLogger('index.ts', 'logs/sockets.log', true);
 const storeLogger = initLogger('', 'logs/store.log', true);
 
 const SESSION_ID = Date.now();
+
+if (process.env.SETUP_VARS) {
+  (async () => {
+    console.log('setup:redis:vars');
+    await setupTradeOptions();
+    process.exit();
+  })().catch(err => errLogger.error(err));
+} else {
+  main();
+}
 
 function bootstrapEvents() {
   const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
@@ -105,8 +116,6 @@ function main() {
     await useCase.execute();
   }, 4000);
 }
-
-main();
 
 process.on('SIGINT', () => {
   logsLogger.info(`--- end:${SESSION_ID} ---`);
