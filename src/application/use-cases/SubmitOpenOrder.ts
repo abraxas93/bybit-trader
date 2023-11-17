@@ -1,4 +1,9 @@
-import {OrderParamsV5, RestClientV5} from 'bybit-api';
+import {
+  CategoryV5,
+  GetKlineParamsV5,
+  OrderParamsV5,
+  RestClientV5,
+} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {Store} from '../../domain/entities/Store';
@@ -19,9 +24,9 @@ export class SubmitOpenOrder {
   ) {}
   async execute() {
     try {
-      const symbol = this.store.symbol;
-      const category = this.store.category;
-      const qty: string = this.store.baseQty;
+      const symbol = this.store.options.symbol;
+      const category = this.store.options.category;
+      const qty: string = this.store.options.quantity;
       apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
       const cancelResponse = await this.client.cancelAllOrders({
         symbol,
@@ -31,7 +36,6 @@ export class SubmitOpenOrder {
         `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
       );
       if (cancelResponse.retCode) {
-        console.log(cancelResponse);
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
 
@@ -40,7 +44,7 @@ export class SubmitOpenOrder {
       if (lastCandleLowPrice === '0') {
         apiLogger.info(`REQUEST|getKline|${symbol} ${category} 1|`);
         const response = await this.client.getKline({
-          category: category,
+          category: category as 'linear' | 'spot' | 'inverse',
           symbol: symbol,
           interval: '1',
         });
@@ -56,7 +60,7 @@ export class SubmitOpenOrder {
         orderType: 'Limit',
         qty,
         price: lastCandleLowPrice,
-        category: category,
+        category,
       };
       apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
       const ordResponse = await this.client.submitOrder(body);

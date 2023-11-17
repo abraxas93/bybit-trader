@@ -1,6 +1,6 @@
 import {EventEmitter} from 'events';
 import {Store} from '../../domain/entities/Store';
-import {OrderParamsV5, RestClientV5} from 'bybit-api';
+import {CategoryV5, OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {initLogger} from '../../utils/logger';
 
@@ -19,8 +19,8 @@ export class SubmitAvgOrder {
 
   async execute() {
     try {
-      const category = this.store.category;
-      const symbol = this.store.symbol;
+      const category = this.store.options.category;
+      const symbol = this.store.options.symbol;
       const qty = this.store.avgQty;
 
       const body: OrderParamsV5 = {
@@ -29,7 +29,7 @@ export class SubmitAvgOrder {
         side: 'Buy',
         orderType: 'Limit',
         price: this.store.avgOrderPrice,
-        category: category,
+        category,
       };
       apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
       const ordResponse = await this.client.submitOrder(body);

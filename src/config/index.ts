@@ -32,3 +32,4 @@ export const AVG_BUY_RATE = 0.995;
 export const MAX_AVG_ORDER_COUNT = 10;
 export const CANDLES_TO_WAIT = 10;
 export const DIGITS_AFTER_COMMA = 6;
+export const CATEGORY = 'linear';

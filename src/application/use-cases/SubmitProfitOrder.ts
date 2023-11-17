@@ -19,8 +19,8 @@ export class SubmitProfitOrder {
 
   async execute() {
     try {
-      const category = this.store.category;
-      const symbol = this.store.symbol;
+      const category = this.store.options.category;
+      const symbol = this.store.options.symbol;
       const qty = this.store.posQty;
 
       const body: OrderParamsV5 = {

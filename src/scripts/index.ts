@@ -54,6 +54,7 @@ export async function setupTradeOptions() {
     await redis.set(RKEYS.MIN_CANDLES, CANDLES_TO_WAIT);
 
     await redis.set(RKEYS.DIGITS, DIGITS_AFTER_COMMA);
+    await redis.set(RKEYS.MARTINGALE, MARTIN_GALE);
   } catch (error) {
     errLogger.error(JSON.stringify(error));
   }

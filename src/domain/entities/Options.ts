@@ -1,10 +1,12 @@
 import {initLogger} from '../../utils/logger';
 import {NULL_KEY, RKEYS} from '../../constants';
 import {Redis} from 'ioredis';
-import {inject} from 'tsyringe';
+import {inject, injectable} from 'tsyringe';
+import {CategoryV5} from 'bybit-api';
 
 const errLogger = initLogger('Options', 'logs/errors.log');
 
+@injectable()
 export class Options {
   private _symbol = '';
   private _quantity = '';
@@ -15,17 +17,22 @@ export class Options {
   private _maxAvgCount = 0;
   private _minCandles = 0;
   private _digits = 0;
+  private _category: CategoryV5 = 'linear';
 
   constructor(
     @inject('Redis')
     private readonly redis: Redis
   ) {
-    this.loadVars().catch(err => errLogger.error(JSON.stringify(err)));
+    this.loadVars().catch(err => errLogger.error(err));
   }
 
   // Getters for private variables
   get symbol(): string {
     return this._symbol;
+  }
+
+  get category(): CategoryV5 {
+    return this._category;
   }
 
   get quantity(): string {
@@ -92,5 +99,7 @@ export class Options {
     const digits = await this.redis.get(RKEYS.DIGITS);
     if (!digits) throw new Error(`${NULL_KEY}:${RKEYS.DIGITS}`);
     this._digits = parseInt(digits);
+
+    // TODO: add category setup
   }
 }

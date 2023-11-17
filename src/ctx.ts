@@ -9,15 +9,16 @@ import {
   WebsocketClient,
   RestClientV5,
 } from 'bybit-api';
-import {Store} from '../domain/entities/Store';
-import {SYMBOL} from '../config';
+import {Store} from './domain/entities/Store';
+import {SYMBOL} from './config';
 import {
   SubmitAvgOrder,
   SubmitOpenOrder,
   SubmitProfitOrder,
-} from '../application';
-import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
-import {ProcessOrderData} from '../application/use-cases/ProcessOrderData';
+} from './application';
+import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
+import {ProcessOrderData} from './application/use-cases/ProcessOrderData';
+import {Options} from './domain/entities/Options';
 
 export function bootstrapCtx() {
   // const mongoClient = await createMongoClient();
@@ -40,9 +41,10 @@ export function bootstrapCtx() {
   });
 
   container.register<Store>('Store', {
-    useValue: new Store(SYMBOL, eventEmitter, redis),
+    useValue: new Store(eventEmitter, redis),
   });
   container.register<Redis>('Redis', {useValue: redis});
+  container.register<Options>('Options', Options);
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});

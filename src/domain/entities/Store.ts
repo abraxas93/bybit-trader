@@ -7,7 +7,6 @@ import {inject, injectable} from 'tsyringe';
 import {CANDLE_CLOSED, LOG_EVENT} from '../../constants';
 import {
   AVG_BUY_RATE,
-  BASE_QUANTITY,
   CANDLES_TO_WAIT,
   DIGITS_AFTER_COMMA,
   MARTIN_GALE,
@@ -17,6 +16,7 @@ import {
 } from '../../config';
 import {initLogger} from '../../utils/logger';
 import {Redis} from 'ioredis';
+import {Options} from './Options';
 
 const logger = initLogger('Store', 'logs/logs.log');
 
@@ -37,7 +37,6 @@ export class Store {
 
   public quantity: string[] = [];
 
-  readonly category = 'linear'; // TODO: change to constant
   readonly orderBook: Record<string, OrderClass> = {};
 
   private avgPositionPrice = '0';
@@ -45,11 +44,12 @@ export class Store {
   private avgOrderCount = 0;
 
   constructor(
-    private readonly _symbol: string,
     @inject('EventEmitter')
     private readonly _emitter: EventEmitter,
     @inject('Redis')
-    private readonly _redis: Redis
+    private readonly _redis: Redis,
+    @inject('Options')
+    public readonly options: Options
   ) {}
 
   getSnapshot = (action: string) => {
@@ -77,10 +77,6 @@ export class Store {
     return snapshot;
   };
 
-  get symbol() {
-    return this._symbol;
-  }
-
   get avgOrderPrice() {
     return new BigJs(this.lastAvgOrderPrice)
       .mul(AVG_BUY_RATE)
@@ -100,10 +96,6 @@ export class Store {
       this.isPositionOpened &&
       this.avgOrderCount <= MAX_AVG_ORDER_COUNT
     );
-  }
-
-  get baseQty() {
-    return BASE_QUANTITY;
   }
 
   get posQty() {

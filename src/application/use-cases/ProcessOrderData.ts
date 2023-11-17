@@ -1,7 +1,7 @@
 import {EventEmitter} from 'events';
 import {OrderData} from '../../types';
 import {Store} from '../../domain/entities/Store';
-import {RestClientV5} from 'bybit-api';
+import {CategoryV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {ERROR_EVENT, SUBMIT_PROFIT_ORDER} from '../../constants';
 import {initLogger} from '../../utils/logger';
@@ -20,14 +20,14 @@ export class ProcessOrderData {
   ) {}
 
   private async cancelAvgOrder() {
-    const symbol = this.store.symbol;
-    const category = this.store.category;
+    const symbol = this.store.options.symbol;
+    const category = this.store.options.category;
 
     const orderId = this.store.getOrderIdbyClass('AVERAGE_ORDER');
     if (orderId) {
       apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
       const cancelResponse = await this.client.cancelAllOrders({
-        category,
+        category: category as CategoryV5,
         symbol,
       });
       apiLogger.info(
@@ -43,13 +43,13 @@ export class ProcessOrderData {
   }
 
   private async cancelTakeProfitOrder() {
-    const symbol = this.store.symbol;
-    const category = this.store.category;
+    const symbol = this.store.options.symbol;
+    const category = this.store.options.category;
     const orderId = this.store.getOrderIdbyClass('TAKE_PROFIT_ORDER');
     if (orderId) {
       apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
       const cancelResponse = await this.client.cancelAllOrders({
-        category,
+        category: category as CategoryV5,
         symbol,
       });
       apiLogger.info(
@@ -65,14 +65,7 @@ export class ProcessOrderData {
   // TODO: add paritally filled cases
   async execute(data: OrderData) {
     try {
-      const {
-        orderId,
-        orderStatus,
-        avgPrice,
-        cumExecQty,
-        cumExecValue,
-        lastExecQty,
-      } = data;
+      const {orderId, orderStatus, avgPrice, cumExecQty, cumExecValue} = data;
       const orderCls = this.store.getOrderClass(orderId);
 
       if (orderStatus === 'Filled') {

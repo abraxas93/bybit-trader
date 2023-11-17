@@ -4,7 +4,7 @@
   "description": "A node / typescript application template",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test",
+    "test": "cross-env NODE_ENV=dev LOGS=true TEST=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev": "cross-env NODE_ENV=dev ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev:logs": "cross-env NODE_ENV=dev LOGS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev:testnet": "cross-env NODE_ENV=test ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",

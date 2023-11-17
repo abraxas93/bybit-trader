@@ -4,7 +4,7 @@ import {initLogger} from './utils/logger';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {WebsocketClient} from 'bybit-api';
-import {bootstrapCtx} from './infrastructure/ctx';
+import {bootstrapCtx} from './ctx';
 import {
   CANDLE_CLOSED,
   ERROR_EVENT,
@@ -22,6 +22,7 @@ import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler'
 import {Topic} from './types';
 import {SYMBOL} from './config';
 import {setupTradeOptions} from './scripts';
+import {Options} from './domain/entities/Options';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
 const logsLogger = initLogger('index.ts', 'logs/logs.log');
@@ -32,10 +33,13 @@ const SESSION_ID = Date.now();
 
 if (process.env.SETUP_VARS) {
   (async () => {
-    console.log('setup:redis:vars');
     await setupTradeOptions();
+    console.log('>>> setup:redis:vars');
     process.exit();
   })().catch(err => errLogger.error(err));
+} else if (process.env.TEST) {
+  bootstrapCtx();
+  const opts = container.resolve<Options>('Options');
 } else {
   main();
 }
