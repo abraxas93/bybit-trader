@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import {Redis} from 'ioredis';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
 // import {createMongoClient} from './database/mongo/createMongoClient';
@@ -21,6 +22,7 @@ import {ProcessOrderData} from '../application/use-cases/ProcessOrderData';
 export function bootstrapCtx() {
   // const mongoClient = await createMongoClient();
   const eventEmitter = new EventEmitter();
+  const redis = new Redis();
 
   const wsOptions: WSClientConfigurableOptions = {
     key: process.env.API_KEY,
@@ -38,9 +40,9 @@ export function bootstrapCtx() {
   });
 
   container.register<Store>('Store', {
-    useValue: new Store(SYMBOL, eventEmitter),
+    useValue: new Store(SYMBOL, eventEmitter, redis),
   });
-
+  container.register<Redis>('Redis', {useValue: redis});
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});

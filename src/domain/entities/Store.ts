@@ -16,6 +16,7 @@ import {
   TIME_FRAME,
 } from '../../config';
 import {initLogger} from '../../utils/logger';
+import {Redis} from 'ioredis';
 
 const logger = initLogger('Store', 'logs/logs.log');
 
@@ -46,7 +47,9 @@ export class Store {
   constructor(
     private readonly _symbol: string,
     @inject('EventEmitter')
-    private readonly _emitter: EventEmitter
+    private readonly _emitter: EventEmitter,
+    @inject('Redis')
+    private readonly _redis: Redis
   ) {}
 
   getSnapshot = (action: string) => {
@@ -228,7 +231,7 @@ export class Store {
       const nearest = this.roundToNearestTen(seconds);
       this.nextCandleTimeFrame = nearest + this.timeFrame;
       logger.info(
-        `Candle klineStarted: ${this.candleLowPrice}, next candle in: ${this.nextCandleTimeFrame} and seconds: ${seconds}`
+        `Candle klineStarted: ${this.candleLowPrice}, next candle in: ${this.nextCandleTimeFrame} and seconds: ${seconds}, ts: ${ts}`
       );
       this._emitter.emit(
         LOG_EVENT,
