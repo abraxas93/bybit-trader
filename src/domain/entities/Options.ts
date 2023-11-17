@@ -3,17 +3,6 @@ import {NULL_KEY, RKEYS} from '../../constants';
 import {Redis} from 'ioredis';
 import {inject} from 'tsyringe';
 
-/**
- * SYMBOL: 'cfg:symbol',
-  QUANTITY: 'cfg:quantity',
-  PERIOD: 'cfg:period',
-  MARTINGALE: 'cfg:martingale',
-  PROFIT_RATE: 'cfg:profit_rate',
-  AVG_RATE: 'cfg:avg_rate',
-  MAX_AVG_COUNT: 'cfg:max_avg_count',
-  MIN_CANDLES: 'cfg:min_candles',
-  DIGITS: 'cfg:digits',
- */
 const errLogger = initLogger('Options', 'logs/errors.log');
 
 export class Options {
