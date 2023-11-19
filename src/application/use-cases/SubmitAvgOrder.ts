@@ -1,6 +1,6 @@
 import {EventEmitter} from 'events';
 import {Store} from '../../domain/entities/Store';
-import {CategoryV5, OrderParamsV5, RestClientV5} from 'bybit-api';
+import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {initLogger} from '../../utils/logger';
 

@@ -10,7 +10,7 @@ import {
   RestClientV5,
 } from 'bybit-api';
 import {Store} from './domain/entities/Store';
-import {SYMBOL} from './config';
+
 import {
   SubmitAvgOrder,
   SubmitOpenOrder,
@@ -39,12 +39,12 @@ export function bootstrapCtx() {
     secret: process.env.API_SECRET,
     testnet: process.env.NODE_ENV === 'test' ? true : false,
   });
-
+  const options = new Options(redis);
   container.register<Store>('Store', {
-    useValue: new Store(eventEmitter, redis),
+    useValue: new Store(eventEmitter, redis, options),
   });
   container.register<Redis>('Redis', {useValue: redis});
-  container.register<Options>('Options', Options);
+  container.register<Options>('Options', {useValue: options});
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});

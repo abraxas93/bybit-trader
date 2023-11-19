@@ -1,9 +1,4 @@
-import {
-  CategoryV5,
-  GetKlineParamsV5,
-  OrderParamsV5,
-  RestClientV5,
-} from 'bybit-api';
+import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {Store} from '../../domain/entities/Store';

@@ -6,13 +6,10 @@ import {OrderClass} from '../../types';
 import {inject, injectable} from 'tsyringe';
 import {CANDLE_CLOSED, LOG_EVENT} from '../../constants';
 import {
-  AVG_BUY_RATE,
   CANDLES_TO_WAIT,
   DIGITS_AFTER_COMMA,
   MARTIN_GALE,
   MAX_AVG_ORDER_COUNT,
-  TAKE_PROFIT_RATE,
-  TIME_FRAME,
 } from '../../config';
 import {initLogger} from '../../utils/logger';
 import {Redis} from 'ioredis';
@@ -30,7 +27,7 @@ export class Store {
 
   private candleLowPrice = '0';
   public lastCandleLowPrice = '0';
-  private readonly timeFrame = TIME_FRAME;
+
   private nextCandleTimeFrame = 0;
 
   private candlesCount = 0;
@@ -79,14 +76,14 @@ export class Store {
 
   get avgOrderPrice() {
     return new BigJs(this.lastAvgOrderPrice)
-      .mul(AVG_BUY_RATE)
-      .toFixed(DIGITS_AFTER_COMMA);
+      .mul(this.options.avgRate)
+      .toFixed(this.options.digits);
   }
 
   get profitOrderPrice() {
     return new BigJs(this.avgPositionPrice)
-      .mul(TAKE_PROFIT_RATE)
-      .toFixed(DIGITS_AFTER_COMMA);
+      .mul(this.options.profitRate)
+      .toFixed(this.options.digits);
   }
 
   get canOpenAvgOrder(): boolean {
@@ -205,7 +202,7 @@ export class Store {
 
   private updateLastCandleData() {
     this.lastCandleLowPrice = this.candleLowPrice;
-    this.nextCandleTimeFrame += this.timeFrame;
+    this.nextCandleTimeFrame += this.options.period;
     this.isNewCandle = true;
     this.candlesCount += 1;
     logger.info(
@@ -217,11 +214,11 @@ export class Store {
 
   updateLastCandleLowPrice(ts: number) {
     const seconds = moment(ts).seconds();
-    if (!this.klineStarted && seconds % this.timeFrame === 0) {
+    if (!this.klineStarted && seconds % this.options.period === 0) {
       this.klineStarted = true;
       this.isNewCandle = true;
       const nearest = this.roundToNearestTen(seconds);
-      this.nextCandleTimeFrame = nearest + this.timeFrame;
+      this.nextCandleTimeFrame = nearest + this.options.period;
       logger.info(
         `Candle klineStarted: ${this.candleLowPrice}, next candle in: ${this.nextCandleTimeFrame} and seconds: ${seconds}, ts: ${ts}`
       );
