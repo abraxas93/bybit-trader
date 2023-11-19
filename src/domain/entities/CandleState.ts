@@ -6,7 +6,7 @@ export class CandleState {
   private _klineStarted = false;
   private _isNewCandle = false;
   private _currentLowPrice = '0';
-  public _lastCandleLowPrice = '0';
+  private _lastCandleLowPrice = '0';
   private _nextCandleIn = 0;
   private _count = 0;
 
@@ -58,8 +58,8 @@ export class CandleState {
     this._lastCandleLowPrice =
       (await this.redis.get(RKEYS.LAST_CANDLE_LOW_PRICE)) || '0';
 
-    const nextCandleIn = await this.redis.get(RKEYS.TIMEFRAME);
-    this._nextCandleIn = nextCandleIn ? parseInt(nextCandleIn) : 0;
+    // const nextCandleIn = await this.redis.get(RKEYS.TIMEFRAME);
+    // this._nextCandleIn = nextCandleIn ? parseInt(nextCandleIn) : 0;
 
     const count = await this.redis.get(RKEYS.AVG_ORDER_COUNT);
     this._count = count ? parseInt(count) : 0;
