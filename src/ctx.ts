@@ -19,6 +19,8 @@ import {
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {ProcessOrderData} from './application/use-cases/ProcessOrderData';
 import {Options} from './domain/entities/Options';
+import {CandleState, StateContainer} from './domain/entities';
+import {TradeState} from './domain/entities/TradeState';
 
 export function bootstrapCtx() {
   // const mongoClient = await createMongoClient();
@@ -43,11 +45,15 @@ export function bootstrapCtx() {
   container.register<Store>('Store', {
     useValue: new Store(eventEmitter, redis, options),
   });
+  container.register<TradeState>('TradeState', TradeState);
+  container.register<CandleState>('CandleState', CandleState);
   container.register<Redis>('Redis', {useValue: redis});
   container.register<Options>('Options', {useValue: options});
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
+
+  container.register<StateContainer>('StateContainer', StateContainer);
 
   container.register<ProcessOrderData>('ProcessOrderData', ProcessOrderData);
 

@@ -96,17 +96,3 @@ export type OrderData = {
   tpLimitPrice: string;
   slLimitPrice: string;
 };
-
-export type OrderState = {
-  orderBook: Record<string, OrderClass>;
-  isAvgOrderExists: boolean;
-  isPositionExists: boolean;
-};
-
-export type CandleState = {
-  count: number;
-};
-
-export type TradeState = {
-  quantity: string[];
-};

@@ -23,6 +23,7 @@ import {Topic} from './types';
 import {SYMBOL} from './config';
 import {setupTradeOptions} from './scripts';
 import {Options} from './domain/entities/Options';
+import {StateContainer} from './domain/entities';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
 const logsLogger = initLogger('index.ts', 'logs/logs.log');
@@ -40,6 +41,8 @@ if (process.env.SETUP_VARS) {
 } else if (process.env.TEST) {
   bootstrapCtx();
   const opts = container.resolve<Options>('Options');
+  const state = container.resolve<StateContainer>('StateContainer');
+  setTimeout(() => console.log(state), 3000);
 } else {
   main();
 }
@@ -51,6 +54,7 @@ function bootstrapEvents() {
   const submitAvgOrder = container.resolve<SubmitAvgOrder>('SubmitAvgOrder');
   const store = container.resolve<Store>('Store');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
+  const state = container.resolve<StateContainer>('StateContainer');
 
   emitter.on(SUBMIT_OPEN_ORDER, () => {
     submitOpenOrder.execute().catch(err => errLogger.error(err));
@@ -68,8 +72,8 @@ function bootstrapEvents() {
       submitOpenOrder.execute().catch(err => errLogger.error(err));
   });
 
-  emitter.on(LOG_EVENT, data => {
-    storeLogger.info(JSON.stringify(data));
+  emitter.on(LOG_EVENT, (label: string) => {
+    storeLogger.info(JSON.stringify(state.getSnapshot(label)));
   });
 }
 

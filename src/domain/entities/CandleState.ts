@@ -1,7 +1,7 @@
 import {Redis} from 'ioredis';
 import {EventEmitter} from 'events';
-import {inject} from 'tsyringe';
-import {CANDLE_CLOSED, RKEYS} from '../../constants';
+import {inject, injectable} from 'tsyringe';
+import {CANDLE_CLOSED, LOG_EVENT, RKEYS} from '../../constants';
 import {Options} from './Options';
 import {initLogger} from '../../utils/logger';
 import moment from 'moment';
@@ -9,6 +9,7 @@ import {roundToNearestTen} from '../../utils';
 
 const logger = initLogger('CandleState', 'logs/logs.log');
 
+@injectable()
 export class CandleState {
   private _klineStarted = false;
   private _isNewCandle = false;
@@ -91,6 +92,7 @@ export class CandleState {
       this._currentLowPrice = lastPrice;
       return true;
     }
+    this._emitter.emit(LOG_EVENT, 'updateLowPrice');
     return false;
   };
 
@@ -103,7 +105,7 @@ export class CandleState {
       `Candld closed: ${this.lastCandleLowPrice}, next candle: ${this._nextCandleIn}, count: ${this._count}`
     );
     this._emitter.emit(CANDLE_CLOSED);
-    // this._emitter.emit(LOG_EVENT, this.getSnapshot('updateLastCandleData')); // TODO: connect in candle close
+    this._emitter.emit(LOG_EVENT, 'updateLastCandleData');
   }
 
   updateLastCandleLowPrice(ts: number) {
@@ -116,10 +118,7 @@ export class CandleState {
       logger.info(
         `Candle klineStarted: ${this._currentLowPrice}, next candle in: ${this._nextCandleIn} and seconds: ${seconds}, ts: ${ts}`
       );
-      // this._emitter.emit(
-      //   LOG_EVENT,
-      //   this.getSnapshot('updateLastCandleLowPrice')
-      // );
+      this._emitter.emit(LOG_EVENT, 'updateLastCandleLowPrice');
     }
 
     if (this.klineStarted) {

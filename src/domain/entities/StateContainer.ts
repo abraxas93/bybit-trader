@@ -27,7 +27,7 @@ export class StateContainer {
     );
   }
 
-  private getSnapshot = (label: string) => {
+  public getSnapshot = (label: string) => {
     const snapshot = {
       label,
       posQty: this.trades.posQty,
@@ -52,18 +52,14 @@ export class StateContainer {
     return snapshot;
   };
 
-  logSnapshot(label: string) {
-    this._emitter.emit(LOG_EVENT, this.getSnapshot(label));
-  }
-
   openPosition(avgPrice: string, qty: string) {
     this.trades.openPosOrder(avgPrice, qty);
     this.candles.resetCandlesCount();
-    this.logSnapshot('openPosition');
+    this._emitter.emit(LOG_EVENT, 'openPosition');
   }
 
   closePosition() {
     this.trades.closePosOrder();
-    this.logSnapshot('closePosition');
+    this._emitter.emit(LOG_EVENT, 'closePosition');
   }
 }

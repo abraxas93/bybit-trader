@@ -8,6 +8,7 @@ import {ProcessOrderData} from '../../../application/use-cases/ProcessOrderData'
 import {initLogger} from '../../../utils/logger';
 import {ERROR_EVENT} from '../../../constants';
 import moment from 'moment';
+import {StateContainer} from '../../../domain/entities';
 
 const errLogger = initLogger('WsTopicHandler', 'logs/errors.log');
 const socketLogger = initLogger('WsTopicHandler', 'logs/sockets.log', true);
@@ -17,6 +18,8 @@ export class WsTopicHandler {
   constructor(
     @inject('Store')
     private readonly store: Store,
+    @inject('StateContainer')
+    private readonly state: StateContainer,
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
     @inject('RestClientV5')
@@ -45,8 +48,8 @@ export class WsTopicHandler {
         ).format()}`
       );
       const {lastPrice} = data as unknown as TickerData;
-      this.store.setLowPrice(lastPrice);
-      this.store.updateLastCandleLowPrice(ts);
+      this.state.candles.updateLowPrice(lastPrice);
+      this.state.candles.updateLastCandleLowPrice(ts);
     }
   }
 }

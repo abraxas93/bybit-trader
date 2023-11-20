@@ -1,10 +1,12 @@
 import {Redis} from 'ioredis';
+import {EventEmitter} from 'events';
 import BigJs from 'big.js';
-import {inject} from 'tsyringe';
+import {inject, injectable} from 'tsyringe';
 import {RKEYS} from '../../constants';
 import {OrderClass} from '../../types';
 import {Options} from './Options';
 
+@injectable()
 export class TradeState {
   private _orderBook: Record<string, OrderClass> = {};
   private _isAvgOrderExists = false;
@@ -19,7 +21,9 @@ export class TradeState {
     @inject('Redis')
     private readonly redis: Redis,
     @inject('Options')
-    public readonly options: Options
+    public readonly options: Options,
+    @inject('EventEmitter')
+    private readonly _emitter: EventEmitter
   ) {
     this.loadVars().catch(err => {
       // Handle errors appropriately, e.g., logging
