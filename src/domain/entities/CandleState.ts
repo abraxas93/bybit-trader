@@ -80,6 +80,7 @@ export class CandleState {
 
   setLastLowCandlePrice(price: string) {
     this._lastCandleLowPrice = price;
+    this._emitter.emit(LOG_EVENT, 'setLastLowCandlePrice');
   }
 
   updateLowPrice = (lastPrice: string | undefined): boolean => {

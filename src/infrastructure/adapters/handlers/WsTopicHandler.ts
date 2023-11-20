@@ -1,8 +1,6 @@
 import {inject, injectable} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {OrderData, TickerData, Topic} from '../../../types';
-import {Store} from '../../../domain/entities/Store';
-// import {SUBMIT_ORDER} from '../../../constants';
 import {RestClientV5} from 'bybit-api';
 import {ProcessOrderData} from '../../../application/use-cases/ProcessOrderData';
 import {initLogger} from '../../../utils/logger';
@@ -16,8 +14,6 @@ const socketLogger = initLogger('WsTopicHandler', 'logs/sockets.log', true);
 @injectable()
 export class WsTopicHandler {
   constructor(
-    @inject('Store')
-    private readonly store: Store,
     @inject('StateContainer')
     private readonly state: StateContainer,
     @inject('EventEmitter')

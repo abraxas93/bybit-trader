@@ -57,9 +57,4 @@ export class StateContainer {
     this.candles.resetCandlesCount();
     this._emitter.emit(LOG_EVENT, 'openPosition');
   }
-
-  closePosition() {
-    this.trades.closePosOrder();
-    this._emitter.emit(LOG_EVENT, 'closePosition');
-  }
 }

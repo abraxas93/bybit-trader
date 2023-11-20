@@ -2,7 +2,7 @@ import {Redis} from 'ioredis';
 import {EventEmitter} from 'events';
 import BigJs from 'big.js';
 import {inject, injectable} from 'tsyringe';
-import {RKEYS} from '../../constants';
+import {LOG_EVENT, RKEYS} from '../../constants';
 import {OrderClass} from '../../types';
 import {Options} from './Options';
 
@@ -122,14 +122,17 @@ export class TradeState {
     this._avgPosPrice = '0';
     this.quantity = [];
     this._avgOrderCount = 0;
+    this._emitter.emit(LOG_EVENT, 'closePosOrder');
   }
 
-  addToOrdBook(orderId: string, type: OrderClass) {
+  addToOrdBook(orderId: string, type: OrderClass, logged = true) {
     this.orderBook[orderId] = type;
+    logged && this._emitter.emit(LOG_EVENT, 'addToOrdBook');
   }
 
-  removeFromOrdBook = (orderId: string) => {
+  removeFromOrdBook = (orderId: string, logged = true) => {
     delete this.orderBook[orderId];
+    logged && this._emitter.emit(LOG_EVENT, 'removeFromOrdBook');
   };
 
   getOrderClass = (orderId: string) => {
@@ -155,10 +158,19 @@ export class TradeState {
     this._avgPosPrice = new BigJs(numerator).div(denominator).toString();
     this._lastAvgOrderPrice = price;
     this._avgOrderCount += 1;
+
+    this._emitter.emit(LOG_EVENT, 'closeAvgOrder');
   }
 
   openAvgOrder(orderId: string) {
-    this.addToOrdBook(orderId, 'AVERAGE_ORDER');
+    this.addToOrdBook(orderId, 'AVERAGE_ORDER', false);
     this._isAvgOrderExists = true;
+    this._emitter.emit(LOG_EVENT, 'openAvgOrder');
+  }
+
+  cancelAvgOrder(orderId: string) {
+    this._isAvgOrderExists = false;
+    this.removeFromOrdBook(orderId, false);
+    this._emitter.emit(LOG_EVENT, 'cancelAvgOrder');
   }
 }

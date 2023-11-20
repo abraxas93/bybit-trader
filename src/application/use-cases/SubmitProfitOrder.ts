@@ -1,8 +1,7 @@
-import {EventEmitter} from 'events';
-import {Store} from '../../domain/entities/Store';
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {initLogger} from '../../utils/logger';
+import {StateContainer} from '../../domain/entities';
 
 const apiLogger = initLogger('SubmitProfitOrder', 'logs/api.log');
 
@@ -11,24 +10,22 @@ export class SubmitProfitOrder {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,
-    @inject('Store')
-    private readonly store: Store,
-    @inject('EventEmitter')
-    private readonly emitter: EventEmitter
+    @inject('StateContainer')
+    private readonly state: StateContainer
   ) {}
 
   async execute() {
     try {
-      const category = this.store.options.category;
-      const symbol = this.store.options.symbol;
-      const qty = this.store.posQty;
+      const category = this.state.options.category;
+      const symbol = this.state.options.symbol;
+      const qty = this.state.trades.posQty;
 
       const body: OrderParamsV5 = {
         symbol,
         qty,
         side: 'Sell',
         orderType: 'Limit',
-        price: this.store.profitOrderPrice,
+        price: this.state.trades.profitOrderPrice,
         category: category,
       };
       apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
@@ -37,7 +34,7 @@ export class SubmitProfitOrder {
       const {retCode, result} = response;
 
       if (retCode === 0) {
-        this.store.addOrder(result.orderId, 'TAKE_PROFIT_ORDER');
+        this.state.trades.addToOrdBook(result.orderId, 'TAKE_PROFIT_ORDER');
       }
       return {data: response, error: null};
     } catch (error) {

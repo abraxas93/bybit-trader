@@ -40,7 +40,7 @@ if (process.env.SETUP_VARS) {
   })().catch(err => errLogger.error(err));
 } else if (process.env.TEST) {
   bootstrapCtx();
-  const opts = container.resolve<Options>('Options');
+  // const opts = container.resolve<Options>('Options');
   const state = container.resolve<StateContainer>('StateContainer');
   setTimeout(() => console.log(state), 3000);
 } else {
