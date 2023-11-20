@@ -150,10 +150,6 @@ export class Store {
     this._emitter.emit(LOG_EVENT, this.getSnapshot('openAvgOrder'));
   }
 
-  getLastCandleLowPrice() {
-    return this.lastCandleLowPrice;
-  }
-
   private roundToNearestTen(number: number) {
     if (number < 10) {
       return 0;

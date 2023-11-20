@@ -1,6 +1,13 @@
 import {Redis} from 'ioredis';
+import {EventEmitter} from 'events';
 import {inject} from 'tsyringe';
-import {RKEYS} from '../../constants';
+import {CANDLE_CLOSED, RKEYS} from '../../constants';
+import {Options} from './Options';
+import {initLogger} from '../../utils/logger';
+import moment from 'moment';
+import {roundToNearestTen} from '../../utils';
+
+const logger = initLogger('CandleState', 'logs/logs.log');
 
 export class CandleState {
   private _klineStarted = false;
@@ -12,7 +19,11 @@ export class CandleState {
 
   constructor(
     @inject('Redis')
-    private readonly redis: Redis
+    private readonly redis: Redis,
+    @inject('Options')
+    public readonly options: Options,
+    @inject('EventEmitter')
+    private readonly _emitter: EventEmitter
   ) {
     this.loadVars().catch(err => {
       // Handle errors appropriately, e.g., logging
@@ -60,8 +71,77 @@ export class CandleState {
 
     // const nextCandleIn = await this.redis.get(RKEYS.TIMEFRAME);
     // this._nextCandleIn = nextCandleIn ? parseInt(nextCandleIn) : 0;
+  }
 
-    const count = await this.redis.get(RKEYS.AVG_ORDER_COUNT);
-    this._count = count ? parseInt(count) : 0;
+  resetCandlesCount() {
+    this._count = 0;
+  }
+
+  setLastLowCandlePrice(price: string) {
+    this._lastCandleLowPrice = price;
+  }
+
+  updateLowPrice = (lastPrice: string | undefined): boolean => {
+    if (!this._klineStarted) return false;
+    if (this._isNewCandle && lastPrice) {
+      this._currentLowPrice = lastPrice;
+      this._isNewCandle = false;
+      return true;
+    } else if (lastPrice && Number(lastPrice) < Number(this._currentLowPrice)) {
+      this._currentLowPrice = lastPrice;
+      return true;
+    }
+    return false;
+  };
+
+  private updateLastCandleData() {
+    this._lastCandleLowPrice = this._currentLowPrice;
+    this._nextCandleIn += this.options.period;
+    this._isNewCandle = true;
+    this._count += 1;
+    logger.info(
+      `Candld closed: ${this.lastCandleLowPrice}, next candle: ${this._nextCandleIn}, count: ${this._count}`
+    );
+    this._emitter.emit(CANDLE_CLOSED);
+    // this._emitter.emit(LOG_EVENT, this.getSnapshot('updateLastCandleData')); // TODO: connect in candle close
+  }
+
+  updateLastCandleLowPrice(ts: number) {
+    const seconds = moment(ts).seconds();
+    if (!this._klineStarted && seconds % this.options.period === 0) {
+      this._klineStarted = true;
+      this._isNewCandle = true;
+      const nearest = roundToNearestTen(seconds);
+      this._nextCandleIn = nearest + this.options.period;
+      logger.info(
+        `Candle klineStarted: ${this._currentLowPrice}, next candle in: ${this._nextCandleIn} and seconds: ${seconds}, ts: ${ts}`
+      );
+      // this._emitter.emit(
+      //   LOG_EVENT,
+      //   this.getSnapshot('updateLastCandleLowPrice')
+      // );
+    }
+
+    if (this.klineStarted) {
+      if (
+        seconds >= 10 &&
+        seconds >= this._nextCandleIn &&
+        this._nextCandleIn !== 0
+      ) {
+        this.updateLastCandleData();
+      }
+
+      if (this._nextCandleIn === 60) {
+        this._nextCandleIn = 0;
+      }
+
+      if (
+        seconds < 10 &&
+        this._nextCandleIn === 0 &&
+        seconds >= this._nextCandleIn
+      ) {
+        this.updateLastCandleData();
+      }
+    }
   }
 }
