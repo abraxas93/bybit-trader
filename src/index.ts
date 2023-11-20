@@ -12,7 +12,6 @@ import {
   SUBMIT_OPEN_ORDER,
   SUBMIT_PROFIT_ORDER,
 } from './constants';
-import {Store} from './domain/entities/Store';
 import {
   SubmitAvgOrder,
   SubmitOpenOrder,
@@ -22,7 +21,6 @@ import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler'
 import {Topic} from './types';
 import {SYMBOL} from './config';
 import {setupTradeOptions} from './scripts';
-import {Options} from './domain/entities/Options';
 import {StateContainer} from './domain/entities';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
@@ -52,7 +50,7 @@ function bootstrapEvents() {
   const submitProfitOrder =
     container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
   const submitAvgOrder = container.resolve<SubmitAvgOrder>('SubmitAvgOrder');
-  const store = container.resolve<Store>('Store');
+
   const emitter = container.resolve<EventEmitter>('EventEmitter');
   const state = container.resolve<StateContainer>('StateContainer');
 
@@ -65,10 +63,10 @@ function bootstrapEvents() {
   emitter.on(ERROR_EVENT, data => errLogger.error(data));
 
   emitter.on(CANDLE_CLOSED, () => {
-    store.canOpenAvgOrder &&
+    state.canOpenAvgOrder &&
       submitAvgOrder.execute().catch(err => errLogger.error(err));
 
-    !store.isPositionOpened &&
+    !state.trades.isPositionExists &&
       submitOpenOrder.execute().catch(err => errLogger.error(err));
   });
 

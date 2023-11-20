@@ -52,9 +52,9 @@ export class StateContainer {
     return snapshot;
   };
 
-  openPosition(avgPrice: string, qty: string) {
+  openPosition = (avgPrice: string, qty: string) => {
     this.trades.openPosOrder(avgPrice, qty);
     this.candles.resetCandlesCount();
     this._emitter.emit(LOG_EVENT, 'openPosition');
-  }
+  };
 }

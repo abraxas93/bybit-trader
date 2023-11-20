@@ -125,10 +125,10 @@ export class TradeState {
     this._emitter.emit(LOG_EVENT, 'closePosOrder');
   }
 
-  addToOrdBook(orderId: string, type: OrderClass, logged = true) {
+  addToOrdBook = (orderId: string, type: OrderClass, logged = true) => {
     this.orderBook[orderId] = type;
     logged && this._emitter.emit(LOG_EVENT, 'addToOrdBook');
-  }
+  };
 
   removeFromOrdBook = (orderId: string, logged = true) => {
     delete this.orderBook[orderId];
@@ -146,7 +146,7 @@ export class TradeState {
     return null;
   };
 
-  closeAvgOrder(price: string, qty: string, value: string) {
+  closeAvgOrder = (price: string, qty: string, value: string) => {
     this._isAvgOrderExists = false;
 
     const totalQty = this.quantity.reduce((prev: string, cur: string) =>
@@ -160,17 +160,17 @@ export class TradeState {
     this._avgOrderCount += 1;
 
     this._emitter.emit(LOG_EVENT, 'closeAvgOrder');
-  }
+  };
 
-  openAvgOrder(orderId: string) {
+  openAvgOrder = (orderId: string) => {
     this.addToOrdBook(orderId, 'AVERAGE_ORDER', false);
     this._isAvgOrderExists = true;
     this._emitter.emit(LOG_EVENT, 'openAvgOrder');
-  }
+  };
 
-  cancelAvgOrder(orderId: string) {
+  cancelAvgOrder = (orderId: string) => {
     this._isAvgOrderExists = false;
     this.removeFromOrdBook(orderId, false);
     this._emitter.emit(LOG_EVENT, 'cancelAvgOrder');
-  }
+  };
 }

@@ -95,6 +95,7 @@ export class Options {
 
     const minCandles = await this.redis.get(RKEYS.MIN_CANDLES);
     if (!minCandles) throw new Error(`${NULL_KEY}:${RKEYS.MIN_CANDLES}`);
+    this._minCandles = parseInt(minCandles);
 
     const digits = await this.redis.get(RKEYS.DIGITS);
     if (!digits) throw new Error(`${NULL_KEY}:${RKEYS.DIGITS}`);

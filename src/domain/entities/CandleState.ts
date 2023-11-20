@@ -74,14 +74,14 @@ export class CandleState {
     // this._nextCandleIn = nextCandleIn ? parseInt(nextCandleIn) : 0;
   }
 
-  resetCandlesCount() {
+  resetCandlesCount = () => {
     this._count = 0;
-  }
+  };
 
-  setLastLowCandlePrice(price: string) {
+  setLastLowCandlePrice = (price: string) => {
     this._lastCandleLowPrice = price;
     this._emitter.emit(LOG_EVENT, 'setLastLowCandlePrice');
-  }
+  };
 
   updateLowPrice = (lastPrice: string | undefined): boolean => {
     if (!this._klineStarted) return false;
@@ -97,7 +97,7 @@ export class CandleState {
     return false;
   };
 
-  private updateLastCandleData() {
+  private updateLastCandleData = () => {
     this._lastCandleLowPrice = this._currentLowPrice;
     this._nextCandleIn += this.options.period;
     this._isNewCandle = true;
@@ -107,9 +107,9 @@ export class CandleState {
     );
     this._emitter.emit(CANDLE_CLOSED);
     this._emitter.emit(LOG_EVENT, 'updateLastCandleData');
-  }
+  };
 
-  updateLastCandleLowPrice(ts: number) {
+  updateLastCandleLowPrice = (ts: number) => {
     const seconds = moment(ts).seconds();
     if (!this._klineStarted && seconds % this.options.period === 0) {
       this._klineStarted = true;
@@ -143,5 +143,5 @@ export class CandleState {
         this.updateLastCandleData();
       }
     }
-  }
+  };
 }

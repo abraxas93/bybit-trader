@@ -45,15 +45,25 @@ export function bootstrapCtx() {
   container.register<Store>('Store', {
     useValue: new Store(eventEmitter, redis, options),
   });
-  container.register<TradeState>('TradeState', TradeState);
-  container.register<CandleState>('CandleState', CandleState);
+  const tradeState = new TradeState(redis, options, eventEmitter);
+  const candleState = new CandleState(redis, options, eventEmitter);
+
+  container.register<TradeState>('TradeState', {useValue: tradeState});
+  container.register<CandleState>('CandleState', {useValue: candleState});
   container.register<Redis>('Redis', {useValue: redis});
   container.register<Options>('Options', {useValue: options});
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
 
-  container.register<StateContainer>('StateContainer', StateContainer);
+  container.register<StateContainer>('StateContainer', {
+    useValue: new StateContainer(
+      eventEmitter,
+      tradeState,
+      candleState,
+      options
+    ),
+  });
 
   container.register<ProcessOrderData>('ProcessOrderData', ProcessOrderData);
 
