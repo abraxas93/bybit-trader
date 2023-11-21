@@ -15,30 +15,6 @@ import {Redis} from 'ioredis';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
 
-/**
- * export const SYMBOL = 'TOKENUSDT';
-export const BASE_QUANTITY = '10';
-export const TIME_FRAME = 10;
-export const MARTIN_GALE = 2;
-export const TAKE_PROFIT_RATE = 1.007;
-export const AVG_BUY_RATE = 0.995;
-export const MAX_AVG_ORDER_COUNT = 10;
-export const CANDLES_TO_WAIT = 10;
-export const DIGITS_AFTER_COMMA = 6;
- */
-
-/**
- * SYMBOL: 'cfg:symbol',
-  QUANTITY: 'cfg:quantity',
-  PERIOD: 'cfg:period',
-  MARTINGALE: 'cfg:martingale',
-  PROFIT_RATE: 'cfg:profit_rate',
-  AVG_RATE: 'cfg:avg_rate',
-  MAX_AVG_COUNT: 'cfg:max_avg_count',
-  MIN_CANDLES: 'cfg:min_candles',
-  DIGITS: 'cfg:digits',
- */
-
 export async function setupTradeOptions() {
   try {
     const redis = new Redis();
@@ -55,6 +31,15 @@ export async function setupTradeOptions() {
 
     await redis.set(RKEYS.DIGITS, DIGITS_AFTER_COMMA);
     await redis.set(RKEYS.MARTINGALE, MARTIN_GALE);
+    await redis.set(RKEYS.CATEGORY, 'linear');
+
+    await redis.set(RKEYS.POS_QTY, '0');
+    await redis.set(RKEYS.LAST_AVG_ORD_PRICE, '0');
+
+    await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
+    await redis.set(RKEYS.POSITION_OPENED, 'false');
+    await redis.set(RKEYS.AVG_POS_PRICE, '0');
+    await redis.set(RKEYS.AVG_ORDER_COUNT, '0');
   } catch (error) {
     errLogger.error(JSON.stringify(error));
   }

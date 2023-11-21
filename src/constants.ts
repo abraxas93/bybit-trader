@@ -27,7 +27,6 @@ export const RKEYS: Record<string, string> = {
   CANDLE_LOW_PRICE: 'store:candle_low_price',
   LAST_CANDLE_LOW_PRICE: 'store:last_candle_low_price',
   TIMEFRAME: 'store:timeframe',
-  CATEGORY: 'store:category',
   ORDERBOOK: 'store:orderbook',
   AVG_POS_PRICE: 'store:avg_pos_price',
   AVG_ORDER_PRICE: 'store:avg_order_price',
@@ -41,4 +40,5 @@ export const RKEYS: Record<string, string> = {
   MAX_AVG_COUNT: 'cfg:max_avg_count',
   MIN_CANDLES: 'cfg:min_candles',
   DIGITS: 'cfg:digits',
+  CATEGORY: 'cfg:category',
 };
