@@ -1,10 +1,10 @@
 import {EventEmitter} from 'events';
 import {OrderData} from '../../types';
-import {Store} from '../../domain/entities/Store';
 import {RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {ERROR_EVENT, SUBMIT_PROFIT_ORDER} from '../../constants';
 import {initLogger} from '../../utils/logger';
+import {StateContainer} from '../../domain/entities';
 
 const apiLogger = initLogger('ProcessOrderData', 'logs/api.log');
 
@@ -13,85 +13,78 @@ export class ProcessOrderData {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,
-    @inject('Store')
-    private readonly store: Store,
+    @inject('StateContainer')
+    private readonly state: StateContainer,
     @inject('EventEmitter')
     private readonly emitter: EventEmitter
   ) {}
 
   private async cancelAvgOrder() {
-    const symbol = this.store.symbol;
-    const category = this.store.category;
+    const symbol = this.state.options.symbol;
+    const category = this.state.options.category;
 
-    const orderId = this.store.getOrderIdbyClass('AVERAGE_ORDER');
+    const orderId = this.state.trades.getOrderIdbyClass('AVERAGE_ORDER');
     if (orderId) {
       apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
       const cancelResponse = await this.client.cancelAllOrders({
-        category,
+        category: category,
         symbol,
       });
       apiLogger.info(
         `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
       );
-      this.store.isAverageOrderOpened = false;
-      this.store.removeOrder(orderId);
-
-      if (!cancelResponse.retCode) {
+      this.state.trades.clearOrderBook();
+      if (cancelResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
     }
   }
 
   private async cancelTakeProfitOrder() {
-    const symbol = this.store.symbol;
-    const category = this.store.category;
-    const orderId = this.store.getOrderIdbyClass('TAKE_PROFIT_ORDER');
+    const symbol = this.state.options.symbol;
+    const category = this.state.options.category;
+    const orderId = this.state.trades.getOrderIdbyClass('TAKE_PROFIT_ORDER');
     if (orderId) {
       apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
       const cancelResponse = await this.client.cancelAllOrders({
-        category,
+        category: category,
         symbol,
       });
       apiLogger.info(
         `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
       );
-      if (!cancelResponse.retCode) {
+      if (cancelResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
 
-      this.store.removeOrder(orderId);
+      this.state.trades.clearOrderBook();
     }
   }
   // TODO: add paritally filled cases
   async execute(data: OrderData) {
     try {
-      const {
-        orderId,
-        orderStatus,
-        avgPrice,
-        cumExecQty,
-        cumExecValue,
-        lastExecQty,
-      } = data;
-      const orderCls = this.store.getOrderClass(orderId);
+      const {orderId, orderStatus, avgPrice, cumExecQty, cumExecValue} = data;
+      const orderCls = this.state.trades.getOrderClass(orderId);
 
       if (orderStatus === 'Filled') {
-        this.store.removeOrder(orderId);
+        this.state.trades.removeFromOrdBook(orderId);
       }
 
       if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {
-        this.store.openPosition(avgPrice, cumExecQty);
+        this.state.openPosition(avgPrice, cumExecQty);
+        // check or another open position order exists and cancel exactly it
         return {data: SUBMIT_PROFIT_ORDER, error: null};
       }
 
       if (orderCls === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
-        this.store.closePosition();
+        this.state.trades.closePosOrder();
         await this.cancelAvgOrder(); // TODO: add error handling
         // return {data: SUBMIT_OPEN_ORDER, error: null};
       }
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
-        this.store.closeAvgOrder(avgPrice, cumExecQty, cumExecValue);
+        this.state.trades.closeAvgOrder(avgPrice, cumExecQty, cumExecValue);
+        this.state.candles.resetCandlesCount();
         await this.cancelTakeProfitOrder(); // TODO: add error handling
         return {data: SUBMIT_PROFIT_ORDER, error: null};
       }

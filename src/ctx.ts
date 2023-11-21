@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import {Redis} from 'ioredis';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
 // import {createMongoClient} from './database/mongo/createMongoClient';
@@ -8,19 +9,23 @@ import {
   WebsocketClient,
   RestClientV5,
 } from 'bybit-api';
-import {Store} from '../domain/entities/Store';
-import {SYMBOL} from '../config';
+import {Store} from './domain/entities/Store';
+
 import {
   SubmitAvgOrder,
   SubmitOpenOrder,
   SubmitProfitOrder,
-} from '../application';
-import {WsTopicHandler} from './adapters/handlers/WsTopicHandler';
-import {ProcessOrderData} from '../application/use-cases/ProcessOrderData';
+} from './application';
+import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
+import {ProcessOrderData} from './application/use-cases/ProcessOrderData';
+import {Options} from './domain/entities/Options';
+import {CandleState, StateContainer} from './domain/entities';
+import {TradeState} from './domain/entities/TradeState';
 
 export function bootstrapCtx() {
   // const mongoClient = await createMongoClient();
   const eventEmitter = new EventEmitter();
+  const redis = new Redis();
 
   const wsOptions: WSClientConfigurableOptions = {
     key: process.env.API_KEY,
@@ -36,14 +41,29 @@ export function bootstrapCtx() {
     secret: process.env.API_SECRET,
     testnet: process.env.NODE_ENV === 'test' ? true : false,
   });
-
+  const options = new Options(redis);
   container.register<Store>('Store', {
-    useValue: new Store(SYMBOL, eventEmitter),
+    useValue: new Store(eventEmitter, redis, options),
   });
+  const tradeState = new TradeState(redis, options, eventEmitter);
+  const candleState = new CandleState(redis, options, eventEmitter);
 
+  container.register<TradeState>('TradeState', {useValue: tradeState});
+  container.register<CandleState>('CandleState', {useValue: candleState});
+  container.register<Redis>('Redis', {useValue: redis});
+  container.register<Options>('Options', {useValue: options});
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
+
+  container.register<StateContainer>('StateContainer', {
+    useValue: new StateContainer(
+      eventEmitter,
+      tradeState,
+      candleState,
+      options
+    ),
+  });
 
   container.register<ProcessOrderData>('ProcessOrderData', ProcessOrderData);
 

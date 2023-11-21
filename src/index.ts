@@ -3,16 +3,16 @@ import 'reflect-metadata';
 import {initLogger} from './utils/logger';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
-import {WebsocketClient} from 'bybit-api';
-import {bootstrapCtx} from './infrastructure/ctx';
+import {RestClientV5, WebsocketClient} from 'bybit-api';
+import {bootstrapCtx} from './ctx';
 import {
   CANDLE_CLOSED,
   ERROR_EVENT,
   LOG_EVENT,
+  RKEYS,
   SUBMIT_OPEN_ORDER,
   SUBMIT_PROFIT_ORDER,
 } from './constants';
-import {Store} from './domain/entities/Store';
 import {
   SubmitAvgOrder,
   SubmitOpenOrder,
@@ -21,6 +21,9 @@ import {
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {Topic} from './types';
 import {SYMBOL} from './config';
+import {setupTradeOptions} from './scripts';
+import {StateContainer} from './domain/entities';
+import Redis from 'ioredis';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
 const logsLogger = initLogger('index.ts', 'logs/logs.log');
@@ -29,13 +32,29 @@ const storeLogger = initLogger('', 'logs/store.log', true);
 
 const SESSION_ID = Date.now();
 
+if (process.env.SETUP_VARS) {
+  (async () => {
+    await setupTradeOptions();
+    console.log('>>> setup:redis:vars');
+    process.exit();
+  })().catch(err => errLogger.error(err));
+} else if (process.env.TEST) {
+  bootstrapCtx();
+  // const opts = container.resolve<Options>('Options');
+  const state = container.resolve<StateContainer>('StateContainer');
+  setTimeout(() => console.log(state), 3000);
+} else {
+  main();
+}
+
 function bootstrapEvents() {
   const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
   const submitProfitOrder =
     container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
   const submitAvgOrder = container.resolve<SubmitAvgOrder>('SubmitAvgOrder');
-  const store = container.resolve<Store>('Store');
+
   const emitter = container.resolve<EventEmitter>('EventEmitter');
+  const state = container.resolve<StateContainer>('StateContainer');
 
   emitter.on(SUBMIT_OPEN_ORDER, () => {
     submitOpenOrder.execute().catch(err => errLogger.error(err));
@@ -46,15 +65,15 @@ function bootstrapEvents() {
   emitter.on(ERROR_EVENT, data => errLogger.error(data));
 
   emitter.on(CANDLE_CLOSED, () => {
-    store.canOpenAvgOrder &&
+    state.canOpenAvgOrder &&
       submitAvgOrder.execute().catch(err => errLogger.error(err));
 
-    !store.isPositionOpened &&
+    !state.trades.isPositionExists &&
       submitOpenOrder.execute().catch(err => errLogger.error(err));
   });
 
-  emitter.on(LOG_EVENT, data => {
-    storeLogger.info(JSON.stringify(data));
+  emitter.on(LOG_EVENT, (label: string) => {
+    storeLogger.info(JSON.stringify(state.getSnapshot(label)));
   });
 }
 
@@ -101,19 +120,41 @@ function main() {
   bootstrapSockets();
   bootstrapEvents();
   setTimeout(async () => {
-    const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
-    await useCase.execute();
+    if (!state.trades.isPositionExists) {
+      const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
+      await useCase.execute();
+    } else {
+      const useCase = container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
+      await useCase.execute();
+    }
   }, 4000);
+
+  const client = container.resolve<RestClientV5>('RestClientV5');
+  const state = container.resolve<StateContainer>('StateContainer');
+  const redis = container.resolve<Redis>('Redis');
+  // const emitter = container.resolve<EventEmitter>('EventEmitter');
+
+  const cb = async () => {
+    const symbol = state.options.symbol;
+    const category = state.options.category;
+
+    const cancelResponse = await client.cancelAllOrders({symbol, category});
+
+    if (cancelResponse.retCode) {
+      errLogger.error(JSON.stringify(cancelResponse));
+    } else {
+      await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
+    }
+    process.exit(0);
+  };
+
+  process.on('SIGINT', async () => {
+    logsLogger.info(`--- end:${SESSION_ID} ---`);
+    await cb();
+  });
+
+  process.on('SIGTERM', async () => {
+    logsLogger.info(`--- end:${SESSION_ID} ---`);
+    await cb();
+  });
 }
-
-main();
-
-process.on('SIGINT', () => {
-  logsLogger.info(`--- end:${SESSION_ID} ---`);
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  logsLogger.info(`--- end:${SESSION_ID} ---`);
-  process.exit(0);
-});
