@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import {initLogger} from './utils/logger';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
-import {WebsocketClient} from 'bybit-api';
+import {RestClientV5, WebsocketClient} from 'bybit-api';
 import {bootstrapCtx} from './ctx';
 import {
   CANDLE_CLOSED,
@@ -121,14 +121,30 @@ function main() {
     const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
     await useCase.execute();
   }, 4000);
+
+  const client = container.resolve<RestClientV5>('RestClientV5');
+  const state = container.resolve<StateContainer>('StateContainer');
+  // const emitter = container.resolve<EventEmitter>('EventEmitter');
+
+  const cb = async () => {
+    const symbol = state.options.symbol;
+    const category = state.options.category;
+
+    const cancelResponse = await client.cancelAllOrders({symbol, category});
+
+    if (cancelResponse.retCode) {
+      errLogger.error(JSON.stringify(cancelResponse));
+    }
+    process.exit(0);
+  };
+
+  process.on('SIGINT', async () => {
+    logsLogger.info(`--- end:${SESSION_ID} ---`);
+    await cb();
+  });
+
+  process.on('SIGTERM', async () => {
+    logsLogger.info(`--- end:${SESSION_ID} ---`);
+    await cb();
+  });
 }
-
-process.on('SIGINT', () => {
-  logsLogger.info(`--- end:${SESSION_ID} ---`);
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  logsLogger.info(`--- end:${SESSION_ID} ---`);
-  process.exit(0);
-});

@@ -5,6 +5,9 @@ import {inject, injectable} from 'tsyringe';
 import {LOG_EVENT, RKEYS} from '../../constants';
 import {OrderClass} from '../../types';
 import {Options} from './Options';
+import {initLogger} from '../../utils/logger';
+
+const errLogger = initLogger('TradeState', 'logs/errors.log');
 
 @injectable()
 export class TradeState {
@@ -112,16 +115,45 @@ export class TradeState {
 
   openPosOrder(avgPrice: string, qty: string) {
     this._isPositionExists = true;
+    this.redis
+      .set(RKEYS.POSITION_OPENED, 'true')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this._avgPosPrice = avgPrice;
+    this.redis
+      .set(RKEYS.AVG_POS_PRICE, avgPrice)
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this.quantity = [qty];
+    this.redis
+      .set(RKEYS.POS_QTY, JSON.stringify([qty]))
+      .catch(err => errLogger.error(JSON.stringify(err)));
     this._lastAvgOrderPrice = avgPrice;
+    this.redis
+      .set(RKEYS.LAST_AVG_ORD_PRICE, avgPrice)
+      .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
   closePosOrder() {
     this._isPositionExists = false;
+    this.redis
+      .set(RKEYS.POSITION_OPENED, 'false')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this._avgPosPrice = '0';
+    this.redis
+      .set(RKEYS.AVG_POS_PRICE, '0')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this.quantity = [];
-    this._avgOrderCount = 0;
+    this.redis
+      .set(RKEYS.POS_QTY, JSON.stringify([]))
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
+    this._avgOrderCount = 0; // TODO: update redis
+    this.redis
+      .set(RKEYS.AVG_ORDER_COUNT, '0')
+      .catch(err => errLogger.error(JSON.stringify(err)));
     this._emitter.emit(LOG_EVENT, 'closePosOrder');
   }
 
@@ -148,6 +180,9 @@ export class TradeState {
 
   closeAvgOrder = (price: string, qty: string, value: string) => {
     this._isAvgOrderExists = false;
+    this.redis
+      .set(RKEYS.AVG_ORDER_EXISTS, 'false')
+      .catch(err => errLogger.error(JSON.stringify(err)));
 
     const totalQty = this.quantity.reduce((prev: string, cur: string) =>
       new BigJs(prev).add(cur).toString()
@@ -155,9 +190,24 @@ export class TradeState {
     const numerator = new BigJs(totalQty).mul(this._avgPosPrice).plus(value);
     const denominator = new BigJs(totalQty).add(qty);
     this.quantity.push(qty);
+    this.redis
+      .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this._avgPosPrice = new BigJs(numerator).div(denominator).toString();
+    this.redis
+      .set(RKEYS.AVG_POS_PRICE, this._avgPosPrice)
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this._lastAvgOrderPrice = price;
+    this.redis
+      .set(RKEYS.LAST_AVG_ORD_PRICE, price)
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this._avgOrderCount += 1;
+    this.redis
+      .set(RKEYS.AVG_ORDER_COUNT, this._avgOrderCount)
+      .catch(err => errLogger.error(JSON.stringify(err)));
 
     this._emitter.emit(LOG_EVENT, 'closeAvgOrder');
   };
@@ -165,11 +215,19 @@ export class TradeState {
   openAvgOrder = (orderId: string) => {
     this.addToOrdBook(orderId, 'AVERAGE_ORDER', false);
     this._isAvgOrderExists = true;
+    this.redis
+      .set(RKEYS.AVG_ORDER_EXISTS, 'true')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this._emitter.emit(LOG_EVENT, 'openAvgOrder');
   };
 
   cancelAvgOrder = (orderId: string) => {
     this._isAvgOrderExists = false;
+    this.redis
+      .set(RKEYS.AVG_ORDER_EXISTS, 'false')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this.removeFromOrdBook(orderId, false);
     this._emitter.emit(LOG_EVENT, 'cancelAvgOrder');
   };

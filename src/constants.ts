@@ -18,6 +18,8 @@ export const NOT_IMPLEMENTED = 'NOT_IMPLEMENTED';
 export const NULL_KEY = 'NULL_KEY';
 
 export const RKEYS: Record<string, string> = {
+  POS_QTY: 'store:pos_qty',
+  LAST_AVG_ORD_PRICE: 'store:last_avg_ord_price',
   KLINE_STARTED: 'store:kline_started',
   IS_NEW_CANDLE: 'store:is_new_candle',
   AVG_ORDER_EXISTS: 'store:avg_order_exists',
