@@ -33,8 +33,8 @@ export class ProcessOrderData {
       apiLogger.info(
         `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
       );
-      this.state.trades.cancelAvgOrder(orderId);
-      if (!cancelResponse.retCode) {
+      this.state.trades.clearOrderBook();
+      if (cancelResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
     }
@@ -53,11 +53,11 @@ export class ProcessOrderData {
       apiLogger.info(
         `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
       );
-      if (!cancelResponse.retCode) {
+      if (cancelResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
 
-      this.state.trades.removeFromOrdBook(orderId);
+      this.state.trades.clearOrderBook();
     }
   }
   // TODO: add paritally filled cases
@@ -72,6 +72,7 @@ export class ProcessOrderData {
 
       if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {
         this.state.openPosition(avgPrice, cumExecQty);
+        // check or another open position order exists and cancel exactly it
         return {data: SUBMIT_PROFIT_ORDER, error: null};
       }
 
@@ -83,6 +84,7 @@ export class ProcessOrderData {
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
         this.state.trades.closeAvgOrder(avgPrice, cumExecQty, cumExecValue);
+        this.state.candles.resetCandlesCount();
         await this.cancelTakeProfitOrder(); // TODO: add error handling
         return {data: SUBMIT_PROFIT_ORDER, error: null};
       }

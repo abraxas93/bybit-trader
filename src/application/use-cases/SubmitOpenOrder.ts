@@ -33,7 +33,7 @@ export class SubmitOpenOrder {
       if (cancelResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, cancelResponse);
       }
-
+      this.state.trades.clearOrderBook();
       let lastCandleLowPrice = this.state.candles.lastCandleLowPrice;
 
       if (lastCandleLowPrice === '0') {

@@ -30,6 +30,7 @@ export class StateContainer {
   public getSnapshot = (label: string) => {
     const snapshot = {
       label,
+      candles: this.candles.candles,
       posQty: this.trades.posQty,
       avgQty: this.trades.avgQty,
       currentLowPrice: this.candles.currentLowPrice,

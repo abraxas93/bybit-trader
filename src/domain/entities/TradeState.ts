@@ -68,22 +68,27 @@ export class TradeState {
     this._avgOrderCount = avgOrderCount ? parseInt(avgOrderCount) : 0;
 
     // Load data from Redis
-    const orderBookKeys = await this.redis.keys(`${RKEYS.ORDERBOOK}:*`);
-    if (orderBookKeys.length > 0) {
-      for (const key of orderBookKeys) {
-        const orderData = await this.redis.get(key);
-        if (orderData) {
-          const orderId = key.split(':').pop() || '';
-          this._orderBook[orderId] = JSON.parse(orderData) as OrderClass;
-        }
-      }
-    }
+    // const orderBookKeys = await this.redis.keys(`${RKEYS.ORDERBOOK}:*`);
+    // if (orderBookKeys.length > 0) {
+    //   for (const key of orderBookKeys) {
+    //     const orderData = await this.redis.get(key);
+    //     if (orderData) {
+    //       const orderId = key.split(':').pop() || '';
+    //       this._orderBook[orderId] = JSON.parse(orderData) as OrderClass;
+    //     }
+    //   }
+    // }
 
     const avgOrderExists = await this.redis.get(RKEYS.AVG_ORDER_EXISTS);
     this._isAvgOrderExists = avgOrderExists === 'true';
 
     const positionExists = await this.redis.get(RKEYS.POSITION_OPENED);
     this._isPositionExists = positionExists === 'true';
+
+    const qty: string[] = JSON.parse(
+      (await this.redis.get(RKEYS.POS_QTY)) || '[]'
+    ) as string[];
+    this.quantity = qty;
   }
 
   get avgOrderPrice() {
@@ -112,6 +117,10 @@ export class TradeState {
       .mul(this.options.martinGale)
       .toFixed(this.options.digits);
   }
+
+  clearOrderBook = () => {
+    this._orderBook = {};
+  };
 
   openPosOrder(avgPrice: string, qty: string) {
     this._isPositionExists = true;
@@ -150,9 +159,14 @@ export class TradeState {
       .set(RKEYS.POS_QTY, JSON.stringify([]))
       .catch(err => errLogger.error(JSON.stringify(err)));
 
-    this._avgOrderCount = 0; // TODO: update redis
+    this._avgOrderCount = 0;
     this.redis
       .set(RKEYS.AVG_ORDER_COUNT, '0')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
+    this._lastAvgOrderPrice = '0';
+    this.redis
+      .set(RKEYS.LAST_AVG_ORD_PRICE, '0')
       .catch(err => errLogger.error(JSON.stringify(err)));
     this._emitter.emit(LOG_EVENT, 'closePosOrder');
   }

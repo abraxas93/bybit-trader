@@ -18,6 +18,8 @@ export class CandleState {
   private _nextCandleIn = 0;
   private _count = 0;
 
+  private _candles: Record<number, boolean> = {};
+
   constructor(
     @inject('Redis')
     private readonly redis: Redis,
@@ -30,6 +32,10 @@ export class CandleState {
       // Handle errors appropriately, e.g., logging
       console.error('Error in CandleState:', err);
     });
+  }
+
+  get candles() {
+    return this._candles;
   }
 
   // Getters for private variables
@@ -97,7 +103,7 @@ export class CandleState {
     return false;
   };
 
-  private updateLastCandleData = () => {
+  private updateLastCandleData = (seconds: number) => {
     this._lastCandleLowPrice = this._currentLowPrice;
     this._nextCandleIn += this.options.period;
     this._isNewCandle = true;
@@ -105,8 +111,11 @@ export class CandleState {
     logger.info(
       `Candld closed: ${this.lastCandleLowPrice}, next candle: ${this._nextCandleIn}, count: ${this._count}`
     );
+    if (this._candles[seconds]) return;
     this._emitter.emit(CANDLE_CLOSED);
     this._emitter.emit(LOG_EVENT, 'updateLastCandleData');
+    this._candles[seconds] = true;
+    delete this._candles[seconds - this.options.period];
   };
 
   updateLastCandleLowPrice = (ts: number) => {
@@ -128,7 +137,7 @@ export class CandleState {
         seconds >= this._nextCandleIn &&
         this._nextCandleIn !== 0
       ) {
-        this.updateLastCandleData();
+        this.updateLastCandleData(seconds);
       }
 
       if (this._nextCandleIn === 60) {
@@ -140,7 +149,7 @@ export class CandleState {
         this._nextCandleIn === 0 &&
         seconds >= this._nextCandleIn
       ) {
-        this.updateLastCandleData();
+        this.updateLastCandleData(seconds);
       }
     }
   };

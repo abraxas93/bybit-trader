@@ -9,6 +9,7 @@ import {
   CANDLE_CLOSED,
   ERROR_EVENT,
   LOG_EVENT,
+  RKEYS,
   SUBMIT_OPEN_ORDER,
   SUBMIT_PROFIT_ORDER,
 } from './constants';
@@ -22,6 +23,7 @@ import {Topic} from './types';
 import {SYMBOL} from './config';
 import {setupTradeOptions} from './scripts';
 import {StateContainer} from './domain/entities';
+import Redis from 'ioredis';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
 const logsLogger = initLogger('index.ts', 'logs/logs.log');
@@ -118,12 +120,18 @@ function main() {
   bootstrapSockets();
   bootstrapEvents();
   setTimeout(async () => {
-    const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
-    await useCase.execute();
+    if (!state.trades.isPositionExists) {
+      const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
+      await useCase.execute();
+    } else {
+      const useCase = container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
+      await useCase.execute();
+    }
   }, 4000);
 
   const client = container.resolve<RestClientV5>('RestClientV5');
   const state = container.resolve<StateContainer>('StateContainer');
+  const redis = container.resolve<Redis>('Redis');
   // const emitter = container.resolve<EventEmitter>('EventEmitter');
 
   const cb = async () => {
@@ -134,6 +142,8 @@ function main() {
 
     if (cancelResponse.retCode) {
       errLogger.error(JSON.stringify(cancelResponse));
+    } else {
+      await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
     }
     process.exit(0);
   };
