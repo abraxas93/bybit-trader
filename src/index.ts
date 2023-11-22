@@ -138,14 +138,15 @@ function main() {
     try {
       const symbol = state.options.symbol;
       const category = state.options.category;
-
+      console.log('>>>>>>');
       const cancelResponse = await client.cancelAllOrders({symbol, category});
-
+      console.log(cancelResponse);
       if (cancelResponse.retCode) {
         errLogger.error(JSON.stringify(cancelResponse));
       } else {
         await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
       }
+      console.log('<<<<<<<');
       process.exit(0);
     } catch (error) {
       console.log(error);
