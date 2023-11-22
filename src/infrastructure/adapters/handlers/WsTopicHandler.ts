@@ -4,11 +4,12 @@ import {OrderData, TickerData, Topic} from '../../../types';
 import {ProcessOrderData} from '../../../application/use-cases/ProcessOrderData';
 import {initLogger} from '../../../utils/logger';
 import {ERROR_EVENT} from '../../../constants';
-import moment from 'moment';
+// import moment from 'moment';
 import {StateContainer} from '../../../domain/entities';
 
 const errLogger = initLogger('WsTopicHandler', 'logs/errors.log');
-const socketLogger = initLogger('WsTopicHandler', 'logs/sockets.log', true);
+const tickerLogger = initLogger('WsTopicHandler', 'logs/tickers.log', true);
+const orderLogger = initLogger('WsTopicHandler', 'logs/orders.log', true);
 
 @injectable()
 export class WsTopicHandler {
@@ -23,8 +24,9 @@ export class WsTopicHandler {
 
   async handle(socketData: Topic) {
     const {topic, data, ts} = socketData;
-    socketLogger.info(JSON.stringify(socketData));
+
     if (topic === 'order') {
+      orderLogger.info(JSON.stringify(socketData));
       const [orderData] = data;
       const {data: event, error} = await this.useCase
         .execute(orderData as OrderData)
@@ -35,6 +37,7 @@ export class WsTopicHandler {
     }
 
     if (topic.includes('tickers')) {
+      tickerLogger.info(JSON.stringify(socketData));
       // console.log(
       //   `${ts} and seconds: ${moment(ts).seconds()}, timestamp: ${moment(
       //     ts

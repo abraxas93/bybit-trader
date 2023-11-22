@@ -30,7 +30,7 @@ export class SubmitProfitOrder {
       };
       apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
       const response = await this.client.submitOrder(body);
-      apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(response)}|`);
+      apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(response)}|`);
       const {retCode, result} = response;
 
       if (retCode === 0) {
