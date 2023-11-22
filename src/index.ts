@@ -135,17 +135,21 @@ function main() {
   // const emitter = container.resolve<EventEmitter>('EventEmitter');
 
   const cb = async () => {
-    const symbol = state.options.symbol;
-    const category = state.options.category;
+    try {
+      const symbol = state.options.symbol;
+      const category = state.options.category;
 
-    const cancelResponse = await client.cancelAllOrders({symbol, category});
+      const cancelResponse = await client.cancelAllOrders({symbol, category});
 
-    if (cancelResponse.retCode) {
-      errLogger.error(JSON.stringify(cancelResponse));
-    } else {
-      await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
+      if (cancelResponse.retCode) {
+        errLogger.error(JSON.stringify(cancelResponse));
+      } else {
+        await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
+      }
+      process.exit(0);
+    } catch (error) {
+      console.log(error);
     }
-    process.exit(0);
   };
 
   process.on('SIGINT', async () => {
