@@ -140,15 +140,13 @@ function main() {
       const category = state.options.category;
       console.log('>>>>>>');
       console.log(client);
-      process.nextTick(async () => {
-        const cancelResponse = await client.cancelAllOrders({symbol, category});
-        console.log(cancelResponse);
-        if (cancelResponse.retCode) {
-          errLogger.error(JSON.stringify(cancelResponse));
-        } else {
-          await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
-        }
-      });
+      const cancelResponse = await client.cancelAllOrders({symbol, category});
+      console.log(cancelResponse);
+      if (cancelResponse.retCode) {
+        errLogger.error(JSON.stringify(cancelResponse));
+      } else {
+        await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
+      }
       console.log('<<<<<<<');
     } catch (error) {
       console.log(error);
