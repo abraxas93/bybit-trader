@@ -147,7 +147,6 @@ function main() {
         await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
       }
       console.log('<<<<<<<');
-      process.exit(0);
     } catch (error) {
       console.log(error);
     }
@@ -155,11 +154,6 @@ function main() {
 
   process.on('SIGINT', async () => {
     logsLogger.info(`--- end:${SESSION_ID} ---`);
-    await cb();
-  });
-
-  process.on('beforeExit', async () => {
-    await cb();
-    process.exit(0); // if you don't close yourself this will run forever
+    await cb().finally(() => process.exit(0));
   });
 }
