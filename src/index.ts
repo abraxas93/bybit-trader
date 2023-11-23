@@ -140,6 +140,10 @@ function main() {
       const category = state.options.category;
       console.log('>>>>>>');
       console.log(client);
+      client
+        .cancelAllOrders({symbol, category})
+        .then(r => console.log(r))
+        .catch(err => console.log(err));
       // const cancelResponse = await client.cancelAllOrders({symbol, category});
       // console.log(cancelResponse);
       // if (cancelResponse.retCode) {
