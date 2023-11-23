@@ -139,6 +139,7 @@ function main() {
       const symbol = state.options.symbol;
       const category = state.options.category;
       console.log('>>>>>>');
+      console.log(client);
       // const cancelResponse = await client.cancelAllOrders({symbol, category});
       // console.log(cancelResponse);
       // if (cancelResponse.retCode) {
