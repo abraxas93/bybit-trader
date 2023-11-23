@@ -153,10 +153,10 @@ function main() {
     }
   };
 
-  // process.on('SIGINT', async () => {
-  //   logsLogger.info(`--- end:${SESSION_ID} ---`);
-  //   await cb();
-  // });
+  process.on('SIGINT', async () => {
+    logsLogger.info(`--- end:${SESSION_ID} ---`);
+    await cb();
+  });
 
   process.on('beforeExit', async () => {
     await cb();
