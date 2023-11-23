@@ -158,7 +158,8 @@ function main() {
   //   await cb();
   // });
 
-  process.on('exit', async () => {
+  process.on('beforeExit', async () => {
     await cb();
+    process.exit(0); // if you don't close yourself this will run forever
   });
 }
