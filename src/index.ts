@@ -1,5 +1,6 @@
 /* eslint-disable no-process-exit */
 import 'reflect-metadata';
+import {Redis} from 'ioredis';
 import {initLogger} from './utils/logger';
 import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
@@ -23,7 +24,6 @@ import {Topic} from './types';
 import {SYMBOL} from './config';
 import {setupTradeOptions} from './scripts';
 import {StateContainer} from './domain/entities';
-import Redis from 'ioredis';
 
 const errLogger = initLogger('index.ts', 'logs/errors.log');
 const logsLogger = initLogger('index.ts', 'logs/logs.log');
@@ -132,7 +132,6 @@ function main() {
   const client = container.resolve<RestClientV5>('RestClientV5');
   const state = container.resolve<StateContainer>('StateContainer');
   const redis = container.resolve<Redis>('Redis');
-  // const emitter = container.resolve<EventEmitter>('EventEmitter');
 
   const cb = async () => {
     try {
@@ -146,7 +145,7 @@ function main() {
         await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
       }
     } catch (error) {
-      console.log(error);
+      errLogger.error(JSON.stringify(error));
     }
   };
 
