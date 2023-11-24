@@ -122,6 +122,13 @@ export class TradeState {
     this._orderBook = {};
   };
 
+  deductQty(value: string) {
+    const lastIdx = this.quantity.length - 1;
+    this.quantity[lastIdx] = new BigJs(this.quantity[lastIdx])
+      .sub(value)
+      .toFixed(this.options.digits);
+  }
+
   openPosOrder(avgPrice: string, qty: string) {
     this._isPositionExists = true;
     this.redis
