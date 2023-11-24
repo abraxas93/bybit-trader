@@ -9,7 +9,6 @@ import {
   WebsocketClient,
   RestClientV5,
 } from 'bybit-api';
-import {Store} from './domain/entities/Store';
 
 import {
   SubmitAvgOrder,
@@ -42,9 +41,6 @@ export function bootstrapCtx() {
     testnet: process.env.NODE_ENV === 'test' ? true : false,
   });
   const options = new Options(redis);
-  container.register<Store>('Store', {
-    useValue: new Store(eventEmitter, redis, options),
-  });
   const tradeState = new TradeState(redis, options, eventEmitter);
   const candleState = new CandleState(redis, options, eventEmitter);
 

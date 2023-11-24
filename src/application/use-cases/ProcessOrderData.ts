@@ -89,6 +89,13 @@ export class ProcessOrderData {
         return {data: SUBMIT_PROFIT_ORDER, error: null};
       }
 
+      if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'PartiallyFilled') {
+        // update quantity
+        // recalculate avg price
+        // reopen profit order
+        await this.cancelTakeProfitOrder();
+        return {data: SUBMIT_PROFIT_ORDER, error: null};
+      }
       return {data: null, error: null};
     } catch (error) {
       return {data: null, error: (error as Error).message};
