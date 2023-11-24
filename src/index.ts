@@ -138,16 +138,13 @@ function main() {
     try {
       const symbol = state.options.symbol;
       const category = state.options.category;
-      console.log('>>>>>>');
-      console.log(client);
       const cancelResponse = await client.cancelAllOrders({symbol, category});
-      console.log(cancelResponse);
+      logsLogger.info(cancelResponse);
       if (cancelResponse.retCode) {
         errLogger.error(JSON.stringify(cancelResponse));
       } else {
         await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
       }
-      console.log('<<<<<<<');
     } catch (error) {
       console.log(error);
     }
