@@ -2,7 +2,11 @@ import {EventEmitter} from 'events';
 import {OrderData} from '../../types';
 import {RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
-import {ERROR_EVENT, SUBMIT_PROFIT_ORDER} from '../../constants';
+import {
+  ERROR_EVENT,
+  SUBMIT_OPEN_ORDER,
+  SUBMIT_PROFIT_ORDER,
+} from '../../constants';
 import {initLogger} from '../../utils/logger';
 import {StateContainer} from '../../domain/entities';
 
@@ -79,7 +83,7 @@ export class ProcessOrderData {
       if (orderCls === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
         this.state.trades.closePosOrder();
         await this.cancelAvgOrder(); // TODO: add error handling
-        // return {data: SUBMIT_OPEN_ORDER, error: null};
+        return {data: SUBMIT_OPEN_ORDER, error: null};
       }
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
