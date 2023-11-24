@@ -23,13 +23,13 @@ export const API_SECRET = process.env.API_SECRET;
 
 // config
 
-export const SYMBOL = 'FTTUSDT';
-export const BASE_QUANTITY = '10';
+export const SYMBOL = 'SPELLUSDT';
+export const BASE_QUANTITY = '100';
 export const TIME_FRAME = 10;
 export const MARTIN_GALE = 2;
 export const TAKE_PROFIT_RATE = 1.007;
 export const AVG_BUY_RATE = 0.995;
 export const MAX_AVG_ORDER_COUNT = 10;
-export const CANDLES_TO_WAIT = 10;
+export const CANDLES_TO_WAIT = 1;
 export const DIGITS_AFTER_COMMA = 6;
 export const CATEGORY = 'linear';
