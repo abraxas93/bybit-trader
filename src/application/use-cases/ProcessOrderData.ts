@@ -85,19 +85,22 @@ export class ProcessOrderData {
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
         this.state.trades.closeAvgOrder(avgPrice, cumExecQty, cumExecValue);
         this.state.candles.resetCandlesCount();
+        this.state.resetReopenTimer();
         await this.cancelTakeProfitOrder(); // TODO: add error handling
         return {data: SUBMIT_PROFIT_ORDER, error: null};
       }
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'PartiallyFilled') {
         // update quantity
+        this.state.trades.partiallyFillAvgOrder(cumExecQty, cumExecValue);
+        this.state.reopenProfitOrder();
+      }
 
-        // >>> should be paused for optimization, and after some pause should be setuped
-        // recalculate avg price
-        // cancel previous profit order
-        // reopen profit order
-
-        return {data: SUBMIT_PROFIT_ORDER, error: null};
+      if (
+        orderCls === 'TAKE_PROFIT_ORDER' &&
+        orderStatus === 'PartiallyFilled'
+      ) {
+        this.state.trades.deductQty(cumExecQty);
       }
       return {data: null, error: null};
     } catch (error) {

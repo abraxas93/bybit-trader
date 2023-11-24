@@ -118,15 +118,26 @@ export class TradeState {
       .toFixed(this.options.digits);
   }
 
+  getOrderIdBy = (type: OrderClass) => {
+    for (const [key, value] of Object.entries(this._orderBook)) {
+      if (value === type) return key;
+    }
+    return null;
+  };
+
   clearOrderBook = () => {
     this._orderBook = {};
   };
 
-  deductQty(value: string) {
+  deductQty(qty: string) {
     const lastIdx = this.quantity.length - 1;
     this.quantity[lastIdx] = new BigJs(this.quantity[lastIdx])
-      .sub(value)
+      .sub(qty)
       .toFixed(this.options.digits);
+
+    this.redis
+      .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
+      .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
   openPosOrder(avgPrice: string, qty: string) {
@@ -199,6 +210,24 @@ export class TradeState {
     return null;
   };
 
+  partiallyFillAvgOrder = (qty: string, value: string) => {
+    const totalQty = this.quantity.reduce((prev: string, cur: string) =>
+      new BigJs(prev).add(cur).toString()
+    );
+
+    const numerator = new BigJs(totalQty).mul(this._avgPosPrice).minus(value);
+    const denominator = new BigJs(totalQty).sub(qty);
+
+    this.deductQty(qty);
+
+    this._avgPosPrice = new BigJs(numerator)
+      .div(denominator)
+      .toFixed(this.options.digits);
+    this.redis
+      .set(RKEYS.AVG_POS_PRICE, this._avgPosPrice)
+      .catch(err => errLogger.error(JSON.stringify(err)));
+  };
+
   closeAvgOrder = (price: string, qty: string, value: string) => {
     this._isAvgOrderExists = false;
     this.redis
@@ -215,7 +244,9 @@ export class TradeState {
       .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
       .catch(err => errLogger.error(JSON.stringify(err)));
 
-    this._avgPosPrice = new BigJs(numerator).div(denominator).toString();
+    this._avgPosPrice = new BigJs(numerator)
+      .div(denominator)
+      .toFixed(this.options.digits);
     this.redis
       .set(RKEYS.AVG_POS_PRICE, this._avgPosPrice)
       .catch(err => errLogger.error(JSON.stringify(err)));

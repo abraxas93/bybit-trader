@@ -11,6 +11,7 @@ import {
 } from 'bybit-api';
 
 import {
+  ReopenProfitOrder,
   SubmitAvgOrder,
   SubmitOpenOrder,
   SubmitProfitOrder,
@@ -68,4 +69,5 @@ export function bootstrapCtx() {
   container.register<SubmitOpenOrder>('SubmitOpenOrder', SubmitOpenOrder);
   container.register<SubmitProfitOrder>('SubmitProfitOrder', SubmitProfitOrder);
   container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
+  container.register<ReopenProfitOrder>('ReopenProfitOrder', ReopenProfitOrder);
 }

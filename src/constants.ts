@@ -6,14 +6,20 @@ export const CANDLE_CLOSED = 'CANDLE_CLOSED';
 
 export const SUBMIT_AVG_ORDER = 'SUBMIT_AVG_ORDER';
 export const SUBMIT_PROFIT_ORDER = 'SUBMIT_PROFIT_ORDER';
+export const REOPEN_PROFIT_ORDER = 'REOPEN_PROFIT_ORDER';
 
 export const ERROR_EVENT = 'ERROR_EVENT';
 export const LOG_EVENT = 'LOG_EVENT';
+
+// consts
+
+export const REOPEN_TIMER = 4000;
 
 // errors
 export const ERR_USER_NOT_FOUND = 'ERR_USER_NOT_FOUND';
 export const ERR_INVALID_PASSWORD = 'ERR_INVALID_PASSWORD';
 export const NOT_IMPLEMENTED = 'NOT_IMPLEMENTED';
+export const ORDER_ID_NOT_FOUND = 'ORDER_ID_NOT_FOUN';
 
 export const NULL_KEY = 'NULL_KEY';
 

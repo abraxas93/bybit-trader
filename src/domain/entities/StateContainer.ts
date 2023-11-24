@@ -3,10 +3,11 @@ import {EventEmitter} from 'events';
 import {TradeState} from './TradeState';
 import {CandleState} from './CandleState';
 import {Options} from './Options';
-import {LOG_EVENT} from '../../constants';
+import {LOG_EVENT, REOPEN_PROFIT_ORDER, REOPEN_TIMER} from '../../constants';
 
 @injectable()
 export class StateContainer {
+  private _timer: NodeJS.Timer | undefined;
   constructor(
     @inject('EventEmitter')
     private readonly _emitter: EventEmitter,
@@ -57,5 +58,16 @@ export class StateContainer {
     this.trades.openPosOrder(avgPrice, qty);
     this.candles.resetCandlesCount();
     this._emitter.emit(LOG_EVENT, 'openPosition');
+  };
+
+  resetReopenTimer = () => {
+    clearTimeout(this._timer);
+  };
+
+  reopenProfitOrder = () => {
+    this.resetReopenTimer();
+    this._timer = setTimeout(() => {
+      this._emitter.emit(REOPEN_PROFIT_ORDER);
+    }, REOPEN_TIMER);
   };
 }

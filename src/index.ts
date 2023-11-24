@@ -10,11 +10,13 @@ import {
   CANDLE_CLOSED,
   ERROR_EVENT,
   LOG_EVENT,
+  REOPEN_PROFIT_ORDER,
   RKEYS,
   SUBMIT_OPEN_ORDER,
   SUBMIT_PROFIT_ORDER,
 } from './constants';
 import {
+  ReopenProfitOrder,
   SubmitAvgOrder,
   SubmitOpenOrder,
   SubmitProfitOrder,
@@ -52,6 +54,8 @@ function bootstrapEvents() {
   const submitProfitOrder =
     container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
   const submitAvgOrder = container.resolve<SubmitAvgOrder>('SubmitAvgOrder');
+  const reopenProfitOrder =
+    container.resolve<ReopenProfitOrder>('ReopenProfitOrder');
 
   const emitter = container.resolve<EventEmitter>('EventEmitter');
   const state = container.resolve<StateContainer>('StateContainer');
@@ -61,6 +65,9 @@ function bootstrapEvents() {
   });
   emitter.on(SUBMIT_PROFIT_ORDER, () => {
     submitProfitOrder.execute().catch(err => errLogger.error(err));
+  });
+  emitter.on(REOPEN_PROFIT_ORDER, () => {
+    reopenProfitOrder.execute().catch(err => errLogger.error(err));
   });
   emitter.on(ERROR_EVENT, data => errLogger.error(data));
 
