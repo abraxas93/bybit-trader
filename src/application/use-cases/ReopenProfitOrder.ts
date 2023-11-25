@@ -7,7 +7,7 @@ import {SubmitProfitOrder} from './SubmitProfitOrder';
 import {StateContainer} from '../../domain/entities';
 import {ERROR_EVENT, ORDER_ID_NOT_FOUND} from '../../constants';
 
-const apiLogger = initLogger('ReopenProfitOrder', 'logs/api.log');
+const apiLogger = initLogger('ReopenProfitOrder', 'api.log');
 
 @injectable()
 export class ReopenProfitOrder {

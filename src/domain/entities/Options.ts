@@ -4,7 +4,7 @@ import {Redis} from 'ioredis';
 import {inject, injectable} from 'tsyringe';
 import {CategoryV5} from 'bybit-api';
 
-const errLogger = initLogger('Options', 'logs/errors.log');
+const errLogger = initLogger('Options', 'errors.log');
 
 @injectable()
 export class Options {
@@ -18,6 +18,8 @@ export class Options {
   private _minCandles = 0;
   private _digits = 0;
   private _category: CategoryV5 = 'linear';
+
+  private _tradeCycles = 10;
 
   constructor(
     @inject('Redis')
@@ -67,6 +69,10 @@ export class Options {
     return this._digits;
   }
 
+  get tradeCycles(): number {
+    return this._tradeCycles;
+  }
+
   private async loadVars() {
     // upload data from redis
     const symbol = await this.redis.get(RKEYS.SYMBOL);
@@ -100,6 +106,10 @@ export class Options {
     const digits = await this.redis.get(RKEYS.DIGITS);
     if (!digits) throw new Error(`${NULL_KEY}:${RKEYS.DIGITS}`);
     this._digits = parseInt(digits);
+
+    const cycles = await this.redis.get(RKEYS.TRADE_CYCLES);
+    if (!cycles) throw new Error(`${NULL_KEY}:${RKEYS.TRADE_CYCLES}`);
+    this._tradeCycles = parseInt(cycles) || 10;
 
     // TODO: add category setup
   }

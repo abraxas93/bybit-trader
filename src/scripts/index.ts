@@ -1,4 +1,3 @@
-import {initLogger} from '../utils/logger';
 import {
   AVG_BUY_RATE,
   BASE_QUANTITY,
@@ -9,11 +8,10 @@ import {
   SYMBOL,
   TAKE_PROFIT_RATE,
   TIME_FRAME,
+  TRADE_CYCLES,
 } from '../config';
 import {RKEYS} from '../constants';
 import {Redis} from 'ioredis';
-
-const errLogger = initLogger('index.ts', 'logs/errors.log');
 
 export async function setupTradeOptions() {
   try {
@@ -32,6 +30,7 @@ export async function setupTradeOptions() {
     await redis.set(RKEYS.DIGITS, DIGITS_AFTER_COMMA);
     await redis.set(RKEYS.MARTINGALE, MARTIN_GALE);
     await redis.set(RKEYS.CATEGORY, 'linear');
+    await redis.set(RKEYS.TRADE_CYCLES, TRADE_CYCLES);
 
     await redis.set(RKEYS.POS_QTY, '0');
     await redis.set(RKEYS.LAST_AVG_ORD_PRICE, '0');
@@ -40,7 +39,13 @@ export async function setupTradeOptions() {
     await redis.set(RKEYS.POSITION_OPENED, 'false');
     await redis.set(RKEYS.AVG_POS_PRICE, '0');
     await redis.set(RKEYS.AVG_ORDER_COUNT, '0');
+    await redis.set(RKEYS.PROFIT_TAKES_COUNT, 0);
   } catch (error) {
-    errLogger.error(JSON.stringify(error));
+    console.error(JSON.stringify(error));
   }
 }
+
+(async () => {
+  await setupTradeOptions();
+  console.log('>>> setup:redis:vars');
+})().catch(err => console.error(err));

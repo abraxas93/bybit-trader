@@ -3,7 +3,7 @@ import {inject, injectable} from 'tsyringe';
 import {initLogger} from '../../utils/logger';
 import {StateContainer} from '../../domain/entities';
 
-const apiLogger = initLogger('SubmitProfitOrder', 'logs/api.log');
+const apiLogger = initLogger('SubmitProfitOrder', 'api.log');
 
 @injectable()
 export class SubmitProfitOrder {

@@ -5,7 +5,7 @@ import {ERROR_EVENT} from '../../constants';
 import {initLogger} from '../../utils/logger';
 import {StateContainer} from '../../domain/entities';
 
-const apiLogger = initLogger('SubmitOpenOrder', 'logs/api.log');
+const apiLogger = initLogger('SubmitOpenOrder', 'api.log');
 
 @injectable()
 export class SubmitOpenOrder {

@@ -37,6 +37,7 @@ export const RKEYS: Record<string, string> = {
   AVG_POS_PRICE: 'store:avg_pos_price',
   AVG_ORDER_PRICE: 'store:avg_order_price',
   AVG_ORDER_COUNT: 'store:avg_order_count',
+  PROFIT_TAKES_COUNT: 'store:profit_takes_count',
   SYMBOL: 'cfg:symbol',
   QUANTITY: 'cfg:quantity',
   PERIOD: 'cfg:period',
@@ -47,4 +48,5 @@ export const RKEYS: Record<string, string> = {
   MIN_CANDLES: 'cfg:min_candles',
   DIGITS: 'cfg:digits',
   CATEGORY: 'cfg:category',
+  TRADE_CYCLES: 'cfg:trade_cycles',
 };

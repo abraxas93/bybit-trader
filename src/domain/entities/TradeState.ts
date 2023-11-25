@@ -7,7 +7,7 @@ import {OrderClass} from '../../types';
 import {Options} from './Options';
 import {initLogger} from '../../utils/logger';
 
-const errLogger = initLogger('TradeState', 'logs/errors.log');
+const errLogger = initLogger('TradeState', 'errors.log');
 
 @injectable()
 export class TradeState {
@@ -17,6 +17,7 @@ export class TradeState {
   private _avgPosPrice = '0';
   private _lastAvgOrderPrice = '0';
   private _avgOrderCount = 0;
+  private _profitTakesCount = 0;
 
   public quantity: string[] = [];
 
@@ -89,6 +90,9 @@ export class TradeState {
       (await this.redis.get(RKEYS.POS_QTY)) || '[]'
     ) as string[];
     this.quantity = qty;
+
+    const cyclesCount = await this.redis.get(RKEYS.PROFIT_TAKES_COUNT);
+    this._profitTakesCount = cyclesCount ? parseInt(cyclesCount) : 0;
   }
 
   get avgOrderPrice() {
@@ -116,6 +120,10 @@ export class TradeState {
     return new BigJs(this.posQty)
       .mul(this.options.martinGale)
       .toFixed(this.options.digits);
+  }
+
+  get canOpenPositionOrder() {
+    return this._profitTakesCount < this.options.tradeCycles;
   }
 
   getOrderIdBy = (type: OrderClass) => {
@@ -185,6 +193,16 @@ export class TradeState {
     this._lastAvgOrderPrice = '0';
     this.redis
       .set(RKEYS.LAST_AVG_ORD_PRICE, '0')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
+    this._isAvgOrderExists = false;
+    this.redis
+      .set(RKEYS.AVG_ORDER_EXISTS, 'false')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
+    this._profitTakesCount += 1;
+    this.redis
+      .set(RKEYS.PROFIT_TAKES_COUNT, this._profitTakesCount)
       .catch(err => errLogger.error(JSON.stringify(err)));
     this._emitter.emit(LOG_EVENT, 'closePosOrder');
   }

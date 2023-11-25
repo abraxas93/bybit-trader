@@ -23,31 +23,43 @@ import {
 } from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {Topic} from './types';
-import {SYMBOL} from './config';
-import {setupTradeOptions} from './scripts';
+import {
+  SYMBOL,
+  BASE_QUANTITY,
+  TIME_FRAME,
+  MARTIN_GALE,
+  TAKE_PROFIT_RATE,
+  AVG_BUY_RATE,
+  MAX_AVG_ORDER_COUNT,
+  CANDLES_TO_WAIT,
+  DIGITS_AFTER_COMMA,
+  CATEGORY,
+  TRADE_CYCLES,
+} from './config';
+
 import {StateContainer} from './domain/entities';
 
-const errLogger = initLogger('index.ts', 'logs/errors.log');
-const logsLogger = initLogger('index.ts', 'logs/logs.log');
-const socketLogger = initLogger('index.ts', 'logs/sockets.log', true);
-const storeLogger = initLogger('', 'logs/store.log', true);
+const errLogger = initLogger('index.ts', 'errors.log');
+const logsLogger = initLogger('index.ts', 'logs.log');
+const socketLogger = initLogger('index.ts', 'sockets.log', true);
+const storeLogger = initLogger('', 'store.log', true);
 
-const SESSION_ID = Date.now();
-
-if (process.env.SETUP_VARS) {
-  (async () => {
-    await setupTradeOptions();
-    console.log('>>> setup:redis:vars');
-    process.exit();
-  })().catch(err => errLogger.error(err));
-} else if (process.env.TEST) {
-  bootstrapCtx();
-  // const opts = container.resolve<Options>('Options');
-  const state = container.resolve<StateContainer>('StateContainer');
-  setTimeout(() => console.log(state), 3000);
-} else {
-  main();
-}
+main();
+logsLogger.info(
+  JSON.stringify({
+    SYMBOL,
+    BASE_QUANTITY,
+    TIME_FRAME,
+    MARTIN_GALE,
+    TAKE_PROFIT_RATE,
+    AVG_BUY_RATE,
+    MAX_AVG_ORDER_COUNT,
+    CANDLES_TO_WAIT,
+    DIGITS_AFTER_COMMA,
+    CATEGORY,
+    TRADE_CYCLES,
+  })
+);
 
 function bootstrapEvents() {
   const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
@@ -122,7 +134,6 @@ function bootstrapSockets() {
 }
 
 function main() {
-  logsLogger.info(`--- start:${SESSION_ID} ---`);
   bootstrapCtx();
   bootstrapSockets();
   bootstrapEvents();
@@ -157,7 +168,6 @@ function main() {
   };
 
   process.on('SIGINT', async () => {
-    logsLogger.info(`--- end:${SESSION_ID} ---`);
     await cb().finally(() => process.exit(0));
   });
 }

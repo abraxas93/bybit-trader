@@ -7,7 +7,7 @@ import {initLogger} from '../../utils/logger';
 import moment from 'moment';
 import {roundToNearestTen} from '../../utils';
 
-const logger = initLogger('CandleState', 'logs/logs.log');
+const logger = initLogger('CandleState', 'logs.log');
 
 @injectable()
 export class CandleState {
