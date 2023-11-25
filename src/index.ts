@@ -23,7 +23,19 @@ import {
 } from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {Topic} from './types';
-import {SYMBOL} from './config';
+import {
+  SYMBOL,
+  BASE_QUANTITY,
+  TIME_FRAME,
+  MARTIN_GALE,
+  TAKE_PROFIT_RATE,
+  AVG_BUY_RATE,
+  MAX_AVG_ORDER_COUNT,
+  CANDLES_TO_WAIT,
+  DIGITS_AFTER_COMMA,
+  CATEGORY,
+  TRADE_CYCLES,
+} from './config';
 import {setupTradeOptions} from './scripts';
 import {StateContainer} from './domain/entities';
 
@@ -45,6 +57,21 @@ if (process.env.SETUP_VARS) {
   setTimeout(() => console.log(state), 3000);
 } else {
   main();
+  logsLogger.info(
+    JSON.stringify({
+      SYMBOL,
+      BASE_QUANTITY,
+      TIME_FRAME,
+      MARTIN_GALE,
+      TAKE_PROFIT_RATE,
+      AVG_BUY_RATE,
+      MAX_AVG_ORDER_COUNT,
+      CANDLES_TO_WAIT,
+      DIGITS_AFTER_COMMA,
+      CATEGORY,
+      TRADE_CYCLES,
+    })
+  );
 }
 
 function bootstrapEvents() {
