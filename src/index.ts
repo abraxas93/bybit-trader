@@ -6,6 +6,7 @@ import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {RestClientV5, WebsocketClient} from 'bybit-api';
 import {bootstrapCtx} from './ctx';
+import {SYMBOL} from './config';
 import {
   CANDLE_CLOSED,
   ERROR_EVENT,
@@ -23,20 +24,6 @@ import {
 } from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {Topic} from './types';
-import {
-  SYMBOL,
-  BASE_QUANTITY,
-  TIME_FRAME,
-  MARTIN_GALE,
-  TAKE_PROFIT_RATE,
-  AVG_BUY_RATE,
-  MAX_AVG_ORDER_COUNT,
-  CANDLES_TO_WAIT,
-  DIGITS_AFTER_COMMA,
-  CATEGORY,
-  TRADE_CYCLES,
-} from './config';
-
 import {StateContainer} from './domain/entities';
 
 const errLogger = initLogger('index.ts', 'errors.log');
@@ -45,21 +32,6 @@ const socketLogger = initLogger('index.ts', 'sockets.log', true);
 const storeLogger = initLogger('', 'store.log', true);
 
 main();
-logsLogger.info(
-  JSON.stringify({
-    SYMBOL,
-    BASE_QUANTITY,
-    TIME_FRAME,
-    MARTIN_GALE,
-    TAKE_PROFIT_RATE,
-    AVG_BUY_RATE,
-    MAX_AVG_ORDER_COUNT,
-    CANDLES_TO_WAIT,
-    DIGITS_AFTER_COMMA,
-    CATEGORY,
-    TRADE_CYCLES,
-  })
-);
 
 function bootstrapEvents() {
   const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
@@ -96,12 +68,14 @@ function bootstrapEvents() {
   });
 }
 
-function bootstrapSockets() {
+async function bootstrapSockets() {
   const ws = container.resolve<WebsocketClient>('WebsocketClient');
+  // const state = container.resolve<StateContainer>('StateContainer');
+  const redis = container.resolve<Redis>('Redis');
   const wsHandler = container.resolve<WsTopicHandler>('WsTopicHandler');
   // 'order', 'position', 'execution'
-
-  ws.subscribeV5([`tickers.${SYMBOL}`, 'order'], 'linear').catch(err =>
+  const symbol = (await redis.get(RKEYS.SYMBOL)) || SYMBOL;
+  ws.subscribeV5([`tickers.${symbol}`, 'order'], 'linear').catch(err =>
     socketLogger.error(JSON.stringify(err))
   );
 
@@ -143,7 +117,7 @@ function bootstrapSockets() {
 
 function main() {
   bootstrapCtx();
-  bootstrapSockets();
+  bootstrapSockets().catch(err => errLogger.error(JSON.stringify(err)));
   bootstrapEvents();
   setTimeout(async () => {
     if (!state.trades.isPositionExists) {
@@ -158,6 +132,8 @@ function main() {
   const client = container.resolve<RestClientV5>('RestClientV5');
   const state = container.resolve<StateContainer>('StateContainer');
   const redis = container.resolve<Redis>('Redis');
+
+  logsLogger.info(JSON.stringify(state.options));
 
   const cb = async () => {
     try {

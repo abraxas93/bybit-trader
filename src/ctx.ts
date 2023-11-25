@@ -9,7 +9,7 @@ import {
   WebsocketClient,
   RestClientV5,
 } from 'bybit-api';
-
+import {API_KEY, API_SECRET} from './config';
 import {
   ReopenProfitOrder,
   SubmitAvgOrder,
@@ -28,8 +28,8 @@ export function bootstrapCtx() {
   const redis = new Redis();
 
   const wsOptions: WSClientConfigurableOptions = {
-    key: process.env.API_KEY,
-    secret: process.env.API_SECRET,
+    key: API_KEY,
+    secret: API_SECRET,
     testnet: process.env.NODE_ENV === 'test' ? true : false,
     market: 'v5',
   };
@@ -37,8 +37,8 @@ export function bootstrapCtx() {
   const bybitWs = new WebsocketClient(wsOptions);
 
   const bybitClient = new RestClientV5({
-    key: process.env.API_KEY,
-    secret: process.env.API_SECRET,
+    key: API_KEY,
+    secret: API_SECRET,
     testnet: process.env.NODE_ENV === 'test' ? true : false,
   });
   const options = new Options(redis);
