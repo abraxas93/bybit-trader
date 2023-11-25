@@ -63,8 +63,7 @@ export class TradeState {
     // Load data from Redis
     this._avgPosPrice = (await this.redis.get(RKEYS.AVG_POS_PRICE)) || '0';
     this._lastAvgOrderPrice =
-      (await this.redis.get(RKEYS.AVG_ORDER_PRICE)) || '0';
-
+      (await this.redis.get(RKEYS.LAST_AVG_ORD_PRICE)) || '0';
     const avgOrderCount = await this.redis.get(RKEYS.AVG_ORDER_COUNT);
     this._avgOrderCount = avgOrderCount ? parseInt(avgOrderCount) : 0;
 
