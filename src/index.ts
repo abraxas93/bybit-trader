@@ -131,6 +131,13 @@ function bootstrapSockets() {
   ws.on('error', err => {
     socketLogger.error(JSON.stringify(err));
   });
+
+  // ws.on('reconnect', ({wsKey}) => {
+  //   console.log('ws automatically reconnecting.... ', wsKey);
+  // });
+  ws.on('reconnected', data => {
+    console.log('ws has reconnected ', data?.wsKey);
+  });
 }
 
 function main() {
