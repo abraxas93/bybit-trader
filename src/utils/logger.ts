@@ -12,12 +12,20 @@ const outputFormat = format.printf(info => {
   )}${colorizer.colorize(level, message)}`;
 });
 
-export function initLogger(label: string, logFileName: string, mute? = false) {
+// Define the format for the file which does not include colors
+const fileFormat = format.combine(
+  format.timestamp(),
+  format.printf(info => {
+    return `${info.timestamp} [${info.label}]: ${info.message}`;
+  })
+);
+
+export function initLogger(label: string, logFileName: string, mute = false) {
   // const parsed = file.split('/');
   // const label = parsed.pop();
   return createLogger({
     format: format.combine(
-      format.label({label: `|${label}|`}),
+      format.label({label: `${label}`}),
       format.timestamp(),
       outputFormat
     ),
@@ -29,6 +37,7 @@ export function initLogger(label: string, logFileName: string, mute? = false) {
       new transports.File({
         filename: logFileName,
         silent: process.env.LOGS ? false : true,
+        format: fileFormat,
       }),
     ],
   });
