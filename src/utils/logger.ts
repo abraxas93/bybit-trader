@@ -1,13 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format, transports, createLogger} from 'winston';
 import path from 'path';
-// import fs from 'fs';
 
-const folderPath = 'logs/' + new Date().toISOString();
-
-// fs.mkdirSync(folderPath, {recursive: true});
+const date = new Date().toISOString();
+const folderPath = path.join('logs', date.replaceAll(':', '-'));
 
 const colorizer = format.colorize();
 const outputFormat = format.printf(info => {
@@ -41,7 +40,7 @@ export function initLogger(label: string, logFileName: string, mute = false) {
         silent: mute,
       }),
       new transports.File({
-        filename: `${folderPath}/${logFileName}`,
+        filename: path.join(folderPath, logFileName),
         silent: process.env.LOGS ? false : true,
         format: fileFormat,
       }),

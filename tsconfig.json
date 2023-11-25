@@ -7,7 +7,7 @@
     "esModuleInterop": true,
     "noImplicitReturns": false,
     "lib": [
-      "es2019",
+      "es2021",
       "dom",
       "esnext.array"
     ],
