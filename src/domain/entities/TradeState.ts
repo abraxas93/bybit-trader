@@ -186,6 +186,12 @@ export class TradeState {
     this.redis
       .set(RKEYS.LAST_AVG_ORD_PRICE, '0')
       .catch(err => errLogger.error(JSON.stringify(err)));
+
+    this._isAvgOrderExists = false;
+    this.redis
+      .set(RKEYS.AVG_ORDER_EXISTS, 'false')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+
     this._emitter.emit(LOG_EVENT, 'closePosOrder');
   }
 
