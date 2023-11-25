@@ -36,7 +36,7 @@ import {
   CATEGORY,
   TRADE_CYCLES,
 } from './config';
-import {setupTradeOptions} from './scripts';
+
 import {StateContainer} from './domain/entities';
 
 const errLogger = initLogger('index.ts', 'errors.log');
@@ -44,35 +44,22 @@ const logsLogger = initLogger('index.ts', 'logs.log');
 const socketLogger = initLogger('index.ts', 'sockets.log', true);
 const storeLogger = initLogger('', 'store.log', true);
 
-if (process.env.SETUP_VARS) {
-  (async () => {
-    await setupTradeOptions();
-    console.log('>>> setup:redis:vars');
-    process.exit();
-  })().catch(err => errLogger.error(err));
-} else if (process.env.TEST) {
-  bootstrapCtx();
-  // const opts = container.resolve<Options>('Options');
-  const state = container.resolve<StateContainer>('StateContainer');
-  setTimeout(() => console.log(state), 3000);
-} else {
-  main();
-  logsLogger.info(
-    JSON.stringify({
-      SYMBOL,
-      BASE_QUANTITY,
-      TIME_FRAME,
-      MARTIN_GALE,
-      TAKE_PROFIT_RATE,
-      AVG_BUY_RATE,
-      MAX_AVG_ORDER_COUNT,
-      CANDLES_TO_WAIT,
-      DIGITS_AFTER_COMMA,
-      CATEGORY,
-      TRADE_CYCLES,
-    })
-  );
-}
+main();
+logsLogger.info(
+  JSON.stringify({
+    SYMBOL,
+    BASE_QUANTITY,
+    TIME_FRAME,
+    MARTIN_GALE,
+    TAKE_PROFIT_RATE,
+    AVG_BUY_RATE,
+    MAX_AVG_ORDER_COUNT,
+    CANDLES_TO_WAIT,
+    DIGITS_AFTER_COMMA,
+    CATEGORY,
+    TRADE_CYCLES,
+  })
+);
 
 function bootstrapEvents() {
   const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');

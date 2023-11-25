@@ -47,4 +47,5 @@ export const RKEYS: Record<string, string> = {
   MIN_CANDLES: 'cfg:min_candles',
   DIGITS: 'cfg:digits',
   CATEGORY: 'cfg:category',
+  TRADE_CYCLES: 'cfg:trade_cycles',
 };

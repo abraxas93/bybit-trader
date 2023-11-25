@@ -23,7 +23,7 @@ export const API_SECRET = process.env.API_SECRET;
 
 // config
 
-export const SYMBOL = 'MINAUSDT';
+export const SYMBOL = 'ETHWUSDT';
 export const BASE_QUANTITY = '10';
 export const TIME_FRAME = 10;
 export const MARTIN_GALE = 2;

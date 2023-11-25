@@ -9,7 +9,7 @@
     "dev:logs": "cross-env NODE_ENV=dev LOGS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev:testnet": "cross-env NODE_ENV=test ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev:testnet:logs": "cross-env NODE_ENV=test LOGS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
-    "dev:setup:vars": "cross-env NODE_ENV=dev LOGS=true SETUP_VARS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts"
+    "dev:setup:vars": "cross-env NODE_ENV=dev LOGS=true SETUP_VARS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/scripts/index.ts"
   },
   "repository": {
     "type": "git",
