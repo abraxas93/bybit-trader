@@ -39,11 +39,11 @@ export class WsTopicHandler {
 
     if (topic.includes('tickers')) {
       tickerLogger.info(JSON.stringify(socketData));
-      console.log(
-        `${ts} and seconds: ${moment(ts).seconds()}, timestamp: ${moment(
-          ts
-        ).format()}`
-      );
+      // console.log(
+      //   `${ts} and seconds: ${moment(ts).seconds()}, timestamp: ${moment(
+      //     ts
+      //   ).format()}`
+      // );
       const {lastPrice} = data as unknown as TickerData;
       this.state.candles.updateLowPrice(lastPrice);
       this.state.candles.updateLastCandleLowPrice(ts);
