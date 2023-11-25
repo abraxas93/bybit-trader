@@ -3,11 +3,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format, transports, createLogger} from 'winston';
 import path from 'path';
-import fs from 'fs';
+// import fs from 'fs';
 
-const folderPath = path.join('logs', new Date().toISOString());
+const folderPath = 'logs/' + new Date().toISOString();
 
-fs.mkdirSync(folderPath, {recursive: true});
+// fs.mkdirSync(folderPath, {recursive: true});
 
 const colorizer = format.colorize();
 const outputFormat = format.printf(info => {
@@ -41,7 +41,7 @@ export function initLogger(label: string, logFileName: string, mute = false) {
         silent: mute,
       }),
       new transports.File({
-        filename: path.join(folderPath, logFileName),
+        filename: `${folderPath}/${logFileName}`,
         silent: process.env.LOGS ? false : true,
         format: fileFormat,
       }),
