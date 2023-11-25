@@ -3,8 +3,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format, transports, createLogger} from 'winston';
 import path from 'path';
+import fs from 'fs';
 
 const folderPath = path.join('logs', new Date().toISOString());
+
+fs.mkdirSync(folderPath, {recursive: true});
 
 const colorizer = format.colorize();
 const outputFormat = format.printf(info => {
