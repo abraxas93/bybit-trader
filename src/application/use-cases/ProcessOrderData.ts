@@ -10,7 +10,7 @@ import {
 import {initLogger} from '../../utils/logger';
 import {StateContainer} from '../../domain/entities';
 
-const apiLogger = initLogger('ProcessOrderData', 'logs/api.log');
+const apiLogger = initLogger('ProcessOrderData', 'api.log');
 
 @injectable()
 export class ProcessOrderData {

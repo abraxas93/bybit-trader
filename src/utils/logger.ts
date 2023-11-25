@@ -2,6 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format, transports, createLogger} from 'winston';
+import path from 'path';
+
+const folderPath = path.join('logs', new Date().toISOString());
 
 const colorizer = format.colorize();
 const outputFormat = format.printf(info => {
@@ -35,7 +38,7 @@ export function initLogger(label: string, logFileName: string, mute = false) {
         silent: mute,
       }),
       new transports.File({
-        filename: logFileName,
+        filename: path.join(folderPath, logFileName),
         silent: process.env.LOGS ? false : true,
         format: fileFormat,
       }),

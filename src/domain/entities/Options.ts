@@ -4,7 +4,7 @@ import {Redis} from 'ioredis';
 import {inject, injectable} from 'tsyringe';
 import {CategoryV5} from 'bybit-api';
 
-const errLogger = initLogger('Options', 'logs/errors.log');
+const errLogger = initLogger('Options', 'errors.log');
 
 @injectable()
 export class Options {

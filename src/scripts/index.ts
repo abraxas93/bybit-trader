@@ -13,7 +13,7 @@ import {
 import {RKEYS} from '../constants';
 import {Redis} from 'ioredis';
 
-const errLogger = initLogger('index.ts', 'logs/errors.log');
+const errLogger = initLogger('index.ts', 'errors.log');
 
 export async function setupTradeOptions() {
   try {

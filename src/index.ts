@@ -27,12 +27,10 @@ import {SYMBOL} from './config';
 import {setupTradeOptions} from './scripts';
 import {StateContainer} from './domain/entities';
 
-const errLogger = initLogger('index.ts', 'logs/errors.log');
-const logsLogger = initLogger('index.ts', 'logs/logs.log');
-const socketLogger = initLogger('index.ts', 'logs/sockets.log', true);
-const storeLogger = initLogger('', 'logs/store.log', true);
-
-const SESSION_ID = Date.now();
+const errLogger = initLogger('index.ts', 'errors.log');
+const logsLogger = initLogger('index.ts', 'logs.log');
+const socketLogger = initLogger('index.ts', 'sockets.log', true);
+const storeLogger = initLogger('', 'store.log', true);
 
 if (process.env.SETUP_VARS) {
   (async () => {
@@ -122,7 +120,6 @@ function bootstrapSockets() {
 }
 
 function main() {
-  logsLogger.info(`--- start:${SESSION_ID} ---`);
   bootstrapCtx();
   bootstrapSockets();
   bootstrapEvents();
@@ -157,7 +154,6 @@ function main() {
   };
 
   process.on('SIGINT', async () => {
-    logsLogger.info(`--- end:${SESSION_ID} ---`);
     await cb().finally(() => process.exit(0));
   });
 }

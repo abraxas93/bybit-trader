@@ -8,9 +8,9 @@ import {ERROR_EVENT} from '../../../constants';
 import {StateContainer} from '../../../domain/entities';
 import moment from 'moment';
 
-const errLogger = initLogger('WsTopicHandler', 'logs/errors.log');
-const tickerLogger = initLogger('WsTopicHandler', 'logs/tickers.log', true);
-const orderLogger = initLogger('WsTopicHandler', 'logs/orders.log', true);
+const errLogger = initLogger('WsTopicHandler', 'errors.log');
+const tickerLogger = initLogger('WsTopicHandler', 'tickers.log', true);
+const orderLogger = initLogger('WsTopicHandler', 'orders.log', true);
 
 @injectable()
 export class WsTopicHandler {

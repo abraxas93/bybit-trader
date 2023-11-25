@@ -7,7 +7,7 @@ import {OrderClass} from '../../types';
 import {Options} from './Options';
 import {initLogger} from '../../utils/logger';
 
-const errLogger = initLogger('TradeState', 'logs/errors.log');
+const errLogger = initLogger('TradeState', 'errors.log');
 
 @injectable()
 export class TradeState {
