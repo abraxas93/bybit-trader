@@ -12,7 +12,7 @@ export async function setupTradeOptions() {
     await redis.set(RKEYS.POSITION_OPENED, 'false');
     await redis.set(RKEYS.AVG_POS_PRICE, '0');
     await redis.set(RKEYS.AVG_ORDER_COUNT, '0');
-    await redis.set(RKEYS.PROFIT_TAKES_COUNT, 0);
+    await redis.set(RKEYS.PROFIT_TAKES_COUNT, 10);
   } catch (error) {
     console.error(JSON.stringify(error));
   }
