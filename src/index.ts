@@ -137,6 +137,7 @@ function bootstrapSockets() {
   // });
   ws.on('reconnected', data => {
     console.log('ws has reconnected ', data?.wsKey);
+    // TODO: add SyncTradeState here
   });
 }
 
