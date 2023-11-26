@@ -103,7 +103,7 @@ export class CandleState {
     return false;
   };
 
-  private updateLastCandleData = (seconds: number) => {
+  private updateLastCandleData = () => {
     this._lastCandleLowPrice = this._currentLowPrice;
     this._nextCandleIn += this.options.period;
     this._isNewCandle = true;
@@ -111,19 +111,24 @@ export class CandleState {
     logger.info(
       `Candld closed: ${this.lastCandleLowPrice}, next candle: ${this._nextCandleIn}, count: ${this._count}`
     );
-    if (this._candles[seconds]) return;
+    const current =
+      this._nextCandleIn > 0 ? this._nextCandleIn - this.options.period : 50;
+
+    if (this._candles[current]) return;
     this._emitter.emit(CANDLE_CLOSED);
     this._emitter.emit(LOG_EVENT, 'updateLastCandleData');
-    this._candles[seconds] = true;
-    delete this._candles[seconds - this.options.period];
+    this._candles[current] = true;
+    const previous = current > 0 ? current - this.options.period : 50;
+    delete this._candles[previous];
   };
 
   updateLastCandleLowPrice = (ts: number) => {
     const seconds = moment(ts).seconds();
+    let nearest;
     if (!this._klineStarted && seconds % this.options.period === 0) {
       this._klineStarted = true;
       this._isNewCandle = true;
-      const nearest = roundToNearestTen(seconds);
+      nearest = roundToNearestTen(seconds);
       this._nextCandleIn = nearest + this.options.period;
       logger.info(
         `Candle klineStarted: ${this._currentLowPrice}, next candle in: ${this._nextCandleIn} and seconds: ${seconds}, ts: ${ts}`
@@ -137,7 +142,7 @@ export class CandleState {
         seconds >= this._nextCandleIn &&
         this._nextCandleIn !== 0
       ) {
-        this.updateLastCandleData(seconds);
+        this.updateLastCandleData();
       }
 
       if (this._nextCandleIn === 60) {
@@ -149,7 +154,7 @@ export class CandleState {
         this._nextCandleIn === 0 &&
         seconds >= this._nextCandleIn
       ) {
-        this.updateLastCandleData(seconds);
+        this.updateLastCandleData();
       }
     }
   };
