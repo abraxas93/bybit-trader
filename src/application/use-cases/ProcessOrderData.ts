@@ -67,11 +67,12 @@ export class ProcessOrderData {
   // TODO: add paritally filled cases
   async execute(data: OrderData) {
     try {
-      const {orderId, orderStatus, avgPrice, cumExecQty, cumExecValue} = data;
-      const orderCls = this.state.trades.getOrderClass(orderId);
+      const {orderStatus, avgPrice, cumExecQty, cumExecValue, orderLinkId} =
+        data;
+      const orderCls = this.state.trades.getOrderClass(orderLinkId);
 
       if (orderStatus === 'Filled') {
-        this.state.trades.removeFromOrdBook(orderId);
+        this.state.trades.removeFromOrdBook(orderLinkId);
       }
 
       if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {

@@ -20,6 +20,8 @@ export class SubmitAvgOrder {
       const symbol = this.state.options.symbol;
       const qty = this.state.trades.avgQty;
 
+      const orderLinkId = String(Date.now());
+
       const body: OrderParamsV5 = {
         symbol,
         qty,
@@ -27,13 +29,16 @@ export class SubmitAvgOrder {
         orderType: 'Limit',
         price: this.state.trades.avgOrderPrice,
         category,
+        orderLinkId,
       };
+
       apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
+      this.state.trades.addToOrdBook(orderLinkId, 'AVERAGE_ORDER');
       const ordResponse = await this.client.submitOrder(body);
       apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(ordResponse)}|`);
-      const {retCode, result} = ordResponse;
 
-      if (retCode === 0) this.state.trades.openAvgOrder(result.orderId);
+      const {retCode} = ordResponse;
+      if (retCode === 0) this.state.trades.openAvgOrder();
 
       return {data: ordResponse, error: null};
     } catch (error) {

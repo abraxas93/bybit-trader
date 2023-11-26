@@ -281,8 +281,7 @@ export class TradeState {
     this._emitter.emit(LOG_EVENT, 'closeAvgOrder');
   };
 
-  openAvgOrder = (orderId: string) => {
-    this.addToOrdBook(orderId, 'AVERAGE_ORDER', false);
+  openAvgOrder = () => {
     this._isAvgOrderExists = true;
     this.redis
       .set(RKEYS.AVG_ORDER_EXISTS, 'true')

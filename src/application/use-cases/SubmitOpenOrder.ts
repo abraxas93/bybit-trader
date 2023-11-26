@@ -48,7 +48,7 @@ export class SubmitOpenOrder {
         lastCandleLowPrice = lowPrice;
         this.state.candles.setLastLowCandlePrice(lowPrice);
       }
-
+      const orderLinkId = String(Date.now());
       const body: OrderParamsV5 = {
         symbol: symbol,
         side: 'Buy',
@@ -56,14 +56,16 @@ export class SubmitOpenOrder {
         qty,
         price: lastCandleLowPrice,
         category,
+        orderLinkId,
       };
       apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
+      this.state.trades.addToOrdBook(orderLinkId, 'OPEN_ORDER');
       const ordResponse = await this.client.submitOrder(body);
       apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(ordResponse)}|`);
-      const {retCode, result} = ordResponse;
+      const {retCode} = ordResponse;
 
-      if (retCode === 0) {
-        this.state.trades.addToOrdBook(result.orderId, 'OPEN_ORDER');
+      if (retCode !== 0) {
+        this.emitter.emit(ERROR_EVENT, ordResponse);
       }
       return {data: ordResponse, error: null};
     } catch (error) {
