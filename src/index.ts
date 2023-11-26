@@ -59,8 +59,9 @@ function bootstrapEvents() {
     state.canOpenAvgOrder &&
       submitAvgOrder.execute().catch(err => errLogger.error(err));
 
-    !state.trades.isPositionExists &&
+    if (!state.trades.isPositionExists && state.trades.canOpenPositionOrder) {
       submitOpenOrder.execute().catch(err => errLogger.error(err));
+    }
   });
 
   emitter.on(LOG_EVENT, (label: string) => {
