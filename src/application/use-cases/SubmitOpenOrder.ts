@@ -4,6 +4,7 @@ import {inject, injectable} from 'tsyringe';
 import {ERROR_EVENT} from '../../constants';
 import {initLogger} from '../../utils/logger';
 import {StateContainer} from '../../domain/entities';
+import {normalizeFloat} from '../../utils';
 
 const apiLogger = initLogger('SubmitOpenOrder', 'api.log');
 
@@ -53,7 +54,7 @@ export class SubmitOpenOrder {
         symbol: symbol,
         side: 'Buy',
         orderType: 'Limit',
-        qty,
+        qty: normalizeFloat(qty),
         price: lastCandleLowPrice,
         category,
         orderLinkId,

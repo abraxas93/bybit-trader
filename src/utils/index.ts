@@ -5,3 +5,7 @@ export function roundToNearestTen(number: number) {
     return Math.floor(number / 10) * 10;
   }
 }
+
+export function normalizeFloat(numberString: string) {
+  return parseFloat(numberString).toString();
+}

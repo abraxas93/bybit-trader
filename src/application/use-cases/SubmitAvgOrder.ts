@@ -2,6 +2,7 @@ import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {initLogger} from '../../utils/logger';
 import {StateContainer} from '../../domain/entities';
+import {normalizeFloat} from '../../utils';
 
 const apiLogger = initLogger('SubmitAvgOrder', 'api.log');
 
@@ -24,7 +25,7 @@ export class SubmitAvgOrder {
 
       const body: OrderParamsV5 = {
         symbol,
-        qty,
+        qty: normalizeFloat(qty),
         side: 'Buy',
         orderType: 'Limit',
         price: this.state.trades.avgOrderPrice,

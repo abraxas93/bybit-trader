@@ -4,6 +4,7 @@ import {inject, injectable} from 'tsyringe';
 import {initLogger} from '../../utils/logger';
 import {StateContainer} from '../../domain/entities';
 import {ERROR_EVENT} from '../../constants';
+import {normalizeFloat} from '../../utils';
 
 const apiLogger = initLogger('SubmitProfitOrder', 'api.log');
 
@@ -28,7 +29,7 @@ export class SubmitProfitOrder {
 
       const body: OrderParamsV5 = {
         symbol,
-        qty,
+        qty: normalizeFloat(qty),
         side: 'Sell',
         orderType: 'Limit',
         price: this.state.trades.profitOrderPrice,
