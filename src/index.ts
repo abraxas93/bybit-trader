@@ -146,6 +146,7 @@ function main() {
         errLogger.error(JSON.stringify(cancelResponse));
       } else {
         await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
+        await redis.set(RKEYS.PROFIT_TAKES_COUNT, '0');
       }
     } catch (error) {
       errLogger.error(JSON.stringify(error));

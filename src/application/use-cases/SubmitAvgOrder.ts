@@ -38,7 +38,7 @@ export class SubmitAvgOrder {
       apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(ordResponse)}|`);
 
       const {retCode} = ordResponse;
-      if (retCode === 0) this.state.trades.openAvgOrder();
+      if (retCode === 0) this.state.trades.openAvgOrder(); // TODO: fix race condition
 
       return {data: ordResponse, error: null};
     } catch (error) {
