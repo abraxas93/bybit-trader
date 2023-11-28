@@ -23,8 +23,8 @@ export const API_SECRET = process.env.API_SECRET;
 
 // config
 
-export const SYMBOL = 'SSVUSDT';
-export const BASE_QUANTITY = '0.02';
+export const SYMBOL = '1000000VINUUSDT';
+export const BASE_QUANTITY = '100';
 export const TIME_FRAME = 10;
 export const MARTIN_GALE = 2;
 export const TAKE_PROFIT_RATE = 1.007;
