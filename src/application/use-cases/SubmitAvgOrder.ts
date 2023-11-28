@@ -34,11 +34,12 @@ export class SubmitAvgOrder {
 
       apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
       this.state.trades.addToOrdBook(orderLinkId, 'AVERAGE_ORDER');
+      this.state.trades.openAvgOrder();
       const ordResponse = await this.client.submitOrder(body);
       apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(ordResponse)}|`);
 
       const {retCode} = ordResponse;
-      if (retCode === 0) this.state.trades.openAvgOrder(); // TODO: fix race condition
+      if (retCode !== 0) this.state.trades.removeFromOrdBook(orderLinkId);
 
       return {data: ordResponse, error: null};
     } catch (error) {

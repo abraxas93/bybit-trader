@@ -231,11 +231,12 @@ export class TradeState {
     const totalQty = this.quantity.reduce((prev: string, cur: string) =>
       new BigJs(prev).add(cur).toString()
     );
-
-    const numerator = new BigJs(totalQty).mul(this._avgPosPrice).minus(value);
-    const denominator = new BigJs(totalQty).sub(qty);
-
-    this.deductQty(qty);
+    const numerator = new BigJs(totalQty).mul(this._avgPosPrice).plus(value);
+    const denominator = new BigJs(totalQty).add(qty);
+    this.quantity.push(qty);
+    this.redis
+      .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
+      .catch(err => errLogger.error(JSON.stringify(err)));
 
     this._avgPosPrice = new BigJs(numerator)
       .div(denominator)

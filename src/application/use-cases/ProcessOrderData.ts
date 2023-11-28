@@ -100,7 +100,6 @@ export class ProcessOrderData {
       }
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'PartiallyFilled') {
-        // TODO: fix update quantity
         this.state.trades.partiallyFillAvgOrder(cumExecQty, cumExecValue);
         this.state.reopenProfitOrder();
       }
