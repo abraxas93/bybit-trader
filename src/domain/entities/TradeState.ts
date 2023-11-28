@@ -234,7 +234,7 @@ export class TradeState {
     const numerator = new BigJs(totalQty).mul(this._avgPosPrice).plus(value);
     const denominator = new BigJs(totalQty).add(qty);
 
-    this.quantity[this.quantity.length] = qty;
+    this.quantity[this._avgOrderCount + 1] = qty;
     this.redis
       .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
       .catch(err => errLogger.error(JSON.stringify(err)));
@@ -258,7 +258,7 @@ export class TradeState {
     );
     const numerator = new BigJs(totalQty).mul(this._avgPosPrice).plus(value);
     const denominator = new BigJs(totalQty).add(qty);
-    this.quantity[this.quantity.length] = qty;
+    this.quantity[this._avgOrderCount + 1] = qty;
     this.redis
       .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
       .catch(err => errLogger.error(JSON.stringify(err)));
