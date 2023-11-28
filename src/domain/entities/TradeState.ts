@@ -168,7 +168,7 @@ export class TradeState {
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
-  closePosOrder() {
+  closePosition() {
     this._isPositionExists = false;
     this.redis
       .set(RKEYS.POSITION_OPENED, 'false')
@@ -203,7 +203,7 @@ export class TradeState {
     this.redis
       .set(RKEYS.PROFIT_TAKES_COUNT, this._profitTakesCount)
       .catch(err => errLogger.error(JSON.stringify(err)));
-    this._emitter.emit(LOG_EVENT, 'closePosOrder');
+    this._emitter.emit(LOG_EVENT, 'closePosition');
   }
 
   addToOrdBook = (orderId: string, type: OrderClass, logged = true) => {

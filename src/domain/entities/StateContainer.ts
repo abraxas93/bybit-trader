@@ -8,6 +8,7 @@ import {LOG_EVENT, REOPEN_PROFIT_ORDER, REOPEN_TIMER} from '../../constants';
 @injectable()
 export class StateContainer {
   private _timer: NodeJS.Timer | undefined;
+  private _pause = false;
   constructor(
     @inject('EventEmitter')
     private readonly _emitter: EventEmitter,
@@ -27,6 +28,14 @@ export class StateContainer {
       this.trades.avgOrderCount <= this.options.maxAvgCount
     );
   }
+
+  public pause = () => {
+    this._pause = true;
+  };
+
+  public unpause = () => {
+    this._pause = false;
+  };
 
   public getSnapshot = (label: string) => {
     const snapshot = {

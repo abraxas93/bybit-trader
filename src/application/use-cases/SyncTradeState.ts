@@ -21,51 +21,30 @@ export class SyncTradeState {
     try {
       const symbol = this.state.options.symbol;
       const category = this.state.options.category;
-      const qty: string = this.state.options.quantity;
-      apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
-      const cancelResponse = await this.client.cancelAllOrders({
+      apiLogger.info(`REQUEST|getPositionInfo|${symbol} ${category}|`);
+      const response = await this.client.getPositionInfo({
         symbol,
         category,
       });
-      apiLogger.info(
-        `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
-      );
-      if (cancelResponse.retCode) {
-        this.emitter.emit(ERROR_EVENT, cancelResponse);
+      apiLogger.info(`RESPONSE|cancelAllOrders|${JSON.stringify(response)}|`);
+      console.log(response.result.list);
+      const position = response.result.list.pop();
+      if (position?.side === 'None') {
+        // delete all orders from store
+        // clear position
+        // cancel average order
+        // unpause
+        return {data: null, error: null};
+      } else {
+        // update quantity
+        // get all orders from exch
+        // get all orders from store
+        // update store
+        // unpause
+        // continue
+        return {data: null, error: null};
       }
-      this.state.trades.clearOrderBook();
-      let lastCandleLowPrice = this.state.candles.lastCandleLowPrice;
-
-      if (lastCandleLowPrice === '0') {
-        apiLogger.info(`REQUEST|getKline|${symbol} ${category} 1|`);
-        const response = await this.client.getKline({
-          category: category as 'linear' | 'spot' | 'inverse',
-          symbol: symbol,
-          interval: '1',
-        });
-        apiLogger.info(`RESPONSE|getKline|${JSON.stringify(response)}|`);
-        const [, , , , lowPrice] = response.result.list[0];
-        lastCandleLowPrice = lowPrice;
-        this.state.candles.setLastLowCandlePrice(lowPrice);
-      }
-
-      const body: OrderParamsV5 = {
-        symbol: symbol,
-        side: 'Buy',
-        orderType: 'Limit',
-        qty,
-        price: lastCandleLowPrice,
-        category,
-      };
-      apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
-      const ordResponse = await this.client.submitOrder(body);
-      apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(ordResponse)}|`);
-      const {retCode, result} = ordResponse;
-
-      if (retCode === 0) {
-        this.state.trades.addToOrdBook(result.orderId, 'OPEN_ORDER');
-      }
-      return {data: ordResponse, error: null};
+      return {data: response, error: null};
     } catch (error) {
       return {error: (error as Error).message, data: null};
     }

@@ -82,7 +82,7 @@ export class ProcessOrderData {
       }
 
       if (orderCls === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
-        this.state.trades.closePosOrder();
+        this.state.trades.closePosition();
         await this.cancelAvgOrder(); // TODO: add error handling
 
         if (this.state.trades.canOpenPositionOrder)
