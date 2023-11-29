@@ -32,7 +32,7 @@ const socketLogger = initLogger('index.ts', 'sockets.log', true);
 const storeLogger = initLogger('', 'store.log', true);
 
 main();
-
+// TODO: add redis event listener, to update robot state
 function bootstrapEvents() {
   const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
   const submitProfitOrder =

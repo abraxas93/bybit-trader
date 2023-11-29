@@ -17,9 +17,6 @@ export class CandleState {
   private _lastCandleLowPrice = '0';
   private _nextCandleIn = 0;
   private _count = 0;
-  private _lastPrice = '0';
-  private _bid1Price = '0';
-  private _ask1Price = '0';
 
   private _candles: Record<number, boolean> = {};
 
@@ -81,16 +78,6 @@ export class CandleState {
 
     // const nextCandleIn = await this.redis.get(RKEYS.TIMEFRAME);
     // this._nextCandleIn = nextCandleIn ? parseInt(nextCandleIn) : 0;
-  }
-
-  updatePrices(
-    bid1Price: string,
-    ask1Price: string,
-    lasPrice: string | undefined
-  ) {
-    this._bid1Price = bid1Price;
-    this._ask1Price = ask1Price;
-    if (lasPrice) this._lastPrice = lasPrice;
   }
 
   resetCandlesCount = () => {
