@@ -6,7 +6,7 @@ import {container} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {RestClientV5, WebsocketClient} from 'bybit-api';
 import {bootstrapCtx} from './ctx';
-import {SYMBOL} from './config';
+import {ENV, SYMBOL} from './config';
 import {
   CANDLE_CLOSED,
   ERROR_EVENT,
@@ -117,6 +117,7 @@ async function bootstrapSockets() {
 }
 
 function main() {
+  logsLogger.info(`app started: -env:${ENV}`);
   bootstrapCtx();
   bootstrapSockets().catch(err => errLogger.error(JSON.stringify(err)));
   bootstrapEvents();

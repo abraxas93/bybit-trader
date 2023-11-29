@@ -59,6 +59,10 @@ export class TradeState {
     return this._avgOrderCount;
   }
 
+  get orderIds() {
+    return Object.keys(this._orderBook);
+  }
+
   private async loadVars() {
     // Load data from Redis
     this._avgPosPrice = (await this.redis.get(RKEYS.AVG_POS_PRICE)) || '0';

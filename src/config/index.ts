@@ -23,8 +23,8 @@ export const API_SECRET = process.env.API_SECRET;
 
 // config
 
-export const SYMBOL = 'SEIUSDT'; //'1000000VINUUSDT';
-export const BASE_QUANTITY = '2'; // '100';
+export const SYMBOL = '1000000VINUUSDT';
+export const BASE_QUANTITY = '100';
 export const TIME_FRAME = 10;
 export const MARTIN_GALE = 2;
 export const TAKE_PROFIT_RATE = 1.007;
@@ -34,3 +34,7 @@ export const CANDLES_TO_WAIT = 1;
 export const DIGITS_AFTER_COMMA = 6;
 export const CATEGORY = 'linear';
 export const TRADE_CYCLES = 10;
+
+// env
+
+export const ENV = process.env.NODE_ENV || '';
