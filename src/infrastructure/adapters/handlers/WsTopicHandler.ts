@@ -44,7 +44,8 @@ export class WsTopicHandler {
       //     ts
       //   ).format()}`
       // );
-      const {lastPrice} = data as unknown as TickerData;
+      const {lastPrice, bid1Price, ask1Price} = data as unknown as TickerData;
+      this.state.candles.updatePrices(bid1Price, ask1Price, lastPrice);
       this.state.candles.updateLowPrice(lastPrice);
       this.state.candles.updateLastCandleLowPrice(ts);
     }

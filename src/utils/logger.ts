@@ -4,9 +4,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format, transports, createLogger} from 'winston';
 import path from 'path';
+import {ENV} from '../config';
 
 const date = new Date().toISOString();
-const folderPath = path.join('logs', date.replaceAll(':', '-'));
+const folderPath = path.join(`logs/${ENV}`, date.replaceAll(':', '-'));
 
 const colorizer = format.colorize();
 const outputFormat = format.printf(info => {
