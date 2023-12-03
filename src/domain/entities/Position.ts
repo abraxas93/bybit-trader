@@ -96,7 +96,7 @@ export class Position {
     const price = new BigJs(this._lastAvgOrderPrice)
       .mul(this.options.avgRate)
       .toFixed(this.options.digits);
-    if (parseFloat(price) > parseFloat(this._lastPrice)) return this.bid1Price;
+    if (parseFloat(price) >= parseFloat(this._lastPrice)) return this.bid1Price;
     return price;
   }
 
@@ -104,7 +104,7 @@ export class Position {
     const price = new BigJs(this._avgPosPrice)
       .mul(this.options.profitRate)
       .toFixed(this.options.digits);
-    if (parseFloat(price) < parseFloat(this._lastPrice)) return this.ask1Price;
+    if (parseFloat(price) <= parseFloat(this._lastPrice)) return this.ask1Price;
     return price;
   }
 

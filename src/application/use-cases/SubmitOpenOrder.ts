@@ -35,7 +35,7 @@ export class SubmitOpenOrder {
     const lastPrice = this.position.lastPrice;
     const price =
       parseFloat(lastPrice as string) &&
-      parseFloat(this.candle.lastCandleLowPrice) >
+      parseFloat(this.candle.lastCandleLowPrice) >=
         parseFloat(lastPrice as string)
         ? parseFloat(this.position.bid1Price)
         : parseFloat(this.candle.lastCandleLowPrice);

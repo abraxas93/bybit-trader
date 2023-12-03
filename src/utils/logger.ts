@@ -22,7 +22,7 @@ const outputFormat = format.printf(info => {
 const fileFormat = format.combine(
   format.timestamp(),
   format.printf(info => {
-    return `${info.timestamp} [${info.label}]: ${info.message}`;
+    return `${info.timestamp} [${info.label}]:${info.message}`;
   })
 );
 
@@ -31,7 +31,7 @@ export function initLogger(label: string, logFileName: string, mute = false) {
   // const label = parsed.pop();
   return createLogger({
     format: format.combine(
-      format.label({label: ` [${label}]:`}),
+      format.label({label: `${label}`}),
       format.timestamp(),
       outputFormat
     ),

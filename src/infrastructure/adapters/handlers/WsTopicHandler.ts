@@ -64,7 +64,7 @@ export class WsTopicHandler {
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
         this.filledAvgOrder
-          .execute({avgPrice, cumExecQty, cumExecValue})
+          .execute({orderLinkId, avgPrice, cumExecQty, cumExecValue})
           .catch(err => log.error.error(JSON.stringify(err)));
       }
 

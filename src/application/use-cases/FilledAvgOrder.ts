@@ -33,15 +33,18 @@ export class FilledAvgOrder {
   ) {}
 
   async execute({
+    orderLinkId,
     avgPrice,
     cumExecQty,
     cumExecValue,
   }: {
+    orderLinkId: string;
     avgPrice: string;
     cumExecQty: string;
     cumExecValue: string;
   }) {
     try {
+      this.orderBook.removeFromOrdBook(orderLinkId);
       this.orderBook.isAvgOrderExists = false;
       const index = this.orderBook.getAvgOrderIndex();
       this.position.fillAvgOrder(index, cumExecQty, cumExecValue, avgPrice);
@@ -70,8 +73,6 @@ export class FilledAvgOrder {
           data: JSON.stringify(response),
         });
       }
-
-      this.orderBook.clearOrderBook();
 
       this.emitter.emit(AVG_ORDER_FILLED);
       this.emitter.emit(LOG_EVENT, label);

@@ -77,8 +77,8 @@ export function bootstrapEvents() {
   });
 
   emitter.on(LOG_EVENT, (label: string) => {
-    log.candle.info(`${label}:` + snpBuilder.getStateSnapshot('candle'));
-    log.order.info(`${label}:` + snpBuilder.getStateSnapshot('orderBook'));
-    log.position.info(`${label}:` + snpBuilder.getStateSnapshot('position'));
+    log.candle.info(`${label}:${snpBuilder.getStateSnapshot('candle')}`);
+    log.order.info(`${label}:${snpBuilder.getStateSnapshot('orderBook')}`);
+    log.position.info(`${label}:${snpBuilder.getStateSnapshot('position')}`);
   });
 }
