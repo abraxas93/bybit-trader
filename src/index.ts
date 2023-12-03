@@ -1,160 +1,69 @@
 /* eslint-disable no-process-exit */
 import 'reflect-metadata';
 import {Redis} from 'ioredis';
-import {initLogger} from './utils/logger';
 import {container} from 'tsyringe';
-import {EventEmitter} from 'events';
-import {RestClientV5, WebsocketClient} from 'bybit-api';
+import {RestClientV5} from 'bybit-api';
 import {bootstrapCtx} from './ctx';
-import {ENV, SYMBOL} from './config';
-import {
-  CANDLE_CLOSED,
-  ERROR_EVENT,
-  LOG_EVENT,
-  REOPEN_PROFIT_ORDER,
-  RKEYS,
-  SUBMIT_OPEN_ORDER,
-  SUBMIT_PROFIT_ORDER,
-} from './constants';
-import {
-  ReopenProfitOrder,
-  SubmitAvgOrder,
-  SubmitOpenOrder,
-  SubmitProfitOrder,
-} from './application';
-import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
-import {Topic} from './types';
-import {StateContainer} from './domain/entities';
+import {ENV} from './config';
+import {RKEYS} from './constants';
+import {SubmitOpenOrder, SubmitProfitOrder} from './application';
+import {log} from './utils';
+import {Options, Position} from './domain/entities';
+import {bootstrapEvents} from './events';
+import {bootstrapSockets} from './sockets';
 
-const errLogger = initLogger('index.ts', 'errors.log');
-const logsLogger = initLogger('index.ts', 'logs.log');
-const socketLogger = initLogger('index.ts', 'sockets.log', true);
-const storeLogger = initLogger('', 'store.log', true);
+const label = '[index.ts]';
 
-main();
-// TODO: add redis event listener, to update robot state
-function bootstrapEvents() {
-  const submitOpenOrder = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
-  const submitProfitOrder =
-    container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
-  const submitAvgOrder = container.resolve<SubmitAvgOrder>('SubmitAvgOrder');
-  const reopenProfitOrder =
-    container.resolve<ReopenProfitOrder>('ReopenProfitOrder');
-
-  const emitter = container.resolve<EventEmitter>('EventEmitter');
-  const state = container.resolve<StateContainer>('StateContainer');
-
-  emitter.on(SUBMIT_OPEN_ORDER, () => {
-    submitOpenOrder.execute().catch(err => errLogger.error(err));
-  });
-  emitter.on(SUBMIT_PROFIT_ORDER, () => {
-    submitProfitOrder.execute().catch(err => errLogger.error(err));
-  });
-  emitter.on(REOPEN_PROFIT_ORDER, () => {
-    reopenProfitOrder.execute().catch(err => errLogger.error(err));
-  });
-  emitter.on(ERROR_EVENT, data => errLogger.error(data));
-
-  emitter.on(CANDLE_CLOSED, () => {
-    state.canOpenAvgOrder &&
-      submitAvgOrder.execute().catch(err => errLogger.error(err));
-
-    if (!state.trades.isPositionExists && state.trades.canOpenPositionOrder) {
-      submitOpenOrder.execute().catch(err => errLogger.error(err));
-    }
-  });
-
-  emitter.on(LOG_EVENT, (label: string) => {
-    storeLogger.info(JSON.stringify(state.getSnapshot(label)));
-  });
-}
-
-async function bootstrapSockets() {
-  const ws = container.resolve<WebsocketClient>('WebsocketClient');
-  // const state = container.resolve<StateContainer>('StateContainer');
-  const redis = container.resolve<Redis>('Redis');
-  const wsHandler = container.resolve<WsTopicHandler>('WsTopicHandler');
-  // 'order', 'position', 'execution'
-  const symbol = (await redis.get(RKEYS.SYMBOL)) || SYMBOL;
-  ws.subscribeV5([`tickers.${symbol}`, 'order'], 'linear').catch(err =>
-    socketLogger.error(JSON.stringify(err))
-  );
-
-  // ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
-
-  ws.on('update', data => wsHandler.handle(data as Topic));
-
-  // Optional: Listen to websocket connection open event (automatic after subscribing to one or more topics)
-  ws.on('open', ({wsKey, event}) => {
-    socketLogger.info(
-      'connection open for websocket with ID: ' + wsKey + ' event: ',
-      JSON.stringify(event)
-    );
-  });
-
-  // Optional: Listen to responses to websocket queries (e.g. the response after subscribing to a topic)
-  ws.on('response', response => {
-    socketLogger.warn(JSON.stringify(response));
-  });
-
-  // Optional: Listen to connection close event. Unexpected connection closes are automatically reconnected.
-  ws.on('close', () => {
-    socketLogger.warn('connection closed');
-  });
-
-  // Optional: Listen to raw error events. Recommended.
-  ws.on('error', err => {
-    socketLogger.error(JSON.stringify(err));
-  });
-
-  // ws.on('reconnect', ({wsKey}) => {
-  //   console.log('ws automatically reconnecting.... ', wsKey);
-  // });
-  ws.on('reconnected', data => {
-    console.log('ws has reconnected ', data?.wsKey);
-    // TODO: add SyncTradeState here
-  });
-}
-
-function main() {
-  logsLogger.info(`app started: -env:${ENV}`);
-  bootstrapCtx();
-  bootstrapSockets().catch(err => errLogger.error(JSON.stringify(err)));
+main().catch(err => {
+  log.error.error(err);
+});
+// TODO: first grab kline data but wait until first ticker and only then place open order in case of start
+async function main() {
+  log.custom.info(`${label}:app started: -env:${ENV}`);
+  await bootstrapCtx();
+  bootstrapSockets();
   bootstrapEvents();
+
+  const options = container.resolve<Options>('Options');
+  const position = container.resolve<Position>('Position');
+
   setTimeout(async () => {
-    if (!state.trades.isPositionExists) {
+    if (!position.exists) {
       const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
       await useCase.execute();
     } else {
       const useCase = container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
       await useCase.execute();
     }
-  }, 4000);
+  }, 8000);
 
-  const client = container.resolve<RestClientV5>('RestClientV5');
-  const state = container.resolve<StateContainer>('StateContainer');
-  const redis = container.resolve<Redis>('Redis');
-
-  logsLogger.info(JSON.stringify(state.options));
-
-  const cb = async () => {
-    try {
-      const symbol = state.options.symbol;
-      const category = state.options.category;
-      const cancelResponse = await client.cancelAllOrders({symbol, category});
-      logsLogger.info(cancelResponse);
-      if (cancelResponse.retCode) {
-        errLogger.error(JSON.stringify(cancelResponse));
-      } else {
-        await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
-        await redis.set(RKEYS.PROFIT_TAKES_COUNT, '0');
-      }
-    } catch (error) {
-      errLogger.error(JSON.stringify(error));
-    }
-  };
-
-  process.on('SIGINT', async () => {
-    await cb().finally(() => process.exit(0));
-  });
+  log.custom.info(`${label}:` + JSON.stringify(options.values));
 }
+
+const cb = async () => {
+  try {
+    const client = container.resolve<RestClientV5>('RestClientV5');
+    const options = container.resolve<Options>('Options');
+    const redis = container.resolve<Redis>('Redis');
+
+    const symbol = options.symbol;
+    const category = options.category;
+
+    const response = await client.cancelAllOrders({symbol, category});
+    log.api.info(response);
+    if (response.retCode) {
+      log.error.error(`${label}:` + JSON.stringify(response));
+    } else {
+      await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
+      await redis.set(RKEYS.PROFIT_TAKES_COUNT, '0');
+    }
+  } catch (error) {
+    log.error.error(`${label}:` + JSON.stringify(error));
+  } finally {
+    process.exit(0);
+  }
+};
+
+process.on('SIGINT', async () => {
+  await cb().catch(err => log.error.error(err));
+});

@@ -1,52 +1,92 @@
 import {inject, injectable} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {OrderData, TickerData, Topic} from '../../../types';
-import {ProcessOrderData} from '../../../application/use-cases/ProcessOrderData';
-import {initLogger} from '../../../utils/logger';
-import {ERROR_EVENT} from '../../../constants';
-// import moment from 'moment';
-import {StateContainer} from '../../../domain/entities';
-import moment from 'moment';
+import {log} from '../../../utils';
 
-const errLogger = initLogger('WsTopicHandler', 'errors.log');
-const tickerLogger = initLogger('WsTopicHandler', 'tickers.log', true);
-const orderLogger = initLogger('WsTopicHandler', 'orders.log', true);
+import {CandleStick, OrderBook, Position} from '../../../domain/entities';
+import {
+  FilledAvgOrder,
+  FilledProfitOrder,
+  PartiallyFilledAvgOrder,
+  FilledOpenOrder,
+} from '../../../application';
 
 @injectable()
 export class WsTopicHandler {
   constructor(
-    @inject('StateContainer')
-    private readonly state: StateContainer,
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
-    @inject('ProcessOrderData')
-    private readonly useCase: ProcessOrderData
+    @inject('OrderBook')
+    private readonly orderBook: OrderBook,
+    @inject('CandleStick')
+    private readonly candle: CandleStick,
+    @inject('Position')
+    private readonly position: Position,
+    @inject('FilledOpenOrder')
+    private readonly filledOpenOrder: FilledOpenOrder,
+    @inject('FilledProfitOrder')
+    private readonly filledProfitOrder: FilledProfitOrder,
+    @inject('FilledAvgOrder')
+    private readonly filledAvgOrder: FilledAvgOrder,
+    @inject('PartiallyFilledAvgOrder')
+    private readonly partFilledAvgOrder: PartiallyFilledAvgOrder
   ) {}
 
-  async handle(socketData: Topic) {
+  handle(socketData: Topic) {
     const {topic, data, ts} = socketData;
 
     if (topic === 'order') {
-      orderLogger.info(JSON.stringify(socketData));
       const [orderData] = data;
-      const {data: event, error} = await this.useCase
-        .execute(orderData as OrderData)
-        .catch(err => errLogger.error(err));
+      log.orders.info(JSON.stringify(orderData));
+      const {
+        orderStatus,
+        avgPrice,
+        cumExecQty,
+        cumExecValue,
+        leavesQty,
+        orderLinkId,
+      } = orderData as OrderData;
+      const orderCls = this.orderBook.getOrderClass(orderLinkId);
 
-      if (error) this.emitter.emit(ERROR_EVENT, error);
-      else this.emitter.emit(event as string);
+      if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {
+        this.filledOpenOrder.execute({avgPrice, cumExecQty, orderLinkId});
+      }
+
+      if (orderCls === 'OPEN_ORDER' && orderStatus === 'PartiallyFilled') {
+        this.position.partiallyFilled = true;
+      }
+
+      if (orderCls === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
+        this.filledProfitOrder
+          .execute()
+          .catch(err => log.error.error(JSON.stringify(err)));
+      }
+
+      if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
+        this.filledAvgOrder
+          .execute({avgPrice, cumExecQty, cumExecValue})
+          .catch(err => log.error.error(JSON.stringify(err)));
+      }
+
+      if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'PartiallyFilled') {
+        this.partFilledAvgOrder.execute({cumExecQty, cumExecValue});
+      }
+
+      if (
+        orderCls === 'TAKE_PROFIT_ORDER' &&
+        orderStatus === 'PartiallyFilled'
+      ) {
+        this.position.setLeavesQty(leavesQty);
+      }
     }
 
     if (topic.includes('tickers')) {
-      tickerLogger.info(JSON.stringify(socketData));
-      // console.log(
-      //   `${ts} and seconds: ${moment(ts).seconds()}, timestamp: ${moment(
-      //     ts
-      //   ).format()}`
-      // );
       const {lastPrice, bid1Price, ask1Price} = data as unknown as TickerData;
-      this.state.candles.updateLowPrice(lastPrice);
-      this.state.candles.updateLastCandleLowPrice(ts);
+      this.position.bid1Price = bid1Price;
+      this.position.ask1Price = ask1Price;
+      this.position.lastPrice = lastPrice;
+      this.candle.updateLowPrice(lastPrice);
+      this.candle.countTick(ts);
     }
   }
 }

@@ -31,7 +31,7 @@ export function initLogger(label: string, logFileName: string, mute = false) {
   // const label = parsed.pop();
   return createLogger({
     format: format.combine(
-      format.label({label: `${label}`}),
+      format.label({label: ` [${label}]:`}),
       format.timestamp(),
       outputFormat
     ),

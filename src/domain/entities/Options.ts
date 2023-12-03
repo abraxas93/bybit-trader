@@ -1,10 +1,7 @@
-import {initLogger} from '../../utils/logger';
 import {NULL_KEY, RKEYS} from '../../constants';
 import {Redis} from 'ioredis';
 import {inject, injectable} from 'tsyringe';
 import {CategoryV5} from 'bybit-api';
-
-const errLogger = initLogger('Options', 'errors.log');
 
 @injectable()
 export class Options {
@@ -25,7 +22,22 @@ export class Options {
     @inject('Redis')
     private readonly redis: Redis
   ) {
-    this.loadVars().catch(err => errLogger.error(err));
+    // this.loadVars().catch(err => log.error.error(err));
+  }
+
+  get values() {
+    return {
+      symbol: this._symbol,
+      quantity: this.quantity,
+      period: this._period,
+      martinGale: this._martinGale,
+      profitRate: this._profitRate,
+      avgRate: this.avgRate,
+      maxAvgCount: this._maxAvgCount,
+      minCandles: this.minCandles,
+      digits: this.digits,
+      tradeCycles: this.tradeCycles,
+    };
   }
 
   // Getters for private variables
@@ -73,7 +85,7 @@ export class Options {
     return this._tradeCycles;
   }
 
-  private async loadVars() {
+  async loadVars() {
     // upload data from redis
     const symbol = await this.redis.get(RKEYS.SYMBOL);
     if (!symbol) throw new Error(`${NULL_KEY}:${RKEYS.SYMBOL}`);

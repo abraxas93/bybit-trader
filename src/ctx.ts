@@ -11,18 +11,26 @@ import {
 } from 'bybit-api';
 import {API_KEY, API_SECRET} from './config';
 import {
-  ReopenProfitOrder,
+  CancelOrder,
+  FilledAvgOrder,
+  FilledOpenOrder,
+  FilledProfitOrder,
+  PartiallyFilledAvgOrder,
   SubmitAvgOrder,
   SubmitOpenOrder,
   SubmitProfitOrder,
 } from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
-import {ProcessOrderData} from './application/use-cases/ProcessOrderData';
 import {Options} from './domain/entities/Options';
-import {CandleState, StateContainer} from './domain/entities';
-import {TradeState} from './domain/entities/TradeState';
+import {
+  AppState,
+  CandleStick,
+  Position,
+  SnapshotBuilder,
+} from './domain/entities';
+import {OrderBook} from './domain/entities/OrderBook';
 
-export function bootstrapCtx() {
+export async function bootstrapCtx() {
   // const mongoClient = await createMongoClient();
   const eventEmitter = new EventEmitter();
   const redis = new Redis();
@@ -35,39 +43,54 @@ export function bootstrapCtx() {
   };
 
   const bybitWs = new WebsocketClient(wsOptions);
-
   const bybitClient = new RestClientV5({
     key: API_KEY,
     secret: API_SECRET,
     testnet: process.env.NODE_ENV === 'test' ? true : false,
   });
-  const options = new Options(redis);
-  const tradeState = new TradeState(redis, options, eventEmitter);
-  const candleState = new CandleState(redis, options, eventEmitter);
 
-  container.register<TradeState>('TradeState', {useValue: tradeState});
-  container.register<CandleState>('CandleState', {useValue: candleState});
-  container.register<Redis>('Redis', {useValue: redis});
-  container.register<Options>('Options', {useValue: options});
+  const options = new Options(redis);
+  await options.loadVars();
+  const orderBook = new OrderBook(redis, options, eventEmitter);
+  const candleStick = new CandleStick(redis, options, eventEmitter);
+  const position = new Position(redis, options);
+  const state = new AppState(
+    eventEmitter,
+    candleStick,
+    orderBook,
+    options,
+    position
+  );
+
+  // infra
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
+  container.register<SnapshotBuilder>('SnapshotBuilder', SnapshotBuilder);
+
+  // services
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
 
-  container.register<StateContainer>('StateContainer', {
-    useValue: new StateContainer(
-      eventEmitter,
-      tradeState,
-      candleState,
-      options
-    ),
-  });
+  // state
+  container.register<Position>('Position', {useValue: position});
+  container.register<OrderBook>('OrderBook', {useValue: orderBook});
+  container.register<CandleStick>('CandleStick', {useValue: candleStick});
+  container.register<Redis>('Redis', {useValue: redis});
+  container.register<Options>('Options', {useValue: options});
+  container.register<AppState>('AppState', {useValue: state});
 
-  container.register<ProcessOrderData>('ProcessOrderData', ProcessOrderData);
-
+  // handlers
   container.register<WsTopicHandler>('WsTopicHandler', WsTopicHandler);
 
+  // use cases
+  container.register<CancelOrder>('CancelOrder', CancelOrder);
+  container.register<FilledAvgOrder>('FilledAvgOrder', FilledAvgOrder);
+  container.register<FilledOpenOrder>('FilledOpenOrder', FilledOpenOrder);
+  container.register<FilledProfitOrder>('FilledProfitOrder', FilledProfitOrder);
+  container.register<PartiallyFilledAvgOrder>(
+    'PartiallyFilledAvgOrder',
+    PartiallyFilledAvgOrder
+  );
   container.register<SubmitOpenOrder>('SubmitOpenOrder', SubmitOpenOrder);
   container.register<SubmitProfitOrder>('SubmitProfitOrder', SubmitProfitOrder);
   container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
-  container.register<ReopenProfitOrder>('ReopenProfitOrder', ReopenProfitOrder);
 }

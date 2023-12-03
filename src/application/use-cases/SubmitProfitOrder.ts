@@ -1,53 +1,67 @@
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
-import {initLogger} from '../../utils/logger';
-import {StateContainer} from '../../domain/entities';
-import {ERROR_EVENT} from '../../constants';
-import {normalizeFloat} from '../../utils';
+import {Options, OrderBook, Position} from '../../domain/entities';
+import {ERROR_EVENT, LOG_EVENT} from '../../constants';
+import {getOrderLinkId, log} from '../../utils';
 
-const apiLogger = initLogger('SubmitProfitOrder', 'api.log');
-
+const label = 'SubmitProfitOrder';
 @injectable()
 export class SubmitProfitOrder {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,
-    @inject('StateContainer')
-    private readonly state: StateContainer,
+    @inject('Options')
+    private readonly options: Options,
+    @inject('OrderBook')
+    private readonly orderBook: OrderBook,
+    @inject('Position')
+    private readonly postion: Position,
     @inject('EventEmitter')
     private readonly emitter: EventEmitter
   ) {}
 
   async execute() {
     try {
-      const category = this.state.options.category;
-      const symbol = this.state.options.symbol;
-      const qty = this.state.trades.posQty;
-
-      const orderLinkId = String(Date.now());
+      const category = this.options.category;
+      const symbol = this.options.symbol;
+      const qty = this.postion.posQty;
+      const price = this.postion.profitOrderPrice;
+      const orderLinkId = getOrderLinkId();
 
       const body: OrderParamsV5 = {
         symbol,
-        qty: normalizeFloat(qty),
+        qty,
         side: 'Sell',
         orderType: 'Limit',
-        price: this.state.trades.profitOrderPrice,
-        category: category,
+        price,
+        category,
         orderLinkId,
       };
-      apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
-      this.state.trades.addToOrdBook(orderLinkId, 'TAKE_PROFIT_ORDER');
+      log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
+      this.orderBook.addToOrdBook(orderLinkId, 'TAKE_PROFIT_ORDER');
       const response = await this.client.submitOrder(body);
-      apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(response)}|`);
+      log.api.info(
+        `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`
+      );
       const {retCode} = response;
 
-      if (retCode !== 0) {
-        this.emitter.emit(ERROR_EVENT, response);
+      if (retCode) {
+        this.emitter.emit(ERROR_EVENT, {
+          label,
+          data: JSON.stringify(response),
+        });
       }
-      return {data: response, error: null};
+      this.emitter.emit(LOG_EVENT, {
+        label,
+        data: null,
+      });
     } catch (error) {
-      return {data: null, error: (error as Error).message};
+      this.emitter.emit(ERROR_EVENT, {
+        label,
+        data: JSON.stringify(error),
+      });
+      // TODO: do rollback
     }
   }
 }

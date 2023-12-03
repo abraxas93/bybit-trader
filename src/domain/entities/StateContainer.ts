@@ -1,9 +1,11 @@
 import {inject, injectable} from 'tsyringe';
+import BigJs from 'big.js';
 import {EventEmitter} from 'events';
-import {TradeState} from './TradeState';
-import {CandleState} from './CandleState';
+import {OrderBook} from './OrderBook';
+import {CandleState} from './CandleStick';
 import {Options} from './Options';
-import {LOG_EVENT, REOPEN_PROFIT_ORDER, REOPEN_TIMER} from '../../constants';
+import {LOG_EVENT, CANCEL_ORDER, REOPEN_TIMER} from '../../constants';
+import {Position} from './Position';
 
 @injectable()
 export class StateContainer {
@@ -12,12 +14,14 @@ export class StateContainer {
   constructor(
     @inject('EventEmitter')
     private readonly _emitter: EventEmitter,
-    @inject('TradeState')
-    public readonly trades: TradeState,
-    @inject('CandleState')
+    @inject('OrderBook')
+    public readonly trades: OrderBook,
+    @inject('CandleStick)
     public readonly candles: CandleState,
     @inject('Options')
-    public readonly options: Options
+    public readonly options: Options,
+    @inject('Position')
+    public readonly position: Position
   ) {}
 
   get canOpenAvgOrder(): boolean {
@@ -37,36 +41,53 @@ export class StateContainer {
     this._pause = false;
   };
 
-  public getSnapshot = (label: string) => {
-    const snapshot = {
-      label,
-      candles: this.candles.candles,
-      posQty: this.trades.posQty,
-      avgQty: this.trades.avgQty,
-      currentLowPrice: this.candles.currentLowPrice,
-      lastCandleLowPrice: this.candles.lastCandleLowPrice,
-      avgPosPrice: this.trades.avgPosPrice,
-      lastAvgOrderPrice: this.trades.lastAvgOrderPrice,
-      avgOrderCount: this.trades.avgOrderCount,
-      avgOrderPrice: this.trades.avgOrderPrice,
-      profitOrderPrice: this.trades.profitOrderPrice,
-      canOpenAvgOrder: this.canOpenAvgOrder,
-      isNewCandle: this.candles.isNewCandle,
-      isAvgOrderExists: this.trades.isAvgOrderExists,
-      isPositionOpened: this.trades.isPositionExists,
-      nextCandleIn: this.candles.nextCandleIn,
-      candlesCount: this.candles.count,
-      quantity: this.trades.quantity,
-      orderBook: this.trades.orderBook,
-      klineStarted: this.candles.klineStarted,
-    };
-    return snapshot;
-  };
-
-  openPosition = (avgPrice: string, qty: string) => {
-    this.trades.openPosOrder(avgPrice, qty);
+  setLimitLongOrderFilled = (avgPrice: string, qty: string) => {
+    this.trades.isPositionExists = true;
+    this.trades.setBaseQty(qty);
+    this.position.avgPosPrice = avgPrice;
+    this.position.lastAvgOrderPrice = avgPrice;
     this.candles.resetCandlesCount();
     this._emitter.emit(LOG_EVENT, 'openPosition');
+  };
+
+  setLimitShortOrderFilled = () => {
+    this.trades.isPositionExists = false;
+    this.trades.isAvgOrderExists = false;
+    this.trades.clearQty();
+    this.trades.incProfitTakeCount();
+    this.trades.avgOrderCount = 0;
+    this.position.avgPosPrice = '0';
+    this.position.lastAvgOrderPrice = '0';
+    this._emitter.emit(LOG_EVENT, 'setLimitShortOrderFilled');
+  };
+
+  submitLimitAvgOrder = (orderLinkId: string) => {
+    this.trades.isAvgOrderExists = true;
+    this.trades.addToOrdBook(orderLinkId, 'AVERAGE_ORDER');
+    this._emitter.emit(LOG_EVENT, 'submitLimitAvgOrder');
+  };
+
+  public partiallyFillAvgOrder = (qty: string, value: string) => {
+    const index = this.trades.avgOrderCount + 1;
+    this.position.partiallyFillAvgOrder(index, qty, value);
+  };
+
+  setLimitAvgOrderFilled = (price: string, qty: string, value: string) => {
+    this.trades.isAvgOrderExists = false;
+    this.partiallyFillAvgOrder(qty, value);
+    this.position.lastAvgOrderPrice = price;
+    this.trades.incAvgOrderCount();
+
+    this.candles.resetCandlesCount();
+    this.resetReopenTimer();
+
+    this._emitter.emit(LOG_EVENT, 'setLimitAvgOrderFilled');
+  };
+
+  cancelLimitAvgOrder = (orderId: string) => {
+    this.trades.isAvgOrderExists = false;
+    this.trades.removeFromOrdBook(orderId, false);
+    this._emitter.emit(LOG_EVENT, 'cancelAvgOrder');
   };
 
   resetReopenTimer = () => {
@@ -76,7 +97,7 @@ export class StateContainer {
   reopenProfitOrder = () => {
     this.resetReopenTimer();
     this._timer = setTimeout(() => {
-      this._emitter.emit(REOPEN_PROFIT_ORDER);
+      this._emitter.emit(CANCEL_ORDER);
     }, REOPEN_TIMER);
   };
 }

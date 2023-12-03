@@ -1,50 +1,75 @@
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
-import {initLogger} from '../../utils/logger';
-import {StateContainer} from '../../domain/entities';
-import {normalizeFloat} from '../../utils';
+import {EventEmitter} from 'events';
+import {log, getOrderLinkId} from '../../utils';
+import {AppState, Options, OrderBook, Position} from '../../domain/entities';
+import {ERROR_EVENT, LOG_EVENT} from '../../constants';
 
-const apiLogger = initLogger('SubmitAvgOrder', 'api.log');
+const label = 'SubmitAvgOrder';
 
 @injectable()
 export class SubmitAvgOrder {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,
-    @inject('StateContainer')
-    private readonly state: StateContainer
+    @inject('Options')
+    private readonly options: Options,
+    @inject('OrderBook')
+    private readonly orderBook: OrderBook,
+    @inject('Position')
+    private readonly postion: Position,
+    @inject('AppState')
+    private readonly state: AppState,
+    @inject('EventEmitter')
+    private readonly emitter: EventEmitter
   ) {}
 
   async execute() {
+    if (!this.state.canOpenAvgOrder) return;
+    const orderLinkId = getOrderLinkId();
     try {
-      const category = this.state.options.category;
-      const symbol = this.state.options.symbol;
-      const qty = this.state.trades.avgQty;
-
-      const orderLinkId = String(Date.now());
-
+      const category = this.options.category;
+      const symbol = this.options.symbol;
+      const qty = this.postion.avgQty;
+      const price = this.postion.avgOrderPrice;
       const body: OrderParamsV5 = {
         symbol,
-        qty: normalizeFloat(qty),
+        qty,
         side: 'Buy',
         orderType: 'Limit',
-        price: this.state.trades.avgOrderPrice,
+        price,
         category,
         orderLinkId,
       };
 
-      apiLogger.info(`REQUEST|submitOrder|${JSON.stringify(body)}|`);
-      this.state.trades.addToOrdBook(orderLinkId, 'AVERAGE_ORDER');
-      this.state.trades.openAvgOrder();
-      const ordResponse = await this.client.submitOrder(body);
-      apiLogger.info(`RESPONSE|submitOrder|${JSON.stringify(ordResponse)}|`);
+      this.orderBook.isAvgOrderExists = true;
+      this.orderBook.addToOrdBook(orderLinkId, 'AVERAGE_ORDER');
 
-      const {retCode} = ordResponse;
-      if (retCode !== 0) this.state.trades.removeFromOrdBook(orderLinkId);
+      log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
+      const response = await this.client.submitOrder(body);
+      log.api.info(
+        `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`
+      );
 
-      return {data: ordResponse, error: null};
+      const {retCode} = response;
+      if (retCode) {
+        this.orderBook.removeFromOrdBook(orderLinkId);
+        this.emitter.emit(ERROR_EVENT, {
+          label,
+          data: JSON.stringify(response),
+        });
+      }
+
+      this.emitter.emit(LOG_EVENT, {
+        label,
+        data: null,
+      });
     } catch (error) {
-      return {data: null, error: (error as Error).message};
+      this.orderBook.removeFromOrdBook(orderLinkId);
+      this.emitter.emit(ERROR_EVENT, {
+        label,
+        data: JSON.stringify(error),
+      });
     }
   }
 }

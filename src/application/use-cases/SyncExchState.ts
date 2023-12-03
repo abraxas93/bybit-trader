@@ -1,12 +1,10 @@
 import {RestClientV5} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
-import {initLogger} from '../../utils/logger';
+import {log} from '../../utils';
 import {StateContainer} from '../../domain/entities';
 
-const apiLogger = initLogger('SyncTradeState', 'api.log');
-
 @injectable()
-export class SyncTradeState {
+export class SyncExchState {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,
@@ -17,20 +15,20 @@ export class SyncTradeState {
     try {
       const symbol = this.state.options.symbol;
       const category = this.state.options.category;
-      apiLogger.info(`REQUEST|getPositionInfo|${symbol} ${category}|`);
+      log.api.info(`REQUEST|getPositionInfo|${symbol} ${category}|`);
       const response = await this.client.getPositionInfo({
         symbol,
         category,
       });
-      apiLogger.info(`RESPONSE|cancelAllOrders|${JSON.stringify(response)}|`);
+      log.api.info(`RESPONSE|cancelAllOrders|${JSON.stringify(response)}|`);
       const position = response.result.list.pop();
       if (position?.side === 'None') {
-        apiLogger.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
+        log.api.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
         const cancelResponse = await this.client.cancelAllOrders({
           category: category,
           symbol,
         });
-        apiLogger.info(
+        log.api.info(
           `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
         );
         if (cancelResponse.retCode) {

@@ -8,13 +8,13 @@
     "start": "cross-env NODE_ENV=prod LOGS=true node ./dist/index.js",
     "test": "cross-env NODE_ENV=dev LOGS=true TEST=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev": "cross-env NODE_ENV=dev ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
-    "dev:logs": "cross-env NODE_ENV=dev LOGS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
+    "dev:logs": "cross-env NODE_ENV=prod LOGS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev:testnet": "cross-env NODE_ENV=test ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev:testnet:logs": "cross-env NODE_ENV=test LOGS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/index.ts",
     "dev:setup:vars": "cross-env NODE_ENV=test LOGS=true SETUP_VARS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/scripts/index.ts",
     "prod:setup:vars": "cross-env NODE_ENV=prod LOGS=true SETUP_VARS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/scripts/index.ts",
     "dev:reset:store": "cross-env NODE_ENV=test LOGS=true SETUP_VARS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/scripts/store.ts",
-    "prod:reset:store": "cross-env NODE_ENV=dev LOGS=true SETUP_VARS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/scripts/store.ts"
+    "prod:reset:store": "cross-env NODE_ENV=prod LOGS=true SETUP_VARS=true ts-node-dev --respawn --transpile-only -r tsconfig-paths/register ./src/scripts/store.ts"
   },
   "repository": {
     "type": "git",

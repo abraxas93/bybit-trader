@@ -7,10 +7,10 @@ import {initLogger} from '../../utils/logger';
 import moment from 'moment';
 import {roundToNearestTen} from '../../utils';
 
-const logger = initLogger('CandleState', 'logs.log');
+const logger = initLogger('CandleStick', 'logs.log');
 
 @injectable()
-export class CandleState {
+export class CandleStick {
   private _klineStarted = false;
   private _isNewCandle = false;
   private _currentLowPrice = '0';
@@ -55,6 +55,10 @@ export class CandleState {
     return this._lastCandleLowPrice;
   }
 
+  set lastCandleLowPrice(val: string) {
+    this._lastCandleLowPrice = val;
+  }
+
   get nextCandleIn(): number {
     return this._nextCandleIn;
   }
@@ -75,19 +79,16 @@ export class CandleState {
       (await this.redis.get(RKEYS.CANDLE_LOW_PRICE)) || '0';
     this._lastCandleLowPrice =
       (await this.redis.get(RKEYS.LAST_CANDLE_LOW_PRICE)) || '0';
-
-    // const nextCandleIn = await this.redis.get(RKEYS.TIMEFRAME);
-    // this._nextCandleIn = nextCandleIn ? parseInt(nextCandleIn) : 0;
   }
 
   resetCandlesCount = () => {
     this._count = 0;
   };
 
-  setLastLowCandlePrice = (price: string) => {
-    this._lastCandleLowPrice = price;
-    this._emitter.emit(LOG_EVENT, 'setLastLowCandlePrice');
-  };
+  // setLastLowCandlePrice = (price: string) => {
+  //   this._lastCandleLowPrice = price;
+  //   this._emitter.emit(LOG_EVENT, 'setLastLowCandlePrice');
+  // };
 
   updateLowPrice = (lastPrice: string | undefined): boolean => {
     if (!this._klineStarted) return false;
@@ -103,13 +104,13 @@ export class CandleState {
     return false;
   };
 
-  private updateLastCandleData = () => {
+  private closeCandleStick = () => {
     this._lastCandleLowPrice = this._currentLowPrice;
     this._nextCandleIn += this.options.period;
     this._isNewCandle = true;
     this._count += 1;
     logger.info(
-      `Candld closed: ${this.lastCandleLowPrice}, next candle: ${this._nextCandleIn}, count: ${this._count}`
+      `Candle closed: ${this.lastCandleLowPrice}, next candle: ${this._nextCandleIn}, count: ${this._count}`
     );
     const current =
       this._nextCandleIn > 0 ? this._nextCandleIn - this.options.period : 50;
@@ -122,7 +123,7 @@ export class CandleState {
     delete this._candles[previous];
   };
 
-  updateLastCandleLowPrice = (ts: number) => {
+  countTick = (ts: number) => {
     const seconds = moment(ts).seconds();
     let nearest;
     if (!this._klineStarted && seconds % this.options.period === 0) {
@@ -142,7 +143,7 @@ export class CandleState {
         seconds >= this._nextCandleIn &&
         this._nextCandleIn !== 0
       ) {
-        this.updateLastCandleData();
+        this.closeCandleStick();
       }
 
       if (this._nextCandleIn === 60) {
@@ -154,7 +155,7 @@ export class CandleState {
         this._nextCandleIn === 0 &&
         seconds >= this._nextCandleIn
       ) {
-        this.updateLastCandleData();
+        this.closeCandleStick();
       }
     }
   };

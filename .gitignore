@@ -5,3 +5,4 @@ dist/
 logs.log
 *.log
 todo.txt
+last_build/
