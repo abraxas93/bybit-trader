@@ -13,6 +13,7 @@ import {bootstrapEvents} from './events';
 import {bootstrapSockets} from './sockets';
 
 const label = '[index.ts]';
+const START_TIME = 6000;
 
 main().catch(err => {
   log.error.error(err);
@@ -35,7 +36,7 @@ async function main() {
       const useCase = container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
       await useCase.execute();
     }
-  }, 8000);
+  }, START_TIME);
 
   log.custom.info(`${label}:` + JSON.stringify(options.values));
 }

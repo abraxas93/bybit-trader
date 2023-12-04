@@ -1,6 +1,6 @@
 import {inject, injectable} from 'tsyringe';
 import {EventEmitter} from 'events';
-import {AppState, OrderBook, Position} from '../../domain/entities';
+import {AppState, Position} from '../../domain/entities';
 import {ERROR_EVENT, LOG_EVENT} from '../../constants';
 
 const label = 'PartiallyFilledAvgOrder';

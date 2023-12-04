@@ -4,11 +4,13 @@ import {log} from './utils';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {Topic} from './types';
 import {Options} from './domain/entities';
+import {SyncExchState} from './application/use-cases/SyncExchState';
 
 export function bootstrapSockets() {
   const ws = container.resolve<WebsocketClient>('WebsocketClient');
   const wsHandler = container.resolve<WsTopicHandler>('WsTopicHandler');
   const options = container.resolve<Options>('Options');
+  const syncPosition = container.resolve<SyncExchState>('SyncExchState');
 
   // 'order', 'position', 'execution'
   const symbol = options.symbol;
@@ -40,12 +42,11 @@ export function bootstrapSockets() {
 
   // Optional: Listen to raw error events. Recommended.
   ws.on('error', err => {
-    console.log(err);
     log.socket.error(JSON.stringify(err));
   });
 
   ws.on('reconnected', data => {
     log.socket.warn('ws has reconnected ', data?.wsKey);
-    // TODO: add SyncTradeState here
+    syncPosition.execute().catch(err => log.error.error(JSON.stringify(err)));
   });
 }

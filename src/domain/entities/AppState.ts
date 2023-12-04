@@ -29,7 +29,8 @@ export class AppState {
       !this.orderBook.isAvgOrderExists &&
       this.candle.count >= this.options.minCandles &&
       this.position.exists &&
-      this.orderBook.avgOrderCount <= this.options.maxAvgCount
+      this.orderBook.avgOrderCount <= this.options.maxAvgCount &&
+      !this._pause
     );
   }
 
@@ -37,7 +38,8 @@ export class AppState {
     return (
       this.orderBook.profitTakesCount < this.options.tradeCycles &&
       !this.position.exists &&
-      !this.position.partiallyFilled
+      !this.position.partiallyFilled &&
+      !this._pause
     );
   }
 

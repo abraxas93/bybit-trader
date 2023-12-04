@@ -6,3 +6,4 @@ export * from './FilledAvgOrder';
 export * from './FilledProfitOrder';
 export * from './FilledOpenOrder';
 export * from './PartiallyFilledAvgOrder';
+export * from './SyncExchState';

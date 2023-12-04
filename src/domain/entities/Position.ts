@@ -19,7 +19,7 @@ export class Position {
   private _lastAvgOrderPrice = '0';
   private _exists = false;
   public partiallyFilled = false;
-  private lastAvgCumExecQty = '0';
+  public lastAvgCumExecQty = '0';
   private lastProfitCumExecQty = '0';
 
   constructor(

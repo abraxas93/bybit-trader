@@ -1,8 +1,14 @@
-import {PositionV5, RestClientV5} from 'bybit-api';
+import {RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
-import {AppState, Options, OrderBook, Position} from '../../domain/entities';
+import {
+  AppState,
+  CandleStick,
+  Options,
+  OrderBook,
+  Position,
+} from '../../domain/entities';
 import {ERROR_EVENT} from '../../constants';
 
 const label = 'SyncExchState';
@@ -20,19 +26,21 @@ export class SyncExchState {
     @inject('AppState')
     private readonly state: AppState,
     @inject('Position')
-    private readonly position: Position
+    private readonly position: Position,
+    @inject('CandleStick')
+    private readonly candle: CandleStick
   ) {}
   async execute() {
     try {
       const symbol = this.options.symbol;
       const category = this.options.category;
-      log.api.info(`${label}:REQUEST|getPositionInfo|${symbol} ${category}|`);
+      log.api.info(`${label}:REQUEST:getPositionInfo:${symbol} ${category}|`);
       const response = await this.client.getPositionInfo({
         symbol,
         category,
       });
       log.api.info(
-        `${label}:RESPONSE|cancelAllOrders|${JSON.stringify(response)}|`
+        `${label}:RESPONSE:getPositionInfo:${JSON.stringify(response)}|`
       );
       const position = response.result.list.pop();
       if (!position) {
@@ -43,21 +51,8 @@ export class SyncExchState {
         return;
       }
       if (position?.side === 'None') {
-        log.api.info(`REQUEST|cancelAllOrders|${symbol} ${category}|`);
-        const cancelResponse = await this.client.cancelAllOrders({
-          category: category,
-          symbol,
-        });
-        log.api.info(
-          `RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
-        );
-        if (cancelResponse.retCode) {
-          return {data: null, error: cancelResponse};
-        }
         this.orderBook.clearOrderBook();
         this.position.handleFilledProfitOrder();
-        this.state.unpause();
-        return {data: true, error: null};
       } else {
         const symbol = this.options.symbol;
         const category = this.options.category;
@@ -74,22 +69,39 @@ export class SyncExchState {
           });
         }
 
-        const {size} = position;
-        const orderIds = this.orderBook.orderIds;
-
         const linkedIds = response.result.list.map(o => o.orderLinkId);
-        orderIds.forEach(id => {
-          if (!linkedIds.includes(id)) this.orderBook.removeFromOrdBook(id);
-        });
-        this.position.posQty = size;
-        // get all orders from exch
-        // get all orders from store
-        // update store
-        // unpause
-        this.state.unpause();
-        // continue
-        return {data: true, error: null};
+        const avgOrderId = this.orderBook.getOrderIdBy('AVERAGE_ORDER');
+        if (avgOrderId && !linkedIds.includes(avgOrderId)) {
+          // avg order were filled
+          this.orderBook.removeFromOrdBook(avgOrderId);
+          this.orderBook.isAvgOrderExists = false;
+          this.position.lastAvgCumExecQty = '0';
+          this.orderBook.incAvgOrderCount();
+          this.candle.resetCandlesCount();
+          this.state.resetReopenTimer();
+
+          const orderData = response.result.list.find(
+            o => o.orderLinkId === avgOrderId
+          );
+
+          orderData && (this.position.lastAvgOrderPrice = orderData.avgPrice);
+        }
+        if (avgOrderId && linkedIds.includes(avgOrderId)) {
+          // avg order were partially filled
+          const orderData = response.result.list.find(
+            o => o.orderLinkId === avgOrderId
+          );
+          orderData &&
+            (this.position.lastAvgCumExecQty = orderData?.cumExecQty);
+
+          this.state.reopenProfitOrder();
+        }
+
+        this.position.posQty = position.size;
+        this.position.avgPosPrice = position.avgPrice;
       }
+
+      this.state.unpause();
     } catch (error) {
       this.emitter.emit(ERROR_EVENT, {
         label,

@@ -19,6 +19,7 @@ import {
   SubmitAvgOrder,
   SubmitOpenOrder,
   SubmitProfitOrder,
+  SyncExchState,
 } from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {Options} from './domain/entities/Options';
@@ -93,4 +94,5 @@ export async function bootstrapCtx() {
   container.register<SubmitOpenOrder>('SubmitOpenOrder', SubmitOpenOrder);
   container.register<SubmitProfitOrder>('SubmitProfitOrder', SubmitProfitOrder);
   container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
+  container.register<SyncExchState>('SyncExchState', SyncExchState);
 }
