@@ -46,8 +46,8 @@ export class FilledAvgOrder {
     try {
       this.orderBook.removeFromOrdBook(orderLinkId);
       this.orderBook.isAvgOrderExists = false;
-      const index = this.orderBook.getAvgOrderIndex();
-      this.position.fillAvgOrder(index, cumExecQty, cumExecValue, avgPrice);
+
+      this.position.handleFilledAvgOrder(cumExecQty, cumExecValue, avgPrice);
       this.orderBook.incAvgOrderCount();
 
       this.candle.resetCandlesCount();

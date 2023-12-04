@@ -38,14 +38,8 @@ export class WsTopicHandler {
     if (topic === 'order') {
       const [orderData] = data;
       log.orders.info(JSON.stringify(orderData));
-      const {
-        orderStatus,
-        avgPrice,
-        cumExecQty,
-        cumExecValue,
-        leavesQty,
-        orderLinkId,
-      } = orderData as OrderData;
+      const {orderStatus, avgPrice, cumExecQty, cumExecValue, orderLinkId} =
+        orderData as OrderData;
       const orderCls = this.orderBook.getOrderClass(orderLinkId);
 
       if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {
@@ -76,7 +70,7 @@ export class WsTopicHandler {
         orderCls === 'TAKE_PROFIT_ORDER' &&
         orderStatus === 'PartiallyFilled'
       ) {
-        this.position.setLeavesQty(leavesQty);
+        this.position.handlePartiallyFilledProfitOrder(cumExecQty);
       }
     }
 

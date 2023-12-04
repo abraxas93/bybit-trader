@@ -40,12 +40,6 @@ export class SubmitOpenOrder {
         ? parseFloat(this.position.bid1Price)
         : parseFloat(this.candle.lastCandleLowPrice);
 
-    console.log({
-      lastPrice,
-      price,
-      bid1Price: this.position.bid1Price,
-      lastCandleLowPrice: this.candle.lastCandleLowPrice,
-    });
     return String(price);
   };
   async execute() {

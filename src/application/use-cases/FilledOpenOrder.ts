@@ -28,7 +28,7 @@ export class FilledOpenOrder {
     orderLinkId: string;
   }) {
     try {
-      this.position.fillLongOrder(cumExecQty, avgPrice);
+      this.position.handleFilledLongOrder(cumExecQty, avgPrice);
       this.candle.resetCandlesCount();
       this.orderBook.removeFromOrdBook(orderLinkId);
 

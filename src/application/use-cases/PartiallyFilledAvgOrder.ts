@@ -11,8 +11,6 @@ export class PartiallyFilledAvgOrder {
     private readonly emitter: EventEmitter,
     @inject('Position')
     private readonly position: Position,
-    @inject('OrderBook')
-    private readonly orderBook: OrderBook,
     @inject('AppState')
     private readonly state: AppState
   ) {}
@@ -25,14 +23,12 @@ export class PartiallyFilledAvgOrder {
     cumExecValue: string;
   }) {
     try {
-      const index = this.orderBook.avgOrderCount + 1;
-      this.position.partiallyFillAvgOrder(index, cumExecQty, cumExecValue);
+      this.position.partiallyFillAvgOrder(cumExecQty, cumExecValue);
       this.state.reopenProfitOrder();
       this.emitter.emit(LOG_EVENT, {
         label,
         data: {cumExecQty, cumExecValue},
       });
-      // TODO: add leaves qty if 0, then close avg order
     } catch (error) {
       this.emitter.emit(ERROR_EVENT, {
         label,

@@ -14,10 +14,13 @@ export class Position {
   public bid1Price = '0';
   public ask1Price = '0';
   private quantity: string[] = [];
+  private _posQty = '0';
   private _avgPosPrice = '0';
   private _lastAvgOrderPrice = '0';
   private _exists = false;
   public partiallyFilled = false;
+  private lastAvgCumExecQty = '0';
+  private lastProfitCumExecQty = '0';
 
   constructor(
     @inject('Redids')
@@ -38,21 +41,21 @@ export class Position {
     this._lastAvgOrderPrice =
       (await this.redis.get(RKEYS.LAST_AVG_ORD_PRICE)) || '0';
 
-    const qty: string[] = JSON.parse(
-      (await this.redis.get(RKEYS.POS_QTY)) || '[]'
-    ) as string[];
-    this.quantity = qty;
+    const qty: string = (await this.redis.get(RKEYS.POS_QTY)) || '0';
+    this._posQty = qty;
     const positionExists = await this.redis.get(RKEYS.POSITION_OPENED);
     this._exists = positionExists === 'true';
   }
 
   get posQty() {
-    if (!this.quantity.length) return '0';
-    const qty = this.quantity.reduce((prev, cur) =>
-      new BigJs(prev).add(cur).toFixed(this.options.digits)
-    );
+    return this._posQty;
+  }
 
-    return normalizeFloat(qty);
+  set posQty(val: string) {
+    this._posQty = val;
+    this.redis
+      .set(RKEYS.POS_QTY, this._posQty)
+      .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
   get avgQty() {
@@ -119,72 +122,59 @@ export class Position {
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
-  // setQtyByIdx(idx: number, val: string) {
-  //   this.quantity[idx] = val;
-  //   this.redis
-  //     .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
-  //     .catch(err => errLogger.error(JSON.stringify(err)));
-  // }
+  handlePartiallyFilledProfitOrder = (qty: string) => {
+    let newQty;
+    if (this.lastProfitCumExecQty === '0') {
+      this.lastProfitCumExecQty = qty;
+      newQty = new BigJs(this.posQty).minus(qty).toFixed(this.options.digits);
+    } else {
+      const diffQty = new BigJs(qty).minus(this.lastProfitCumExecQty);
+      newQty = new BigJs(this.posQty).add(diffQty).toFixed(this.options.digits);
+      this.lastAvgCumExecQty = qty;
+    }
+    this.posQty = normalizeFloat(newQty);
+  };
 
-  setLeavesQty(leavesQty: string) {
-    this.quantity = [leavesQty];
-    this.redis
-      .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
-      .catch(err => errLogger.error(JSON.stringify(err)));
-  }
-
-  setBaseQty(qty: string) {
-    this.quantity = [qty];
-    this.redis
-      .set(RKEYS.POS_QTY, JSON.stringify([qty]))
-      .catch(err => errLogger.error(JSON.stringify(err)));
-  }
-
-  private clearQty() {
-    this.quantity = [];
-    this.redis
-      .set(RKEYS.POS_QTY, JSON.stringify([]))
-      .catch(err => errLogger.error(JSON.stringify(err)));
-  }
-
-  public fillLongOrder = (qty: string, price: string) => {
-    this.setBaseQty(qty);
+  public handleFilledLongOrder = (qty: string, price: string) => {
+    // this.setBaseQty(qty);
+    this.posQty = qty;
     this.avgPosPrice = price;
     this.lastAvgOrderPrice = price;
     this.exists = true;
     this.partiallyFilled = false;
   };
 
-  public partiallyFillAvgOrder = (idx: number, qty: string, value: string) => {
-    const totalQty = this.quantity.reduce((prev: string, cur: string) =>
-      new BigJs(prev).add(cur).toString()
-    );
-    const numerator = new BigJs(totalQty).mul(this.avgPosPrice).plus(value);
-    const denominator = new BigJs(totalQty).add(qty);
-    this.quantity[idx] = qty;
-    this.redis
-      .set(RKEYS.POS_QTY, JSON.stringify(this.quantity))
-      .catch(err => errLogger.error(JSON.stringify(err)));
+  public partiallyFillAvgOrder = (qty: string, value: string) => {
+    const numerator = new BigJs(this.posQty).mul(this.avgPosPrice).plus(value);
+    const denominator = new BigJs(this.posQty).add(qty);
 
+    let newQty;
+    if (this.lastAvgCumExecQty === '0') {
+      newQty = new BigJs(this.posQty).add(qty).toFixed(this.options.digits);
+      this.lastAvgCumExecQty === qty;
+    } else {
+      const diffQty = new BigJs(qty).minus(this.lastAvgCumExecQty);
+      newQty = new BigJs(this.posQty).add(diffQty).toFixed(this.options.digits);
+      this.lastAvgCumExecQty = qty;
+    }
+
+    this.posQty = normalizeFloat(newQty);
     this.avgPosPrice = new BigJs(numerator)
       .div(denominator)
       .toFixed(this.options.digits);
   };
 
-  public fillAvgOrder = (
-    idx: number,
-    qty: string,
-    value: string,
-    price: string
-  ) => {
-    this.partiallyFillAvgOrder(idx, qty, value);
+  public handleFilledAvgOrder = (qty: string, value: string, price: string) => {
+    this.partiallyFillAvgOrder(qty, value);
     this.lastAvgOrderPrice = price;
+    this.lastAvgCumExecQty = '0';
   };
 
   public handleFilledProfitOrder = () => {
-    this.clearQty();
+    this.posQty = '0';
     this.avgPosPrice = '0';
     this.lastAvgOrderPrice = '0';
     this.exists = false;
+    this.lastProfitCumExecQty = '0';
   };
 }
