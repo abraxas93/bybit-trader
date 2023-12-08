@@ -35,45 +35,45 @@ export function bootstrapEvents() {
   // const state = container.resolve<AppState>('AppState');
 
   emitter.on(SUBMIT_OPEN_ORDER, () => {
-    submitOpenOrder.execute().catch(err => log.error.error(err));
+    submitOpenOrder.execute().catch(err => log.errs.error(err));
   });
   emitter.on(SUBMIT_AVG_ORDER, () => {
-    submitAvgOrder.execute().catch(err => log.error.error(err));
+    submitAvgOrder.execute().catch(err => log.errs.error(err));
   });
   emitter.on(SUBMIT_PROFIT_ORDER, () => {
-    submitProfitOrder.execute().catch(err => log.error.error(err));
+    submitProfitOrder.execute().catch(err => log.errs.error(err));
   });
 
   emitter.on(OPEN_ORDER_FILLED, () =>
-    submitProfitOrder.execute().catch(err => log.error.error(err))
+    submitProfitOrder.execute().catch(err => log.errs.error(err))
   );
 
   emitter.on(AVG_ORDER_FILLED, () =>
-    submitProfitOrder.execute().catch(err => log.error.error(err))
+    submitProfitOrder.execute().catch(err => log.errs.error(err))
   );
 
   emitter.on(PROFIT_ORDER_FILLED, () =>
-    submitOpenOrder.execute().catch(err => log.error.error(err))
+    submitOpenOrder.execute().catch(err => log.errs.error(err))
   );
 
   emitter.on(
     ORDER_CANCELLED,
     ({cls}: {cls: OrderClass; orderLinkId: string}) => {
       if (cls === 'TAKE_PROFIT_ORDER') {
-        submitProfitOrder.execute().catch(err => log.error.error(err));
+        submitProfitOrder.execute().catch(err => log.errs.error(err));
       }
     }
   );
 
   emitter.on(CANCEL_ORDER, (cls: OrderClass) =>
-    cancelOrder.execute(cls).catch(err => log.error.error(err))
+    cancelOrder.execute(cls).catch(err => log.errs.error(err))
   );
 
-  emitter.on(ERROR_EVENT, data => log.error.error(data));
+  emitter.on(ERROR_EVENT, data => log.errs.error(data));
 
   emitter.on(CANDLE_CLOSED, () => {
-    submitAvgOrder.execute().catch(err => log.error.error(err));
-    submitOpenOrder.execute().catch(err => log.error.error(err));
+    submitAvgOrder.execute().catch(err => log.errs.error(err));
+    submitOpenOrder.execute().catch(err => log.errs.error(err));
   });
 
   emitter.on(LOG_EVENT, (label: string) => {

@@ -2,7 +2,7 @@ import {initLogger} from './logger';
 
 export class AppLogger {
   public readonly api = initLogger('api', 'api.log');
-  public readonly error = initLogger('errors', 'errors.log');
+  public readonly errs = initLogger('errors', 'errors.log');
   public readonly custom = initLogger('custom', 'logs.log'); // write sockets handler events data as well like sockets.log
   public readonly socket = initLogger('sockets', 'sockets.log');
   public readonly order = initLogger('order_book', 'order_book.log', true);

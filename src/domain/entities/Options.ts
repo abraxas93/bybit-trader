@@ -22,7 +22,7 @@ export class Options {
     @inject('Redis')
     private readonly redis: Redis
   ) {
-    // this.loadVars().catch(err => log.error.error(err));
+    // this.loadVars().catch(err => log.errs.error(err));
   }
 
   get values() {

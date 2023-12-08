@@ -53,13 +53,13 @@ export class WsTopicHandler {
       if (orderCls === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
         this.filledProfitOrder
           .execute()
-          .catch(err => log.error.error(JSON.stringify(err)));
+          .catch(err => log.errs.error(JSON.stringify(err)));
       }
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
         this.filledAvgOrder
           .execute({orderLinkId, avgPrice, cumExecQty, cumExecValue})
-          .catch(err => log.error.error(JSON.stringify(err)));
+          .catch(err => log.errs.error(JSON.stringify(err)));
       }
 
       if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'PartiallyFilled') {

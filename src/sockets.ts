@@ -13,10 +13,10 @@ export function bootstrapSockets() {
   const syncPosition = container.resolve<SyncExchState>('SyncExchState');
 
   // 'order', 'position', 'execution'
-  const symbol = options.symbol;
-  ws.subscribeV5([`tickers.${symbol}`, 'order'], 'linear').catch(err =>
-    log.error.error(JSON.stringify(err))
-  );
+  // const symbol = options.symbol;
+  // ws.subscribeV5([`tickers.${symbol}`, 'order'], 'linear').catch(err =>
+  //   log.errs.error(JSON.stringify(err))
+  // );
 
   // ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
 
@@ -47,6 +47,6 @@ export function bootstrapSockets() {
 
   ws.on('reconnected', data => {
     log.socket.warn('ws has reconnected ', data?.wsKey);
-    syncPosition.execute().catch(err => log.error.error(JSON.stringify(err)));
+    syncPosition.execute().catch(err => log.errs.error(JSON.stringify(err)));
   });
 }

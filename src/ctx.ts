@@ -9,7 +9,7 @@ import {
   WebsocketClient,
   RestClientV5,
 } from 'bybit-api';
-import {API_KEY, API_SECRET} from './config';
+// import {API_KEY, API_SECRET} from './config';
 import {
   CancelOrder,
   FilledAvgOrder,
@@ -63,6 +63,13 @@ export async function bootstrapCtx() {
     orderBook,
     options,
     position
+  );
+
+  // options
+
+  container.register<WSClientConfigurableOptions>(
+    'WSClientConfigurableOptions',
+    {useValue: wsOptions}
   );
 
   // infra

@@ -17,7 +17,7 @@ const label = '[index.ts]';
 const START_TIME = 6000;
 
 main().catch(err => {
-  log.error.error(err);
+  log.errs.error(err);
 });
 // TODO: first grab kline data but wait until first ticker and only then place open order in case of start
 async function main() {
@@ -33,7 +33,7 @@ async function main() {
 
   setTimeout(() => {
     redis
-      .publish('284182203:COMMAND', 'SETUP_API_KEY=23vjsbvkjbvk')
+      .publish('284182203:COMMAND', 'SOCKETS_SUBSCRIBE')
       .catch(err => console.error(err));
     console.log('published');
   }, 5000);
@@ -63,18 +63,18 @@ const cb = async () => {
     const response = await client.cancelAllOrders({symbol, category});
     log.api.info(response);
     if (response.retCode) {
-      log.error.error(`${label}:` + JSON.stringify(response));
+      log.errs.error(`${label}:` + JSON.stringify(response));
     } else {
       await redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
       await redis.set(RKEYS.PROFIT_TAKES_COUNT, '0');
     }
   } catch (error) {
-    log.error.error(`${label}:` + JSON.stringify(error));
+    log.errs.error(`${label}:` + JSON.stringify(error));
   } finally {
     process.exit(0);
   }
 };
 
 process.on('SIGINT', async () => {
-  await cb().catch(err => log.error.error(err));
+  await cb().catch(err => log.errs.error(err));
 });
