@@ -20,6 +20,7 @@ export const PASSWORD_LENGTH = parseInt(process.env.PASSWORD_LENGTH || '');
 // env
 
 export const ENV = process.env.NODE_ENV || '';
+export const USER = process.env.USER;
 
 // ByBit secrets
 export const API_KEY =

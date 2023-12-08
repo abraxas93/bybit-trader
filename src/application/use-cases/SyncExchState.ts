@@ -53,6 +53,7 @@ export class SyncExchState {
       if (position?.side === 'None') {
         this.orderBook.clearOrderBook();
         this.position.handleFilledProfitOrder();
+        // TODO: clear other stuff
       } else {
         const symbol = this.options.symbol;
         const category = this.options.category;

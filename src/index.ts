@@ -11,6 +11,7 @@ import {log} from './utils';
 import {Options, Position} from './domain/entities';
 import {bootstrapEvents} from './events';
 import {bootstrapSockets} from './sockets';
+import {bootstratTopicks} from './topics';
 
 const label = '[index.ts]';
 const START_TIME = 6000;
@@ -24,19 +25,28 @@ async function main() {
   await bootstrapCtx();
   bootstrapSockets();
   bootstrapEvents();
+  bootstratTopicks();
 
   const options = container.resolve<Options>('Options');
   const position = container.resolve<Position>('Position');
+  const redis = container.resolve<Redis>('Redis');
 
-  setTimeout(async () => {
-    if (!position.exists) {
-      const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
-      await useCase.execute();
-    } else {
-      const useCase = container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
-      await useCase.execute();
-    }
-  }, START_TIME);
+  setTimeout(() => {
+    redis
+      .publish('284182203:COMMAND', 'SETUP_API_KEY=23vjsbvkjbvk')
+      .catch(err => console.error(err));
+    console.log('published');
+  }, 5000);
+
+  // setTimeout(async () => {
+  //   if (!position.exists) {
+  //     const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
+  //     await useCase.execute();
+  //   } else {
+  //     const useCase = container.resolve<SubmitProfitOrder>('SubmitProfitOrder');
+  //     await useCase.execute();
+  //   }
+  // }, START_TIME);
 
   log.custom.info(`${label}:` + JSON.stringify(options.values));
 }

@@ -54,6 +54,7 @@ export class SubmitAvgOrder {
       const {retCode} = response;
       if (retCode) {
         this.orderBook.removeFromOrdBook(orderLinkId);
+        this.orderBook.isAvgOrderExists = false;
         this.emitter.emit(ERROR_EVENT, {
           label,
           data: JSON.stringify(response),
