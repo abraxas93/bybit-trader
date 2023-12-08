@@ -38,6 +38,13 @@ export class OrderBook {
     return this._profitTakesCount;
   }
 
+  set profitTakesCount(val: number) {
+    this._profitTakesCount = val;
+    this.redis
+      .set(RKEYS.PROFIT_TAKES_COUNT, '0')
+      .catch(err => errLogger.error(JSON.stringify(err)));
+  }
+
   get orderBook(): Record<string, OrderClass> {
     return this._orderBook;
   }
@@ -133,5 +140,12 @@ export class OrderBook {
     this.isAvgOrderExists = false;
     this.incProfitTakeCount();
     this.avgOrderCount = 0;
+  };
+
+  reset = () => {
+    this.clearOrderBook();
+    this.isAvgOrderExists = false;
+    this.avgOrderCount = 0;
+    this.profitTakesCount = 0;
   };
 }

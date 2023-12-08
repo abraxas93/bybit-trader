@@ -67,6 +67,16 @@ export class CandleStick {
     return this._count;
   }
 
+  public clear = () => {
+    this._klineStarted = false;
+    this._isNewCandle = false;
+    this._currentLowPrice = '0';
+    this._lastCandleLowPrice = '0';
+    this._nextCandleIn = 0;
+    this._count = 0;
+    this._candles = {};
+  };
+
   private async loadVars() {
     // Load data from Redis
     const klineStarted = await this.redis.get(RKEYS.KLINE_STARTED);

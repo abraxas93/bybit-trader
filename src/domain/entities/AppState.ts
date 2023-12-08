@@ -10,6 +10,7 @@ import {Position} from './Position';
 export class AppState {
   private timer: NodeJS.Timer | undefined;
   private _pause = false;
+  private _status = 'STOPPED';
 
   constructor(
     @inject('EventEmitter')
@@ -60,5 +61,9 @@ export class AppState {
     this.timer = setTimeout(() => {
       this.emitter.emit(CANCEL_ORDER, 'TAKE_PROFIT_ORDER');
     }, REOPEN_TIMER); // TODO: add reopen profit take
+  };
+
+  stop = () => {
+    this._status = 'STOPPED';
   };
 }

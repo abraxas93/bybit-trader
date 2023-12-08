@@ -13,7 +13,6 @@ export class Position {
   private _lastPrice = '0';
   public bid1Price = '0';
   public ask1Price = '0';
-  private quantity: string[] = [];
   private _posQty = '0';
   private _avgPosPrice = '0';
   private _lastAvgOrderPrice = '0';
@@ -177,4 +176,18 @@ export class Position {
     this.exists = false;
     this.lastProfitCumExecQty = '0';
   };
+
+  public closePosition() {
+    this.posQty = '0';
+    this.avgPosPrice = '0';
+    this.lastAvgOrderPrice = '0';
+    this.exists = false;
+    this.lastProfitCumExecQty = '0';
+
+    this.lastAvgCumExecQty = '0';
+    this._lastPrice = '0';
+    this.bid1Price = '0';
+    this.ask1Price = '0';
+    this.partiallyFilled = false;
+  }
 }
