@@ -17,8 +17,6 @@ export class OrderBook {
   private _avgOrderCount = 0;
   private _profitTakesCount = 0;
 
-  // public quantity: string[] = [];
-
   constructor(
     @inject('Redis')
     private readonly redis: Redis,
@@ -32,6 +30,17 @@ export class OrderBook {
       // TODO: add error logging
       console.error('Error in OrderBook:', err);
     });
+  }
+
+  async loadVars() {
+    const avgOrderCount = await this.redis.get(RKEYS.AVG_ORDER_COUNT);
+    this._avgOrderCount = avgOrderCount ? parseInt(avgOrderCount) : 0;
+
+    const avgOrderExists = await this.redis.get(RKEYS.AVG_ORDER_EXISTS);
+    this._isAvgOrderExists = avgOrderExists === 'true';
+
+    const cyclesCount = await this.redis.get(RKEYS.PROFIT_TAKES_COUNT);
+    this._profitTakesCount = cyclesCount ? parseInt(cyclesCount) : 0;
   }
 
   get profitTakesCount() {
@@ -73,17 +82,6 @@ export class OrderBook {
 
   get orderIds() {
     return Object.keys(this._orderBook);
-  }
-
-  private async loadVars() {
-    const avgOrderCount = await this.redis.get(RKEYS.AVG_ORDER_COUNT);
-    this._avgOrderCount = avgOrderCount ? parseInt(avgOrderCount) : 0;
-
-    const avgOrderExists = await this.redis.get(RKEYS.AVG_ORDER_EXISTS);
-    this._isAvgOrderExists = avgOrderExists === 'true';
-
-    const cyclesCount = await this.redis.get(RKEYS.PROFIT_TAKES_COUNT);
-    this._profitTakesCount = cyclesCount ? parseInt(cyclesCount) : 0;
   }
 
   getAvgOrderIndex = () => {

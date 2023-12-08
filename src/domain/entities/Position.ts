@@ -27,7 +27,7 @@ export class Position {
     @inject('Options')
     private readonly options: Options
   ) {
-    this.init().catch(err => {
+    this.loadVars().catch(err => {
       // TODO: check or this error will stop app
       // TODO: this error should print to system telegram logs
       errLogger.error(JSON.stringify(err));
@@ -35,7 +35,7 @@ export class Position {
     });
   }
 
-  private async init() {
+  async loadVars() {
     this._avgPosPrice = (await this.redis.get(RKEYS.AVG_POS_PRICE)) || '0';
     this._lastAvgOrderPrice =
       (await this.redis.get(RKEYS.LAST_AVG_ORD_PRICE)) || '0';
