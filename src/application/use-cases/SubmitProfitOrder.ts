@@ -1,7 +1,7 @@
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
-import {Options, OrderBook, Position} from '../../domain/entities';
+import {AppState, Options, OrderBook, Position} from '../../domain/entities';
 import {ERROR_EVENT, LOG_EVENT} from '../../constants';
 import {getOrderLinkId, log} from '../../utils';
 
@@ -18,11 +18,14 @@ export class SubmitProfitOrder {
     @inject('Position')
     private readonly postion: Position,
     @inject('EventEmitter')
-    private readonly emitter: EventEmitter
+    private readonly emitter: EventEmitter,
+    @inject('AppState')
+    private readonly state: AppState
   ) {}
 
   async execute() {
     try {
+      if (!this.state.canOpenProfitOrder) return;
       const category = this.options.category;
       const symbol = this.options.symbol;
       const qty = this.postion.posQty;

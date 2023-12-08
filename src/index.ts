@@ -14,7 +14,6 @@ import {bootstrapSockets} from './sockets';
 import {bootstratTopicks} from './topics';
 
 const label = '[index.ts]';
-const START_TIME = 6000;
 
 main().catch(err => {
   log.errs.error(err);

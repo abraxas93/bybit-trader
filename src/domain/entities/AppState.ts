@@ -9,8 +9,11 @@ import {Position} from './Position';
 @injectable()
 export class AppState {
   private timer: NodeJS.Timer | undefined;
-  private _pause = false;
   private _status = 'STOPPED';
+
+  get status() {
+    return this._status;
+  }
 
   constructor(
     @inject('EventEmitter')
@@ -31,7 +34,7 @@ export class AppState {
       this.candle.count >= this.options.minCandles &&
       this.position.exists &&
       this.orderBook.avgOrderCount <= this.options.maxAvgCount &&
-      !this._pause
+      this._status !== 'STOPPED'
     );
   }
 
@@ -40,17 +43,13 @@ export class AppState {
       this.orderBook.profitTakesCount < this.options.tradeCycles &&
       !this.position.exists &&
       !this.position.partiallyFilled &&
-      !this._pause
+      this._status !== 'STOPPED'
     );
   }
 
-  public pause = () => {
-    this._pause = true;
-  };
-
-  public unpause = () => {
-    this._pause = false;
-  };
+  get canOpenProfitOrder() {
+    return this._status !== 'STOPPED';
+  }
 
   resetReopenTimer = () => {
     clearTimeout(this.timer);
@@ -65,5 +64,13 @@ export class AppState {
 
   stop = () => {
     this._status = 'STOPPED';
+  };
+
+  start = () => {
+    this._status = 'ACTIVE';
+  };
+
+  finishAndStop = () => {
+    this._status = 'WAIT_AND_STOP';
   };
 }
