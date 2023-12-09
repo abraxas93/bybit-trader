@@ -37,25 +37,28 @@ import {
   SnapshotBuilder,
 } from './domain/entities';
 import {OrderBook} from './domain/entities/OrderBook';
-import {KeyChain} from './domain/entities/KeyChain';
+import {
+  EventListener,
+  RedisSubscriber,
+  WebsocketHandler,
+} from './infrastructure';
 
 export async function bootstrapCtx() {
   // const mongoClient = await createMongoClient();
   const eventEmitter = new EventEmitter();
   const redis = new Redis();
-  const keyChain = new KeyChain();
 
   const wsOptions: WSClientConfigurableOptions = {
-    key: keyChain.apiKey,
-    secret: keyChain.apiSecret,
+    key: '',
+    secret: '',
     testnet: process.env.NODE_ENV === 'test' ? true : false,
     market: 'v5',
   };
 
   const bybitWs = new WebsocketClient(wsOptions);
   const bybitClient = new RestClientV5({
-    key: keyChain.apiKey,
-    secret: keyChain.apiSecret,
+    key: '',
+    secret: '',
     testnet: process.env.NODE_ENV === 'test' ? true : false,
   });
 
@@ -82,6 +85,9 @@ export async function bootstrapCtx() {
   // infra
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
   container.register<SnapshotBuilder>('SnapshotBuilder', SnapshotBuilder);
+  container.register<RedisSubscriber>('RedisSubscriber', RedisSubscriber);
+  container.register<EventListener>('EventListener', EventListener);
+  container.register<WebsocketHandler>('WebsocketHandler', WebsocketHandler);
 
   // services
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
@@ -94,7 +100,6 @@ export async function bootstrapCtx() {
   container.register<Redis>('Redis', {useValue: redis});
   container.register<Options>('Options', {useValue: options});
   container.register<AppState>('AppState', {useValue: state});
-  container.register<KeyChain>('KeyChain', {useValue: keyChain});
 
   // handlers
   container.register<WsTopicHandler>('WsTopicHandler', WsTopicHandler);
