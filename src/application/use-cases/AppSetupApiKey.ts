@@ -26,6 +26,7 @@ export class AppSetupApiKey {
   execute = async (apiKey: string) => {
     try {
       const redisKey = `${ENV}:${USER}:${API_KEY}`;
+      console.log({redisKey});
       // @ts-ignore
       this.client.key = apiKey;
       // @ts-ignore

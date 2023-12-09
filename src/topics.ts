@@ -1,22 +1,25 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {Redis} from 'ioredis';
 import {container} from 'tsyringe';
-
-import {RestClientV5, WebsocketClient} from 'bybit-api';
-import {Options} from './domain/entities';
 import {log} from './utils';
-import {KeyChain} from './domain/entities/KeyChain';
-import {API_KEY, API_SECRET} from './config';
+import {USER} from './config';
+import {
+  AppSetupApiKey,
+  AppSetupApiSecret,
+  AppStart,
+  AppStop,
+  AppWaitAndStop,
+} from './application';
 
-const parseCmd = (str: string) => str.split('=')[0];
+const parse = (str: string) => {
+  return str.split(':');
+};
 
 export const SOCKETS_SUBSCRIBE = 'SOCKETS_SUBSCRIBE';
 export const SETUP_API_KEY = 'SETUP_API_KEY';
 export const SETUP_API_SECRET = 'SETUP_API_SECRET';
 export const APP_START = 'APP_START';
 export const APP_STOP = 'APP_STOP';
-export const APP_EXIT = 'APP_EXIT';
+export const APP_WAIT_AND_EXIT = 'APP_WAIT_AND_EXI';
 export const APP_SYNC_CONFIG = 'APP_SYNC_CONFIG';
 export const APP_SYNC_STORE = 'APP_SYNC_STORE';
 
@@ -24,46 +27,58 @@ export function bootstratTopicks() {
   const subscriber = new Redis();
 
   subscriber
-    .subscribe(`284182203:COMMAND`, (err: unknown, count: unknown) => {
-      if (err) {
-        // handle error
-        console.error('Failed to subscribe: %s', (err as Error).message);
-      } else {
-        console.log(
-          `Subscribed successfully! This client is currently subscribed to ${
-            count as string
-          } channels.`
-        );
+    .subscribe(
+      `${USER}:COMMAND`,
+      `${USER}:RESPONSE`,
+      (err: unknown, count: unknown) => {
+        if (err) {
+          // handle error
+          log.errs.error('Failed to subscribe: %s', (err as Error).message);
+        } else {
+          log.custom.info(
+            `Subscribed successfully! This client is currently subscribed to ${
+              count as string
+            } channels.`
+          );
+        }
       }
-    })
+    )
     .catch(err => log.errs.error(err));
 
   subscriber.on('message', async (channel, message) => {
     console.log({channel, message});
-    const ws = container.resolve<WebsocketClient>('WebsocketClient');
-    const keyChain = container.resolve<KeyChain>('KeyChain');
-    const options = container.resolve<Options>('Options');
-    const client = container.resolve<RestClientV5>('RestClientV5');
+    const setupApiKeyUseCase =
+      container.resolve<AppSetupApiKey>('AppSetupApiKey');
+    const setupApiSecretUseCase =
+      container.resolve<AppSetupApiSecret>('AppSetupApiSecret');
 
-    keyChain.apiKey = API_KEY as string;
-    keyChain.apiSecret = API_SECRET as string;
+    const appStartUseCase = container.resolve<AppStart>('AppStart');
+    const appStopUseCase = container.resolve<AppStop>('AppStop');
+    const appWaitAndStop = container.resolve<AppWaitAndStop>('AppWaitAndStop');
 
-    console.log(client);
+    const [cmd, value] = parse(message);
 
-    //@ts-ignore
-    ws.options.key = keyChain.apiKey;
-    //@ts-ignore
-    ws.options.secret = keyChain.apiSecret;
-    console.log(
-      await client.cancelAllOrders({symbol: 'BTCUSDT', category: 'linear'})
-    );
-
-    const cmd = parseCmd(message);
-    if (cmd === SOCKETS_SUBSCRIBE) {
-      const symbol = options.symbol;
-      // ws.subscribeV5([`tickers.${symbol}`, 'order'], 'linear').catch(err =>
-      //   log.errs.error(JSON.stringify(err))
-      // );
+    switch (cmd) {
+      case SETUP_API_KEY:
+        return setupApiKeyUseCase
+          .execute(value)
+          .catch(err => log.errs.error(err));
+      case SETUP_API_SECRET:
+        return setupApiSecretUseCase
+          .execute(value)
+          .catch(err => log.errs.error(err));
+      case APP_START:
+        return appStartUseCase.execute().catch(err => log.errs.error(err));
+      case APP_STOP:
+        return appStopUseCase.execute().catch(err => log.errs.error(err));
+      case APP_WAIT_AND_EXIT:
+        return appWaitAndStop.execute().catch(err => log.errs.error(err));
+      case APP_SYNC_CONFIG:
+        return;
+      case APP_SYNC_STORE:
+        return;
+      default:
+        log.errs.error(`${__filename}:COMMAND_NOT_RECOGNIZED:${cmd}`);
     }
   });
 }

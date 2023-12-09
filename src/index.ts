@@ -32,7 +32,7 @@ async function main() {
 
   setTimeout(() => {
     redis
-      .publish('284182203:COMMAND', 'SOCKETS_SUBSCRIBE')
+      .publish('284182203:COMMAND', 'APP_START:apikeysnvk')
       .catch(err => console.error(err));
     console.log('published');
   }, 5000);

@@ -11,6 +11,13 @@ import {
 } from 'bybit-api';
 // import {API_KEY, API_SECRET} from './config';
 import {
+  AppSetupApiKey,
+  AppSetupApiSecret,
+  AppStart,
+  AppStop,
+  AppSyncConfig,
+  AppSyncStore,
+  AppWaitAndStop,
   CancelOrder,
   FilledAvgOrder,
   FilledOpenOrder,
@@ -105,4 +112,12 @@ export async function bootstrapCtx() {
   container.register<SubmitProfitOrder>('SubmitProfitOrder', SubmitProfitOrder);
   container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
   container.register<SyncExchState>('SyncExchState', SyncExchState);
+
+  container.register<AppSetupApiKey>('AppSetupApiKey', AppSetupApiKey);
+  container.register<AppSetupApiSecret>('AppSetupApiSecret', AppSetupApiSecret);
+  container.register<AppStart>('AppStart', AppStart);
+  container.register<AppStop>('AppStop', AppStop);
+  container.register<AppSyncConfig>('AppSyncConfig', AppSyncConfig);
+  container.register<AppSyncStore>('AppSyncStore', AppSyncStore);
+  container.register<AppWaitAndStop>('AppWaitAndStop', AppWaitAndStop);
 }

@@ -1,19 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import {RestClientV5, WebsocketClient} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
 import {ERROR_EVENT} from '../../constants';
 import {Redis} from 'ioredis';
 import {USER} from '../../config';
-import {
-  AppState,
-  CandleStick,
-  Options,
-  OrderBook,
-  Position,
-} from '../../domain/entities';
+import {AppState} from '../../domain/entities';
 
 const label = 'AppWaitAndStop';
 @injectable()

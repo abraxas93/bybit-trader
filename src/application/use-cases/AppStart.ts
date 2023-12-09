@@ -6,13 +6,13 @@ import {container, inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
 import {ERROR_EVENT} from '../../constants';
 import {Redis} from 'ioredis';
-import {USER} from '../../config';
+import {API_KEY, API_SECRET, ENV, USER} from '../../config';
 import {AppState, Options} from '../../domain/entities';
 import {SubmitOpenOrder} from './SubmitOpenOrder';
 
 const START_TIME = 6000;
 
-const label = 'AppExit';
+const label = 'AppStart';
 @injectable()
 export class AppStart {
   constructor(
@@ -34,6 +34,17 @@ export class AppStart {
     try {
       const symbol = this.options.symbol;
       const category = this.options.category;
+      const isApiKeyExists = await this.redis.get(
+        `${ENV}:${USER}:${API_KEY || ''}`
+      );
+      const isApiSecretExists = await this.redis.get(
+        `${ENV}:${USER}:${API_SECRET || ''}`
+      );
+
+      if (!isApiKeyExists) throw new Error('Error: Api key require setup');
+      if (!isApiSecretExists)
+        throw new Error('Error: Api secret require setup');
+
       const ws = container.resolve<WebsocketClient>('WebsocketClient');
 
       let message = `${USER}:APP_START=`;
