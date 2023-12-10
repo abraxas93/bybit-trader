@@ -1,12 +1,9 @@
 /* eslint-disable no-process-exit */
 import 'reflect-metadata';
-import {Redis} from 'ioredis';
 import {EventEmitter} from 'events';
 import {container} from 'tsyringe';
-import {RestClientV5} from 'bybit-api';
 import {bootstrapCtx} from './ctx';
 import {ENV} from './config';
-import {RKEYS} from './constants';
 import {log} from './utils';
 import {Options} from './domain/entities';
 
