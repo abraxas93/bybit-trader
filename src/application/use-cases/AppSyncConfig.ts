@@ -22,7 +22,9 @@ export class AppSyncConfig {
 
   execute = async () => {
     try {
+      console.log(this.options.values);
       await this.options.loadVars();
+      console.log(this.options.values);
       await this.redis
         .publish(
           `${USER}:RESPONSE`,

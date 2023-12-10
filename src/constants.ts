@@ -30,30 +30,62 @@ export const ORDER_ID_NOT_FOUND = 'ORDER_ID_NOT_FOUN';
 
 export const NULL_KEY = 'NULL_KEY';
 
+// REDIS SETTINGS KEYS
+
+export const AVG_RATE = 'AVG_RATE';
+export const CATEGORY = 'CATEGORY';
+export const DIGITS = 'DIGITS';
+export const MARTIN = 'MARTIN';
+export const MAX_AVG_COUNT = 'MAX_AVG_COUNT';
+export const MIN_CANDLES = 'MIN_CANDLES';
+export const PERIOD = 'PERIOD';
+export const PROFIT_RATE = 'PROFIT_RATE';
+export const QUANTITY = 'QUANTITY';
+export const SYMBOL = 'SYMBOL';
+export const MAX_TRADES = 'MAX_TRADES';
+
+// STORE KEYS
+
+export const AVG_ORDER_COUNT = 'AVG_ORDER_COUNT';
+export const AVG_ORDER_EXISTS = 'AVG_ORDER_EXISTS';
+export const AVG_POS_PRICE = 'AVG_POS_PRICE';
+export const LAST_AVG_ORDER_PRICE = 'LAST_AVG_ORDER_PRICE';
+export const POS_QTY = 'POS_QTY';
+export const POSITION_EXISTS = 'POSITION_EXISTS';
+export const TRADES_COUNT = 'TRADES_COUNT';
+
+// NEW STORE KEYS
+export const KLINE_STARTED = 'KLINE_STARTED';
+export const IS_NEW_CANDLE = 'IS_NEW_CANDLE';
+export const CANDLE_LOW_PRICE = 'CANDLE_LOW_PRICE';
+export const LAST_CANDLE_LOW_PRICE = 'LAST_CANDLE_LOW_PRICE';
+export const ORDERBOOK = 'ORDERBOOK';
+export const TIMEFRAME = 'TIMEFRAME';
+
 export const RKEYS: Record<string, string> = {
-  POS_QTY: `${USER}:${ENV}:store:pos_qty`,
-  LAST_AVG_ORD_PRICE: `${USER}:${ENV}:store:last_avg_ord_price`,
-  KLINE_STARTED: `${USER}:${ENV}:store:kline_started`,
-  IS_NEW_CANDLE: `${USER}:${ENV}:store:is_new_candle`,
-  AVG_ORDER_EXISTS: `${USER}:${ENV}:store:avg_order_exists`,
-  POSITION_OPENED: `${USER}:${ENV}:store:position_opened`,
-  CANDLE_LOW_PRICE: `${USER}:${ENV}:store:candle_low_price`,
-  LAST_CANDLE_LOW_PRICE: `${USER}:${ENV}:store:last_candle_low_price`,
-  TIMEFRAME: `${USER}:${ENV}:store:timeframe`,
-  ORDERBOOK: `${USER}:${ENV}:store:orderbook`,
-  AVG_POS_PRICE: `${USER}:${ENV}:store:avg_pos_price`,
-  AVG_ORDER_PRICE: `${USER}:${ENV}:store:avg_order_price`,
-  AVG_ORDER_COUNT: `${USER}:${ENV}:store:avg_order_count`,
-  PROFIT_TAKES_COUNT: `${USER}:${ENV}:store:profit_takes_count`,
-  SYMBOL: `${USER}:${ENV}:cfg:symbol`,
-  QUANTITY: `${USER}:${ENV}:cfg:quantity`,
-  PERIOD: `${USER}:${ENV}:cfg:period`,
-  MARTINGALE: `${USER}:${ENV}:cfg:martingale`,
-  PROFIT_RATE: `${USER}:${ENV}:cfg:profit_rate`,
-  AVG_RATE: `${USER}:${ENV}:cfg:avg_rate`,
-  MAX_AVG_COUNT: `${USER}:${ENV}:cfg:max_avg_count`,
-  MIN_CANDLES: `${USER}:${ENV}:cfg:min_candles`,
-  DIGITS: `${USER}:${ENV}:cfg:digits`,
-  CATEGORY: `${USER}:${ENV}:cfg:category`,
-  TRADE_CYCLES: `${USER}:${ENV}:cfg:trade_cycles`,
+  POS_QTY: `${USER}:${ENV}:STORE:${POS_QTY}`,
+  LAST_AVG_ORD_PRICE: `${USER}:${ENV}:STORE:${LAST_AVG_ORDER_PRICE}`,
+  KLINE_STARTED: `${USER}:${ENV}:STORE:${KLINE_STARTED}`,
+  IS_NEW_CANDLE: `${USER}:${ENV}:STORE:${IS_NEW_CANDLE}`,
+  AVG_ORDER_EXISTS: `${USER}:${ENV}:STORE:${AVG_ORDER_EXISTS}`,
+  POSITION_OPENED: `${USER}:${ENV}:STORE:${POSITION_EXISTS}`,
+  CANDLE_LOW_PRICE: `${USER}:${ENV}:STORE:${CANDLE_LOW_PRICE}`,
+  LAST_CANDLE_LOW_PRICE: `${USER}:${ENV}:STORE:${LAST_CANDLE_LOW_PRICE}`,
+  TIMEFRAME: `${USER}:${ENV}:STORE:${TIMEFRAME}`,
+  ORDERBOOK: `${USER}:${ENV}:STORE:${ORDERBOOK}`,
+  AVG_POS_PRICE: `${USER}:${ENV}:STORE:${AVG_POS_PRICE}`,
+  AVG_ORDER_PRICE: `${USER}:${ENV}:STORE:avg_order_price`,
+  AVG_ORDER_COUNT: `${USER}:${ENV}:STORE:${AVG_ORDER_COUNT}`,
+  PROFIT_TAKES_COUNT: `${USER}:${ENV}:STORE:${TRADES_COUNT}`,
+  SYMBOL: `${USER}:${ENV}:CONFIG:${SYMBOL}`,
+  QUANTITY: `${USER}:${ENV}:CONFIG:${QUANTITY}`,
+  PERIOD: `${USER}:${ENV}:CONFIG:${PERIOD}`,
+  MARTINGALE: `${USER}:${ENV}:CONFIG:${MARTIN}`,
+  PROFIT_RATE: `${USER}:${ENV}:CONFIG:${PROFIT_RATE}`,
+  AVG_RATE: `${USER}:${ENV}:CONFIG:${AVG_RATE}`,
+  MAX_AVG_COUNT: `${USER}:${ENV}:CONFIG:${MAX_AVG_COUNT}`,
+  MIN_CANDLES: `${USER}:${ENV}:CONFIG:${MIN_CANDLES}`,
+  DIGITS: `${USER}:${ENV}:CONFIG:${DIGITS}`,
+  CATEGORY: `${USER}:${ENV}:CONFIG:${CATEGORY}`,
+  TRADE_CYCLES: `${USER}:${ENV}:CONFIG:${MAX_TRADES}`,
 };
