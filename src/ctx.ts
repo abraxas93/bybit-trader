@@ -11,6 +11,7 @@ import {
 } from 'bybit-api';
 // import {API_KEY, API_SECRET} from './config';
 import {
+  AppExit,
   AppSetupApiKey,
   AppSetupApiSecret,
   AppStart,
@@ -40,7 +41,7 @@ import {OrderBook} from './domain/entities/OrderBook';
 import {
   EventListener,
   RedisSubscriber,
-  WebsocketHandler,
+  WebSocketHandler,
 } from './infrastructure';
 
 export async function bootstrapCtx() {
@@ -87,7 +88,7 @@ export async function bootstrapCtx() {
   container.register<SnapshotBuilder>('SnapshotBuilder', SnapshotBuilder);
   container.register<RedisSubscriber>('RedisSubscriber', RedisSubscriber);
   container.register<EventListener>('EventListener', EventListener);
-  container.register<WebsocketHandler>('WebsocketHandler', WebsocketHandler);
+  container.register<WebSocketHandler>('WebSocketHandler', WebSocketHandler);
 
   // services
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
@@ -125,4 +126,6 @@ export async function bootstrapCtx() {
   container.register<AppSyncConfig>('AppSyncConfig', AppSyncConfig);
   container.register<AppSyncStore>('AppSyncStore', AppSyncStore);
   container.register<AppWaitAndStop>('AppWaitAndStop', AppWaitAndStop);
+
+  container.register<AppExit>('AppExit', AppExit);
 }

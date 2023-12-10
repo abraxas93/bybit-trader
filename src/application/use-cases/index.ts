@@ -14,3 +14,4 @@ export * from './AppStop';
 export * from './AppSyncStore';
 export * from './AppSyncConfig';
 export * from './AppWaitAndStop';
+export * from './AppExit';

@@ -6,7 +6,7 @@ import {log} from '../../utils';
 import {ERROR_EVENT} from '../../constants';
 import {Redis} from 'ioredis';
 import {USER} from '../../config';
-import {Options, OrderBook, Position} from '../../domain/entities';
+import {OrderBook, Position} from '../../domain/entities';
 
 const label = 'AppSyncStore';
 @injectable()

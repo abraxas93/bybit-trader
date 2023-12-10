@@ -6,9 +6,10 @@ import {container, inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
 import {ERROR_EVENT} from '../../constants';
 import {Redis} from 'ioredis';
-import {API_KEY, API_SECRET, ENV, USER} from '../../config';
+import {ENV, USER} from '../../config';
 import {AppState, Options} from '../../domain/entities';
 import {SubmitOpenOrder} from './SubmitOpenOrder';
+import {API_KEY, API_SECRET} from '../../keys';
 
 const START_TIME = 6000;
 
@@ -40,7 +41,7 @@ export class AppStart {
       const isApiSecretExists = await this.redis.get(
         `${ENV}:${USER}:${API_SECRET || ''}`
       );
-
+      console.log({isApiKeyExists, isApiSecretExists});
       if (!isApiKeyExists) throw new Error('Error: Api key require setup');
       if (!isApiSecretExists)
         throw new Error('Error: Api secret require setup');
@@ -75,10 +76,10 @@ export class AppStart {
     } catch (error) {
       await this.redis
         .publish(`${USER}:RESPONSE`, `APP_START=${(error as Error).message}`)
-        .catch(err => log.errs.error(err));
+        .catch(err => log.errs.error(err.message));
       this.emitter.emit(ERROR_EVENT, {
         label,
-        data: JSON.stringify(error),
+        data: (error as Error).message,
       });
     }
   };

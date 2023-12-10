@@ -32,7 +32,7 @@ export class AppStop {
     private readonly ws: WebsocketClient,
     @inject('Options')
     private readonly options: Options,
-    @inject('Postion')
+    @inject('Position')
     private readonly position: Position,
     @inject('OrderBook')
     private readonly orderBook: OrderBook,
@@ -113,11 +113,11 @@ export class AppStop {
       this.state.stop();
 
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'SETUP_API_KEY=true')
+        .publish(`${USER}:RESPONSE`, 'APP_STOP=true')
         .catch(err => log.errs.error(err));
     } catch (error) {
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'SETUP_API_KEY=error')
+        .publish(`${USER}:RESPONSE`, 'APP_STOP=error')
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
         label,

@@ -1,5 +1,5 @@
 import {WebsocketClient, WsKey} from 'bybit-api';
-import {injectable} from 'tsyringe';
+import {inject, injectable} from 'tsyringe';
 import {log} from '../utils';
 import {WsTopicHandler} from '../infrastructure/adapters/handlers/WsTopicHandler';
 import {Topic} from '../types';
@@ -7,18 +7,17 @@ import {Options} from '../domain/entities';
 import {SyncExchState} from '../application/use-cases/SyncExchState';
 
 @injectable()
-export class WebsocketHandler {
+export class WebSocketHandler {
   constructor(
+    @inject('WebsocketClient')
     private readonly ws: WebsocketClient,
+    @inject('WsTopicHandler')
     private readonly wsHandler: WsTopicHandler,
+    @inject('Options')
     private readonly options: Options,
+    @inject('SyncExchState')
     private readonly syncPosition: SyncExchState
   ) {}
-
-  startListening() {
-    this.subscribeToTopics();
-    this.setupEventListeners();
-  }
 
   public subscribeToTopics() {
     const symbol = this.options.symbol;
@@ -35,7 +34,7 @@ export class WebsocketHandler {
     this.ws.unsubscribeV5([`tickers.${symbol}`, 'order'], category);
   }
 
-  private setupEventListeners() {
+  public setupEventListeners() {
     this.ws.on('update', data => this.handleUpdate(data as Topic));
     this.ws.on('open', this.handleOpen.bind(this));
     this.ws.on('response', this.handleResponse.bind(this));

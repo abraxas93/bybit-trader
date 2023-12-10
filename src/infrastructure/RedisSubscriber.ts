@@ -31,10 +31,7 @@ export class RedisSubscriber {
   async subscribeToChannels() {
     const subscriber = new Redis();
     try {
-      const count = await subscriber.subscribe(
-        `${USER}:COMMAND`,
-        `${USER}:RESPONSE`
-      );
+      const count = await subscriber.subscribe(`${USER}:COMMAND`);
 
       log.custom.info(
         `Subscribed successfully! This client is currently subscribed to ${
@@ -82,9 +79,4 @@ export class RedisSubscriber {
         return null;
     }
   }
-}
-
-export function bootstrapTopics() {
-  // Instantiate the RedisSubscriber class to handle subscriptions and messages
-  container.resolve<RedisSubscriber>(RedisSubscriber);
 }

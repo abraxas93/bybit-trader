@@ -31,7 +31,7 @@ export class AppWaitAndStop {
       await this.redis
         .publish(
           `${USER}:RESPONSE`,
-          `APP_WAIT_AND_STO=${(error as Error).message}`
+          `APP_WAIT_AND_STOP=${(error as Error).message}`
         )
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
