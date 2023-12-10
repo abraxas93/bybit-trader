@@ -42,13 +42,18 @@ export class AppStart {
         `${ENV}:${USER}:${API_SECRET || ''}`
       );
       console.log({isApiKeyExists, isApiSecretExists});
-      if (!isApiKeyExists) throw new Error('Error: Api key require setup');
+
+      if (!isApiKeyExists)
+        throw new Error('*ByBitTrader:* Error \\- api key require setup');
       if (!isApiSecretExists)
-        throw new Error('Error: Api secret require setup');
+        throw new Error('*ByBitTrader:* Error \\- api secret require setup');
+
+      if (this.state.status === 'ACTIVE')
+        throw new Error('*ByBitTrader:* already active');
 
       const ws = container.resolve<WebsocketClient>('WebsocketClient');
 
-      let message = `${USER}:APP_START=`;
+      let message = `*ByBitTrader:* `;
 
       // @ts-ignore
       if (!this.client.key) {
@@ -68,14 +73,14 @@ export class AppStart {
       setTimeout(async () => {
         const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
         await useCase.execute();
-        message += 'Bybit Trader started';
+        message += 'Started';
         await this.redis
           .publish(`${USER}:RESPONSE`, message)
           .catch(err => log.errs.error(err));
       }, START_TIME);
     } catch (error) {
       await this.redis
-        .publish(`${USER}:RESPONSE`, `APP_START=${(error as Error).message}`)
+        .publish(`${USER}:RESPONSE`, `${(error as Error).message}`)
         .catch(err => log.errs.error(err.message));
       this.emitter.emit(ERROR_EVENT, {
         label,

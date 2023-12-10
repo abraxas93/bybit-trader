@@ -113,11 +113,14 @@ export class AppStop {
       this.state.stop();
 
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'APP_STOP=true')
+        .publish(`${USER}:RESPONSE`, '*ByBitTrader:* application stopped')
         .catch(err => log.errs.error(err));
     } catch (error) {
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'APP_STOP=error')
+        .publish(
+          `${USER}:RESPONSE`,
+          `*ByBitTrader:* ${(error as Error).message}`
+        )
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
         label,

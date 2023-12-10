@@ -25,18 +25,24 @@ export class AppSetupApiSecret {
 
   execute = async (secret: string) => {
     try {
-      const redisKey = `${ENV}:${USER}:${API_SECRET}`;
+      const redisKey = `${USER}:${ENV}:${API_SECRET}`;
       // @ts-ignore
       this.client.secret = secret;
       // @ts-ignore
       this.ws.options.secret = secret;
       await this.redis.set(redisKey, 'true');
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'SETUP_API_SECRET=true')
+        .publish(
+          `${USER}:RESPONSE`,
+          `*ByBitTrader:* Sucessfully setup api secret \\- *${secret}*`
+        )
         .catch(err => log.errs.error(err));
     } catch (error) {
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'SETUP_API_SECRET=error')
+        .publish(
+          `${USER}:RESPONSE`,
+          `*ByBitTrader:* ${(error as Error).message}`
+        )
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
         label,

@@ -52,7 +52,7 @@ export async function bootstrapCtx() {
   const wsOptions: WSClientConfigurableOptions = {
     key: API_KEY,
     secret: API_SECRET,
-    testnet: process.env.NODE_ENV === 'test' ? true : false,
+    testnet: process.env.NODE_ENV === 'prod' ? false : true,
     market: 'v5',
   };
 
@@ -60,7 +60,7 @@ export async function bootstrapCtx() {
   const bybitClient = new RestClientV5({
     key: API_KEY,
     secret: API_SECRET,
-    testnet: process.env.NODE_ENV === 'test' ? true : false,
+    testnet: process.env.NODE_ENV === 'prod' ? false : true,
   });
 
   const options = new Options(redis);

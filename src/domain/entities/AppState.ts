@@ -6,10 +6,12 @@ import {OrderBook} from './OrderBook';
 import {Options} from './Options';
 import {Position} from './Position';
 
+type AppStatus = 'STOPPED' | 'ACTIVE' | 'PAUSED' | 'WAIT_AND_STOP';
+
 @injectable()
 export class AppState {
   private timer: NodeJS.Timer | undefined;
-  private _status = 'STOPPED';
+  private _status: AppStatus = 'STOPPED';
 
   get status() {
     return this._status;
@@ -34,7 +36,7 @@ export class AppState {
       this.candle.count >= this.options.minCandles &&
       this.position.exists &&
       this.orderBook.avgOrderCount <= this.options.maxAvgCount &&
-      this._status !== 'STOPPED'
+      this._status === 'ACTIVE'
     );
   }
 
@@ -43,12 +45,12 @@ export class AppState {
       this.orderBook.profitTakesCount < this.options.tradeCycles &&
       !this.position.exists &&
       !this.position.partiallyFilled &&
-      this._status !== 'STOPPED'
+      this._status === 'ACTIVE'
     );
   }
 
   get canOpenProfitOrder() {
-    return this._status !== 'STOPPED';
+    return this._status === 'ACTIVE';
   }
 
   resetReopenTimer = () => {

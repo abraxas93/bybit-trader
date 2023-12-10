@@ -24,13 +24,16 @@ export class AppSyncConfig {
     try {
       await this.options.loadVars();
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'MESSAGE=Application update config vars')
+        .publish(
+          `${USER}:RESPONSE`,
+          '*ByBitTrader:* Application update config vars'
+        )
         .catch(err => log.errs.error(err));
     } catch (error) {
       await this.redis
         .publish(
           `${USER}:RESPONSE`,
-          `APP_SYNC_CONFIG=${(error as Error).message}`
+          `*ByBitTrader:* ${(error as Error).message}`
         )
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {

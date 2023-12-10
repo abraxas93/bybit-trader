@@ -25,18 +25,24 @@ export class AppSetupApiKey {
 
   execute = async (apiKey: string) => {
     try {
-      const redisKey = `${ENV}:${USER}:${API_KEY}`;
+      const redisKey = `${USER}:${ENV}:${API_KEY}`;
       // @ts-ignore
       this.client.key = apiKey;
       // @ts-ignore
       this.ws.options.key = apiKey;
       await this.redis.set(redisKey, 'true');
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'SETUP_API_KEY=true')
+        .publish(
+          `${USER}:RESPONSE`,
+          `*ByBitTrader:* Sucessfully setup api key \\- *${apiKey}*`
+        )
         .catch(err => log.errs.error(err));
     } catch (error) {
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'SETUP_API_KEY=error')
+        .publish(
+          `${USER}:RESPONSE`,
+          `*ByBitTrader:* ${(error as Error).message}`
+        )
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
         label,

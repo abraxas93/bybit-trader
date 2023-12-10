@@ -24,14 +24,14 @@ export class AppWaitAndStop {
       await this.redis
         .publish(
           `${USER}:RESPONSE`,
-          'MESSAGE=App will pause after finish current trade'
+          '*ByBitTrader:* app will pause after finish current trade'
         )
         .catch(err => log.errs.error(err));
     } catch (error) {
       await this.redis
         .publish(
           `${USER}:RESPONSE`,
-          `APP_WAIT_AND_STOP=${(error as Error).message}`
+          `*ByBitTrader:* ${(error as Error).message}`
         )
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {

@@ -27,13 +27,13 @@ export class AppSyncStore {
       await this.position.loadVars();
       await this.orderBook.loadVars();
       await this.redis
-        .publish(`${USER}:RESPONSE`, 'MESSAGE=Application update store vars')
+        .publish(`${USER}:RESPONSE`, '*ByBitTrader:* updated store vars')
         .catch(err => log.errs.error(err));
     } catch (error) {
       await this.redis
         .publish(
           `${USER}:RESPONSE`,
-          `APP_SYNC_STORE=${(error as Error).message}`
+          `*ByBitTrader:* ${(error as Error).message}`
         )
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
