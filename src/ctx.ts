@@ -43,23 +43,23 @@ import {
   RedisSubscriber,
   WebSocketHandler,
 } from './infrastructure';
+import {API_KEY, API_SECRET} from './config';
 
 export async function bootstrapCtx() {
-  // const mongoClient = await createMongoClient();
   const eventEmitter = new EventEmitter();
   const redis = new Redis();
 
   const wsOptions: WSClientConfigurableOptions = {
-    key: '',
-    secret: '',
+    key: API_KEY,
+    secret: API_SECRET,
     testnet: process.env.NODE_ENV === 'test' ? true : false,
     market: 'v5',
   };
 
   const bybitWs = new WebsocketClient(wsOptions);
   const bybitClient = new RestClientV5({
-    key: '',
-    secret: '',
+    key: API_KEY,
+    secret: API_SECRET,
     testnet: process.env.NODE_ENV === 'test' ? true : false,
   });
 

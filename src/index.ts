@@ -21,7 +21,6 @@ main().catch(err => {
 });
 
 async function main() {
-  log.custom.info(`${label}:app started: -env:${ENV}`);
   await bootstrapCtx();
   const subscriber = container.resolve<RedisSubscriber>('RedisSubscriber');
   const eventListener = container.resolve<EventListener>('EventListener');
@@ -31,7 +30,12 @@ async function main() {
   subscriber.subscribeToChannels().catch(err => log.errs.error(err));
   eventListener.startListening(emitter);
   const options = container.resolve<Options>('Options');
-  log.custom.info(`${label}:` + JSON.stringify(options.values));
+
+  log.custom.info(
+    `${label}:app started: -env:${ENV} -options: ${JSON.stringify(
+      options.values
+    )}`
+  );
 }
 
 process.on('SIGINT', async () => {
