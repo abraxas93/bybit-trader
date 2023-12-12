@@ -1,4 +1,4 @@
-import {NULL_KEY, RKEYS} from '../../constants';
+import {NULLKEY, RKEYS} from '../../constants';
 import {Redis} from 'ioredis';
 import {inject, injectable} from 'tsyringe';
 import {CategoryV5} from 'bybit-api';
@@ -93,45 +93,45 @@ export class Options {
 
     // upload data from redis
     const symbol = await this.redis.get(`${baseKey}:${RKEYS.SYMBOL}`);
-    if (!symbol) throw new Error(`${NULL_KEY}:${RKEYS.SYMBOL}`);
+    if (!symbol) throw new Error(`${NULLKEY}:${RKEYS.SYMBOL}`);
     this._symbol = symbol;
 
     this._quantity =
       (await this.redis.get(`${baseKey}:${RKEYS.QUANTITY}`)) || '';
-    if (!this._quantity) throw new Error(`${NULL_KEY}:${RKEYS.QUANTITY}`);
+    if (!this._quantity) throw new Error(`${NULLKEY}:${RKEYS.QUANTITY}`);
 
     const period = await this.redis.get(`${baseKey}:${RKEYS.PERIOD}`);
-    if (!period) throw new Error(`${NULL_KEY}:${RKEYS.PERIOD}`);
+    if (!period) throw new Error(`${NULLKEY}:${RKEYS.PERIOD}`);
     this._period = parseInt(period);
 
     this._martinGale =
       (await this.redis.get(`${baseKey}:${RKEYS.MARTINGALE}`)) || '';
-    if (!this._martinGale) throw new Error(`${NULL_KEY}:${RKEYS.MARTINGALE}`);
+    if (!this._martinGale) throw new Error(`${NULLKEY}:${RKEYS.MARTINGALE}`);
 
     this._profitRate =
       (await this.redis.get(`${baseKey}:${RKEYS.PROFIT_RATE}`)) || '';
-    if (!this._profitRate) throw new Error(`${NULL_KEY}:${RKEYS.PROFIT_RATE}`);
+    if (!this._profitRate) throw new Error(`${NULLKEY}:${RKEYS.PROFIT_RATE}`);
 
     this._avgRate =
       (await this.redis.get(`${baseKey}:${RKEYS.AVG_RATE}`)) || '';
-    if (!this._avgRate) throw new Error(`${NULL_KEY}:${RKEYS.AVG_RATE}`);
+    if (!this._avgRate) throw new Error(`${NULLKEY}:${RKEYS.AVG_RATE}`);
 
     const maxAvgCount = await this.redis.get(
       `${baseKey}:${RKEYS.MAX_AVG_COUNT}`
     );
-    if (!maxAvgCount) throw new Error(`${NULL_KEY}:${RKEYS.MAX_AVG_COUNT}`);
+    if (!maxAvgCount) throw new Error(`${NULLKEY}:${RKEYS.MAX_AVG_COUNT}`);
     this._maxAvgCount = parseInt(maxAvgCount);
 
     const minCandles = await this.redis.get(`${baseKey}:${RKEYS.MIN_CANDLES}`);
-    if (!minCandles) throw new Error(`${NULL_KEY}:${RKEYS.MIN_CANDLES}`);
+    if (!minCandles) throw new Error(`${NULLKEY}:${RKEYS.MIN_CANDLES}`);
     this._minCandles = parseInt(minCandles);
 
     const digits = await this.redis.get(`${baseKey}:${RKEYS.DIGITS}`);
-    if (!digits) throw new Error(`${NULL_KEY}:${RKEYS.DIGITS}`);
+    if (!digits) throw new Error(`${NULLKEY}:${RKEYS.DIGITS}`);
     this._digits = parseInt(digits);
 
     const cycles = await this.redis.get(`${baseKey}:${RKEYS.TRADE_CYCLES}`);
-    if (!cycles) throw new Error(`${NULL_KEY}:${RKEYS.TRADE_CYCLES}`);
+    if (!cycles) throw new Error(`${NULLKEY}:${RKEYS.TRADE_CYCLES}`);
     this._tradeCycles = parseInt(cycles) || 10;
   }
 }

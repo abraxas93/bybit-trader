@@ -93,7 +93,7 @@ export class EventListener {
   }
 
   private handleError(data: any) {
-    log.errs.error(data);
+    log.errs.error(JSON.stringify(data));
   }
 
   private async handleCandleClosed() {

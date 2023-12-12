@@ -42,7 +42,7 @@ export class RedisSubscriber {
       );
 
       subscriber.on('message', (channel, message) => {
-        console.log({channel, message});
+        log.custom.info({channel, message});
         this.handleMessage(message);
       });
     } catch (err) {
@@ -53,7 +53,6 @@ export class RedisSubscriber {
   private handleMessage(message: string) {
     const [cmd, value] = parse(message);
     const useCase = this.resolveUseCase(cmd);
-
     if (useCase) {
       useCase.execute(value).catch(err => log.errs.error(err));
     } else {
@@ -78,7 +77,7 @@ export class RedisSubscriber {
       case APP_SYNC_STORE:
         return container.resolve<AppSyncStore>('AppSyncStore');
       case CHANGE_CURRENT_SYMBOL:
-        throw container.resolve<AppSwitchSymbol>('AppSwitchSymbol');
+        return container.resolve<AppSwitchSymbol>('AppSwitchSymbol');
       default:
         return null;
     }

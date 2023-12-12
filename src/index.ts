@@ -43,3 +43,7 @@ process.on('SIGINT', async () => {
   const appExit = container.resolve<AppExit>('AppExit');
   await appExit.execute().catch(err => log.errs.error(err));
 });
+
+// TODO: implement this
+process.on('uncaughtException', () => {});
+process.on('unhandledRejection', () => {});

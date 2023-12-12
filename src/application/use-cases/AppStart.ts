@@ -41,7 +41,6 @@ export class AppStart {
       const isApiSecretExists = await this.redis.get(
         `${ENV}:${USER}:${API_SECRET || ''}`
       );
-      console.log({isApiKeyExists, isApiSecretExists});
 
       if (!isApiKeyExists)
         throw new Error('*ByBitTrader:* Error \\- api key require setup');

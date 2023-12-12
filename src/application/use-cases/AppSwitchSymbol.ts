@@ -26,6 +26,8 @@ export class AppSwitchSymbol {
 
   execute = async (newSymbol: string) => {
     try {
+      const symbol = await this.redis.get(`${USER}:${ENV}:SYMBOL`);
+      if (symbol === newSymbol) return;
       await this.redis.set(`${USER}:${ENV}:SYMBOL`, newSymbol);
       await this.position.loadVars();
       await this.orderBook.loadVars();
@@ -45,7 +47,8 @@ export class AppSwitchSymbol {
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
         label,
-        data: JSON.stringify(error),
+        message: JSON.stringify((error as Error).message),
+        stack: JSON.stringify((error as Error).stack),
       });
     }
   };

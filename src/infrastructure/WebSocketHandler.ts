@@ -25,7 +25,6 @@ export class WebSocketHandler {
     this.ws
       .subscribeV5([`tickers.${symbol}`, 'order'], category)
       .catch(err => log.errs.error(JSON.stringify(err)));
-    this.ws.subscribe('kline.BTCUSD.1m').catch(err => console.log(err));
   }
 
   public unsubscribeToTopics() {

@@ -38,7 +38,8 @@ export class AppSyncStore {
         .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
         label,
-        data: JSON.stringify(error),
+        message: JSON.stringify((error as Error).message),
+        stack: JSON.stringify((error as Error).stack),
       });
     }
   };
