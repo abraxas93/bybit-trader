@@ -15,3 +15,4 @@ export * from './AppSyncStore';
 export * from './AppSyncConfig';
 export * from './AppWaitAndStop';
 export * from './AppExit';
+export * from './AppSwitchSymbol';

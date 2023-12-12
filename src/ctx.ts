@@ -16,6 +16,7 @@ import {
   AppSetupApiSecret,
   AppStart,
   AppStop,
+  AppSwitchSymbol,
   AppSyncConfig,
   AppSyncStore,
   AppWaitAndStop,
@@ -128,4 +129,5 @@ export async function bootstrapCtx() {
   container.register<AppWaitAndStop>('AppWaitAndStop', AppWaitAndStop);
 
   container.register<AppExit>('AppExit', AppExit);
+  container.register<AppSwitchSymbol>('AppSwitchSymbol', AppSwitchSymbol);
 }

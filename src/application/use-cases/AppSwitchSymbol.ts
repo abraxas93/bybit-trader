@@ -5,28 +5,35 @@ import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
 import {ERROR_EVENT} from '../../constants';
 import {Redis} from 'ioredis';
-import {USER} from '../../config';
-import {Options} from '../../domain/entities';
+import {ENV, USER} from '../../config';
+import {Options, OrderBook, Position} from '../../domain/entities';
 
-const label = 'AppSyncConfig';
+const label = 'AppSwitchSymbol';
 @injectable()
-export class AppSyncConfig {
+export class AppSwitchSymbol {
   constructor(
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
     @inject('Redis')
     private readonly redis: Redis,
+    @inject('Position')
+    private readonly position: Position,
+    @inject('OrderBook')
+    private readonly orderBook: OrderBook,
     @inject('Options')
     private readonly options: Options
   ) {}
 
-  execute = async () => {
+  execute = async (newSymbol: string) => {
     try {
-      await this.options.loadVars();
+      await this.redis.set(`${USER}:${ENV}:SYMBOL`, newSymbol);
+      await this.position.loadVars();
+      await this.orderBook.loadVars();
+      await this.options.loadVars(newSymbol);
       await this.redis
         .publish(
           `${USER}:RESPONSE`,
-          '*ByBitTrader:* Application update config vars'
+          '*ByBitTrader:* switch symbolt to \\-' + newSymbol
         )
         .catch(err => log.errs.error(err));
     } catch (error) {

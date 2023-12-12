@@ -5,6 +5,7 @@ import {initLogger} from '../../utils/logger';
 import {RKEYS} from '../../constants';
 import {Options} from './Options';
 import {normalizeFloat} from '../../utils';
+import {ENV, USER} from '../../config';
 
 const errLogger = initLogger('Position', 'errors.log');
 
@@ -20,6 +21,7 @@ export class Position {
   public partiallyFilled = false;
   public lastAvgCumExecQty = '0';
   private lastProfitCumExecQty = '0';
+  private symbol = '';
 
   constructor(
     @inject('Redids')
@@ -36,13 +38,20 @@ export class Position {
   }
 
   async loadVars() {
-    this._avgPosPrice = (await this.redis.get(RKEYS.AVG_POS_PRICE)) || '0';
+    const symbol = (await this.redis.get(`${USER}:${ENV}:SYMBOL`)) || '';
+    this.symbol = symbol;
+    const baseKey = `${USER}:${ENV}:${symbol}`;
+    this._avgPosPrice =
+      (await this.redis.get(`${baseKey}:${RKEYS.AVG_POS_PRICE}`)) || '0';
     this._lastAvgOrderPrice =
-      (await this.redis.get(RKEYS.LAST_AVG_ORD_PRICE)) || '0';
+      (await this.redis.get(`${baseKey}:${RKEYS.LAST_AVG_ORD_PRICE}`)) || '0';
 
-    const qty: string = (await this.redis.get(RKEYS.POS_QTY)) || '0';
+    const qty: string =
+      (await this.redis.get(`${baseKey}:${RKEYS.POS_QTY}`)) || '0';
     this._posQty = qty;
-    const positionExists = await this.redis.get(RKEYS.POSITION_OPENED);
+    const positionExists = await this.redis.get(
+      `${baseKey}:${RKEYS.POSITION_OPENED}`
+    );
     this._exists = positionExists === 'true';
   }
 
@@ -53,7 +62,7 @@ export class Position {
   set posQty(val: string) {
     this._posQty = val;
     this.redis
-      .set(RKEYS.POS_QTY, this._posQty)
+      .set(`${USER}:${ENV}:${this.symbol}:${RKEYS.POS_QTY}`, this._posQty)
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
@@ -71,7 +80,7 @@ export class Position {
   set lastAvgOrderPrice(val: string) {
     this._lastAvgOrderPrice = val;
     this.redis
-      .set(RKEYS.LAST_AVG_ORD_PRICE, val)
+      .set(`${USER}:${ENV}:${this.symbol}:${RKEYS.LAST_AVG_ORD_PRICE}`, val)
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
@@ -82,7 +91,7 @@ export class Position {
   set avgPosPrice(val: string) {
     this._avgPosPrice = val;
     this.redis
-      .set(RKEYS.AVG_POS_PRICE, val)
+      .set(`${USER}:${ENV}:${this.symbol}:${RKEYS.AVG_POS_PRICE}`, val)
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
@@ -117,7 +126,10 @@ export class Position {
   set exists(val: boolean) {
     this._exists = val;
     this.redis
-      .set(RKEYS.POSITION_OPENED, String(val))
+      .set(
+        `${USER}:${ENV}:${this.symbol}:${RKEYS.POSITION_OPENED}`,
+        String(val)
+      )
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 

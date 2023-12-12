@@ -26,7 +26,6 @@ export async function setupTradeOptions() {
     await redis.set(`${baseKey}:${RKEYS.SYMBOL}`, symbol);
     await redis.set(`${baseKey}:${RKEYS.QUANTITY}`, BASE_QUANTITY);
     await redis.set(`${baseKey}:${RKEYS.PERIOD}`, TIME_FRAME);
-    await redis.set(`${baseKey}:${RKEYS.MARTIN_GALE}`, MARTIN_GALE);
 
     await redis.set(`${baseKey}:${RKEYS.PROFIT_RATE}`, TAKE_PROFIT_RATE);
     await redis.set(`${baseKey}:${RKEYS.AVG_RATE}`, AVG_BUY_RATE);

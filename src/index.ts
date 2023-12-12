@@ -26,6 +26,7 @@ async function main() {
   const eventListener = container.resolve<EventListener>('EventListener');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
   const wsHandler = container.resolve<WebSocketHandler>('WebSocketHandler');
+
   wsHandler.setupEventListeners();
   subscriber.subscribeToChannels().catch(err => log.errs.error(err));
   eventListener.startListening(emitter);

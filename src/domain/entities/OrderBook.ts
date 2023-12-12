@@ -6,6 +6,7 @@ import {LOG_EVENT, RKEYS} from '../../constants';
 import {OrderClass} from '../../types';
 import {Options} from './Options';
 import {initLogger} from '../../utils/logger';
+import {ENV, USER} from '../../config';
 // import {normalizeFloat} from '../../utils';
 
 const errLogger = initLogger('OrderBook', 'errors.log');
@@ -16,6 +17,7 @@ export class OrderBook {
   private _isAvgOrderExists = false;
   private _avgOrderCount = 0;
   private _profitTakesCount = 0;
+  private symbol = '';
 
   constructor(
     @inject('Redis')
@@ -33,14 +35,26 @@ export class OrderBook {
   }
 
   async loadVars() {
-    const avgOrderCount = await this.redis.get(RKEYS.AVG_ORDER_COUNT);
+    const symbol = (await this.redis.get(`${USER}:${ENV}:SYMBOL`)) || '';
+    this.symbol = symbol;
+    const avgOrderCount = await this.redis.get(
+      `${USER}:${ENV}:${this.symbol}:${RKEYS.AVG_ORDER_COUNT}`
+    );
     this._avgOrderCount = avgOrderCount ? parseInt(avgOrderCount) : 0;
 
-    const avgOrderExists = await this.redis.get(RKEYS.AVG_ORDER_EXISTS);
+    const avgOrderExists = await this.redis.get(
+      `${USER}:${ENV}:${this.symbol}:${RKEYS.AVG_ORDER_EXISTS}`
+    );
     this._isAvgOrderExists = avgOrderExists === 'true';
 
-    const cyclesCount = await this.redis.get(RKEYS.PROFIT_TAKES_COUNT);
+    const cyclesCount = await this.redis.get(
+      `${USER}:${ENV}:${this.symbol}:${RKEYS.PROFIT_TAKES_COUNT}`
+    );
     this._profitTakesCount = cyclesCount ? parseInt(cyclesCount) : 0;
+    const orders = await this.redis.hgetall(
+      `${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`
+    );
+    this._orderBook = orders as Record<string, OrderClass>;
   }
 
   get profitTakesCount() {
@@ -50,7 +64,7 @@ export class OrderBook {
   set profitTakesCount(val: number) {
     this._profitTakesCount = val;
     this.redis
-      .set(RKEYS.PROFIT_TAKES_COUNT, '0')
+      .set(`${USER}:${ENV}:${this.symbol}:${RKEYS.PROFIT_TAKES_COUNT}`, '0')
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
@@ -65,7 +79,10 @@ export class OrderBook {
   set isAvgOrderExists(val: boolean) {
     this._isAvgOrderExists = val;
     this.redis
-      .set(RKEYS.AVG_ORDER_EXISTS, String(val))
+      .set(
+        `${USER}:${ENV}:${this.symbol}:${RKEYS.AVG_ORDER_EXISTS}`,
+        String(val)
+      )
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
@@ -76,7 +93,10 @@ export class OrderBook {
   set avgOrderCount(val: number) {
     this._avgOrderCount = val;
     this.redis
-      .set(RKEYS.AVG_ORDER_COUNT, String(val))
+      .set(
+        `${USER}:${ENV}:${this.symbol}:${RKEYS.AVG_ORDER_COUNT}`,
+        String(val)
+      )
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
@@ -91,7 +111,10 @@ export class OrderBook {
   incAvgOrderCount() {
     this._avgOrderCount += 1;
     this.redis
-      .set(RKEYS.AVG_ORDER_COUNT, this._avgOrderCount)
+      .set(
+        `${USER}:${ENV}:${this.symbol}:${RKEYS.AVG_ORDER_COUNT}`,
+        this._avgOrderCount
+      )
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
@@ -104,34 +127,39 @@ export class OrderBook {
 
   clearOrderBook = () => {
     this._orderBook = {};
+    this.redis
+      .del(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`)
+      .catch(err => errLogger.error(JSON.stringify(err)));
   };
 
   incProfitTakeCount() {
     this._profitTakesCount += 1;
     this.redis
-      .set(RKEYS.PROFIT_TAKES_COUNT, this._profitTakesCount)
+      .set(
+        `${USER}:${ENV}:${this.symbol}:${RKEYS.PROFIT_TAKES_COUNT}`,
+        this._profitTakesCount
+      )
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
   addToOrdBook = (orderId: string, type: OrderClass, logged = true) => {
     this.orderBook[orderId] = type;
+    this.redis
+      .hset(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`, orderId, type)
+      .catch(err => errLogger.error(JSON.stringify(err)));
     logged && this._emitter.emit(LOG_EVENT, 'addToOrdBook');
   };
 
   removeFromOrdBook = (orderId: string, logged = true) => {
     delete this.orderBook[orderId];
+    this.redis
+      .hdel(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`, orderId)
+      .catch(err => errLogger.error(JSON.stringify(err)));
     logged && this._emitter.emit(LOG_EVENT, 'removeFromOrdBook');
   };
 
   getOrderClass = (orderId: string) => {
     return this.orderBook[orderId];
-  };
-
-  getOrderIdbyClass = (ordClass: OrderClass) => {
-    for (const orderId in this.orderBook) {
-      if (this.orderBook[orderId] === ordClass) return orderId;
-    }
-    return null;
   };
 
   handleFilledProfitOrder = () => {
