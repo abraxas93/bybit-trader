@@ -72,6 +72,10 @@ export class AppState {
     this._status = 'ACTIVE';
   };
 
+  pause = () => {
+    this._status = 'PAUSED';
+  };
+
   finishAndStop = () => {
     this._status = 'WAIT_AND_STOP';
   };

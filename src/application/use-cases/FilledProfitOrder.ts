@@ -2,7 +2,7 @@ import {RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
-import {Options, OrderBook, Position} from '../../domain/entities';
+import {AppState, Options, OrderBook, Position} from '../../domain/entities';
 import {ERROR_EVENT, LOG_EVENT, PROFIT_ORDER_FILLED} from '../../constants';
 
 const label = 'FilledProfitOrder';
@@ -19,7 +19,9 @@ export class FilledProfitOrder {
     @inject('OrderBook')
     private readonly orderBook: OrderBook,
     @inject('Position')
-    private readonly position: Position
+    private readonly position: Position,
+    @inject('AppState')
+    private readonly state: AppState
   ) {}
 
   async execute() {
@@ -47,6 +49,8 @@ export class FilledProfitOrder {
           data: JSON.stringify(response),
         });
       }
+
+      if (this.state.status === 'WAIT_AND_STOP') this.state.stop();
 
       this.emitter.emit(PROFIT_ORDER_FILLED);
       this.emitter.emit(LOG_EVENT, {label});

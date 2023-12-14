@@ -22,6 +22,8 @@ export const PASSWORD_LENGTH = parseInt(process.env.PASSWORD_LENGTH || '');
 export const ENV = process.env.NODE_ENV || '';
 export const USER = process.env.USER_ID || '';
 
+export const REDIS_HOST = process.env.NODE_ENV === 'development' ? 'redis' : '';
+
 // ByBit secrets
 export const API_KEY =
   ENV === 'prod' ? process.env.API_KEY : process.env.API_KEY_TEST;
