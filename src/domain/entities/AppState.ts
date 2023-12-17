@@ -10,7 +10,7 @@ type AppStatus = 'STOPPED' | 'ACTIVE' | 'PAUSED' | 'WAIT_AND_STOP';
 
 @injectable()
 export class AppState {
-  private timer: NodeJS.Timer | undefined;
+  private timer: NodeJS.Timeout | undefined;
   private _status: AppStatus = 'STOPPED';
 
   get status() {
@@ -54,7 +54,7 @@ export class AppState {
   }
 
   resetReopenTimer = () => {
-    clearTimeout(this.timer);
+    clearTimeout(this.timer as NodeJS.Timeout);
   };
 
   reopenProfitOrder = () => {

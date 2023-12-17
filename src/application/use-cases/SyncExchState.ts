@@ -102,7 +102,7 @@ export class SyncExchState {
         this.position.avgPosPrice = position.avgPrice;
       }
 
-      this.state.unpause();
+      // this.state.unpause();
     } catch (error) {
       this.emitter.emit(ERROR_EVENT, {
         label,
