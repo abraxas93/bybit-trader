@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import {EventEmitter} from 'events';
 import {container} from 'tsyringe';
 import {bootstrapCtx} from './ctx';
-import {ENV} from './config';
+import {ENV, USER} from './config';
 import {log} from './utils';
 import {Options} from './domain/entities';
 
@@ -13,6 +13,7 @@ import {
   WebSocketHandler,
 } from './infrastructure';
 import {AppExit} from './application';
+import {Redis} from 'ioredis';
 
 const label = '[index.ts]';
 
@@ -26,6 +27,7 @@ async function main() {
   const eventListener = container.resolve<EventListener>('EventListener');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
   const wsHandler = container.resolve<WebSocketHandler>('WebSocketHandler');
+  const redis = container.resolve<Redis>('Redis');
 
   wsHandler.setupEventListeners();
   subscriber.subscribeToChannels().catch(err => log.errs.error(err));
@@ -37,6 +39,14 @@ async function main() {
       options.values
     )}`
   );
+  await redis
+    .publish(
+      `${USER}:RESPONSE`,
+      `*ByBitTrader:* started -env:${ENV} -options: ${JSON.stringify(
+        options.values
+      )}`
+    )
+    .catch(err => log.errs.error(err));
 }
 
 process.on('SIGINT', async () => {
