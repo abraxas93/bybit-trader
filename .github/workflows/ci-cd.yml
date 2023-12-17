@@ -28,4 +28,5 @@ jobs:
           # docker-compose pull
 
           # Launch or update the Docker containers
-          docker-compose up -d --no-deps --build bybit-bot
+          docker-compose up -d --no-deps --build bybit-bot-1 bybit-bot-2
+          
