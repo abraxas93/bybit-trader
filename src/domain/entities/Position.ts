@@ -5,11 +5,9 @@ import {initLogger} from '../../utils/logger';
 import {RKEYS} from '../../constants';
 import {Options} from './Options';
 import {normalizeFloat} from '../../utils';
-import {USER} from '../../config';
+import {ENV, USER} from '../../config';
 
 const errLogger = initLogger('Position', 'errors.log');
-
-const ENV = 'production'; // TODO: remove this from final version
 
 @injectable()
 export class Position {

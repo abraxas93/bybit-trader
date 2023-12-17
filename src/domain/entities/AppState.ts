@@ -54,7 +54,7 @@ export class AppState {
   }
 
   resetReopenTimer = () => {
-    clearTimeout(this.timer as NodeJS.Timeout);
+    clearTimeout(this.timer);
   };
 
   reopenProfitOrder = () => {
