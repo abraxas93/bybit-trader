@@ -39,12 +39,14 @@ async function main() {
       options.values
     )} -user: ${USER}`
   );
+
+  let msg = `${JSON.stringify(options.values)}`;
+  msg = msg.replace('{', '');
+  msg = msg.replace('}', '');
   await redis
     .publish(
       `${USER}:RESPONSE`,
-      `*ByBitTrader:* started \\-env:${ENV} \\-options: ${JSON.stringify(
-        options.values
-      )} \\-user: ${USER}`
+      `*ByBitTrader:* started \\-env:${ENV} \\-options: ${msg} \\-user: ${USER}`
     )
     .catch(err => log.errs.error(err));
 }
