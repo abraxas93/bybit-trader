@@ -43,6 +43,7 @@ async function main() {
   let msg = `${JSON.stringify(options.values)}`;
   msg = msg.replace('{', '');
   msg = msg.replace('}', '');
+  msg = msg.replaceAll('.', ',');
   await redis
     .publish(
       `${USER}:RESPONSE`,
