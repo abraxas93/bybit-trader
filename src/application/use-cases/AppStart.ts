@@ -36,10 +36,10 @@ export class AppStart {
       const symbol = this.options.symbol;
       const category = this.options.category;
       const isApiKeyExists = await this.redis.get(
-        `${ENV}:${USER}:${API_KEY || ''}`
+        `${USER}:${ENV}:${API_KEY || ''}`
       );
       const isApiSecretExists = await this.redis.get(
-        `${ENV}:${USER}:${API_SECRET || ''}`
+        `${USER}:${ENV}:${API_SECRET || ''}`
       );
 
       if (!isApiKeyExists)
