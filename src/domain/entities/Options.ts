@@ -3,6 +3,7 @@ import {Redis} from 'ioredis';
 import {inject, injectable} from 'tsyringe';
 import {CategoryV5} from 'bybit-api';
 import {USER} from '../../config';
+import {SYMBOL} from '../../keys';
 
 @injectable()
 export class Options {
@@ -88,8 +89,8 @@ export class Options {
 
   async loadVars(symbolArg = 'BTCUSDT') {
     const env = process.env.NODE_ENV || 'dev';
-
-    const baseKey = `${USER}:${env}:${symbolArg}`;
+    const currentSymbol = await this.redis.get(`${USER}:${env}:${SYMBOL}`);
+    const baseKey = `${USER}:${env}:${currentSymbol || symbolArg}`;
 
     // upload data from redis
     const symbol = await this.redis.get(`${baseKey}:${RKEYS.SYMBOL}`);
