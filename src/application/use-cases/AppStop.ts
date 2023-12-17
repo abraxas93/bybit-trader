@@ -64,6 +64,7 @@ export class AppStop {
         return;
       }
       if (position?.side === 'None') {
+        this.state.stop();
         return;
       }
 

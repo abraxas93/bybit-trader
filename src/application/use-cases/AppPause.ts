@@ -21,6 +21,9 @@ export class AppPause {
   execute = async () => {
     try {
       this.state.pause();
+      await this.redis
+        .publish(`${USER}:RESPONSE`, '*ByBitTrader:* application paused')
+        .catch(err => log.errs.error(err));
     } catch (error) {
       await this.redis
         .publish(`${USER}:RESPONSE`, `${(error as Error).message}`)
