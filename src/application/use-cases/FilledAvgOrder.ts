@@ -44,7 +44,7 @@ export class FilledAvgOrder {
     cumExecValue: string;
   }) {
     try {
-      this.orderBook.removeFromOrdBook(orderLinkId);
+      // this.orderBook.removeFromOrdBook(orderLinkId);
       this.orderBook.isAvgOrderExists = false;
 
       this.position.handleFilledAvgOrder(cumExecQty, cumExecValue, avgPrice);

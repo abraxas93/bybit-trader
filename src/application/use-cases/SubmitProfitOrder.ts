@@ -42,7 +42,7 @@ export class SubmitProfitOrder {
         orderLinkId,
       };
       log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
-      this.orderBook.addToOrdBook(orderLinkId, 'TAKE_PROFIT_ORDER');
+      // this.orderBook.addToOrdBook(orderLinkId, 'TAKE_PROFIT_ORDER');
       const response = await this.client.submitOrder(body);
       log.api.info(
         `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`

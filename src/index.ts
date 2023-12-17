@@ -12,7 +12,7 @@ import {
   EventListener,
   WebSocketHandler,
 } from './infrastructure';
-import {AppExit} from './application';
+import {AppExit, AppStart} from './application';
 import {Redis} from 'ioredis';
 
 const label = '[index.ts]';
@@ -36,6 +36,11 @@ async function main() {
   subscriber.subscribeToChannels().catch(err => log.errs.error(err));
   eventListener.startListening(emitter);
   const options = container.resolve<Options>('Options');
+  const appStart = container.resolve<AppStart>('AppStart');
+
+  setTimeout(() => {
+    appStart.execute().catch(err => console.error(err));
+  }, 3000);
 
   log.custom.info(
     `${label}:app started: -env:${ENV} -options: ${JSON.stringify(
@@ -56,6 +61,13 @@ async function main() {
 }
 
 process.on('SIGINT', async () => {
+  console.log('Received SIGINT, shutting down gracefully');
+  const appExit = container.resolve<AppExit>('AppExit');
+  await appExit.execute().catch(err => log.errs.error(err));
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM, shutting down gracefully');
   const appExit = container.resolve<AppExit>('AppExit');
   await appExit.execute().catch(err => log.errs.error(err));
 });

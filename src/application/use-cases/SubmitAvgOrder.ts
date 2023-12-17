@@ -43,7 +43,7 @@ export class SubmitAvgOrder {
       };
 
       this.orderBook.isAvgOrderExists = true;
-      this.orderBook.addToOrdBook(orderLinkId, 'AVERAGE_ORDER');
+      // this.orderBook.addToOrdBook(orderLinkId, 'AVERAGE_ORDER');
 
       log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
       const response = await this.client.submitOrder(body);
@@ -53,7 +53,7 @@ export class SubmitAvgOrder {
 
       const {retCode} = response;
       if (retCode) {
-        this.orderBook.removeFromOrdBook(orderLinkId);
+        // this.orderBook.removeFromOrdBook(orderLinkId);
         this.orderBook.isAvgOrderExists = false;
         this.emitter.emit(ERROR_EVENT, {
           label,
@@ -66,7 +66,7 @@ export class SubmitAvgOrder {
         data: null,
       });
     } catch (error) {
-      this.orderBook.removeFromOrdBook(orderLinkId);
+      // this.orderBook.removeFromOrdBook(orderLinkId);
       this.emitter.emit(ERROR_EVENT, {
         label,
         message: JSON.stringify((error as Error).message),

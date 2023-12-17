@@ -34,9 +34,8 @@ export class SubmitOpenOrder {
   private getOpenOrderPrice = () => {
     const lastPrice = this.position.lastPrice;
     const price =
-      parseFloat(lastPrice as string) &&
-      parseFloat(this.candle.lastCandleLowPrice) >=
-        parseFloat(lastPrice as string)
+      parseFloat(lastPrice) &&
+      parseFloat(this.candle.lastCandleLowPrice) >= parseFloat(lastPrice)
         ? parseFloat(this.position.bid1Price)
         : parseFloat(this.candle.lastCandleLowPrice);
 
@@ -95,7 +94,7 @@ export class SubmitOpenOrder {
       };
 
       log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
-      this.orderBook.addToOrdBook(orderLinkId, 'OPEN_ORDER');
+      // this.orderBook.addToOrdBook(orderLinkId, 'OPEN_ORDER');
       const response = await this.client.submitOrder(body);
       log.api.info(
         `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`

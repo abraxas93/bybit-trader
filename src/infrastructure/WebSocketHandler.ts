@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {WebsocketClient, WsKey} from 'bybit-api';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../utils';

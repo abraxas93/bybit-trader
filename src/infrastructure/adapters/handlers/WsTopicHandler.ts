@@ -38,39 +38,64 @@ export class WsTopicHandler {
     if (topic === 'order') {
       const [orderData] = data;
       log.orders.info(JSON.stringify(orderData));
-      const {orderStatus, avgPrice, cumExecQty, cumExecValue, orderLinkId} =
-        orderData as OrderData;
-      const orderCls = this.orderBook.getOrderClass(orderLinkId);
+      const {
+        orderStatus,
+        avgPrice,
+        cumExecQty,
+        cumExecValue,
+        orderLinkId,
+        side,
+      } = orderData as OrderData;
+      // const orderCls = this.orderBook.getOrderClass(orderLinkId);
 
-      if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {
+      if (!this.position.exists && side === 'Buy' && orderStatus === 'Filled') {
         this.filledOpenOrder.execute({avgPrice, cumExecQty, orderLinkId});
+        return;
       }
 
-      if (orderCls === 'OPEN_ORDER' && orderStatus === 'PartiallyFilled') {
+      // if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {
+      //   this.filledOpenOrder.execute({avgPrice, cumExecQty, orderLinkId});
+      // }
+
+      if (
+        !this.position.exists &&
+        side === 'Buy' &&
+        orderStatus === 'PartiallyFilled'
+      ) {
         this.position.partiallyFilled = true;
+        return;
       }
 
-      if (orderCls === 'TAKE_PROFIT_ORDER' && orderStatus === 'Filled') {
+      if (this.position.exists && side === 'Sell' && orderStatus === 'Filled') {
         this.filledProfitOrder
           .execute()
           .catch(err => log.errs.error(JSON.stringify(err)));
-      }
-
-      if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'Filled') {
-        this.filledAvgOrder
-          .execute({orderLinkId, avgPrice, cumExecQty, cumExecValue})
-          .catch(err => log.errs.error(JSON.stringify(err)));
-      }
-
-      if (orderCls === 'AVERAGE_ORDER' && orderStatus === 'PartiallyFilled') {
-        this.partFilledAvgOrder.execute({cumExecQty, cumExecValue});
+        return;
       }
 
       if (
-        orderCls === 'TAKE_PROFIT_ORDER' &&
+        this.position.exists &&
+        side === 'Sell' &&
         orderStatus === 'PartiallyFilled'
       ) {
         this.position.handlePartiallyFilledProfitOrder(cumExecQty);
+        return;
+      }
+
+      if (this.position.exists && side === 'Buy' && orderStatus === 'Filled') {
+        this.filledAvgOrder
+          .execute({orderLinkId, avgPrice, cumExecQty, cumExecValue})
+          .catch(err => log.errs.error(JSON.stringify(err)));
+        return;
+      }
+
+      if (
+        this.position.exists &&
+        side === 'Buy' &&
+        orderStatus === 'PartiallyFilled'
+      ) {
+        this.partFilledAvgOrder.execute({cumExecQty, cumExecValue});
+        return;
       }
     }
 
