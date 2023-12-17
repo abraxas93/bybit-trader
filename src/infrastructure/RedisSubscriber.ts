@@ -1,7 +1,7 @@
 import {Redis} from 'ioredis';
 import {container, injectable} from 'tsyringe';
 import {log} from '../utils';
-import {USER} from '../config';
+import {REDIS_HOST, USER} from '../config';
 import {
   AppSetupApiKey,
   AppSetupApiSecret,
@@ -31,7 +31,7 @@ export const CHANGE_CURRENT_SYMBOL = 'CHANGE_CURRENT_SYMBOL';
 @injectable()
 export class RedisSubscriber {
   async subscribeToChannels() {
-    const subscriber = new Redis();
+    const subscriber = new Redis({port: 6379, host: REDIS_HOST});
     try {
       const count = await subscriber.subscribe(`${USER}:COMMAND`);
 

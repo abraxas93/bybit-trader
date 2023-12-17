@@ -44,11 +44,11 @@ import {
   RedisSubscriber,
   WebSocketHandler,
 } from './infrastructure';
-import {API_KEY, API_SECRET} from './config';
+import {API_KEY, API_SECRET, REDIS_HOST} from './config';
 
 export async function bootstrapCtx() {
   const eventEmitter = new EventEmitter();
-  const redis = new Redis();
+  const redis = new Redis({port: 6379, host: REDIS_HOST});
 
   const wsOptions: WSClientConfigurableOptions = {
     key: API_KEY,
