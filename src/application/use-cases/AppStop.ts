@@ -65,6 +65,9 @@ export class AppStop {
       }
       if (position?.side === 'None') {
         this.state.stop();
+        await this.redis
+          .publish(`${USER}:RESPONSE`, '*ByBitTrader:* application stopped')
+          .catch(err => log.errs.error(err));
         return;
       }
 
