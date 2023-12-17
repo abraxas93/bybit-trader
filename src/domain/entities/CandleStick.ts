@@ -140,7 +140,7 @@ export class CandleStick {
       this._klineStarted = true;
       this._isNewCandle = true;
       nearest = roundToNearestTen(seconds);
-      this._nextCandleIn = nearest + this.options.period;
+      this._nextCandleIn = (nearest as number) + this.options.period;
       logger.info(
         `Candle klineStarted: ${this._currentLowPrice}, next candle in: ${this._nextCandleIn} and seconds: ${seconds}, ts: ${ts}`
       );

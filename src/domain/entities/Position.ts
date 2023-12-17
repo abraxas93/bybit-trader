@@ -5,9 +5,11 @@ import {initLogger} from '../../utils/logger';
 import {RKEYS} from '../../constants';
 import {Options} from './Options';
 import {normalizeFloat} from '../../utils';
-import {ENV, USER} from '../../config';
+import {USER} from '../../config';
 
 const errLogger = initLogger('Position', 'errors.log');
+
+const ENV = 'production'; // TODO: remove this from final version
 
 @injectable()
 export class Position {
@@ -143,7 +145,7 @@ export class Position {
       newQty = new BigJs(this.posQty).add(diffQty).toFixed(this.options.digits);
       this.lastAvgCumExecQty = qty;
     }
-    this.posQty = normalizeFloat(newQty);
+    this.posQty = normalizeFloat(newQty as string);
   };
 
   public handleFilledLongOrder = (qty: string, price: string) => {
@@ -169,7 +171,7 @@ export class Position {
       this.lastAvgCumExecQty = qty;
     }
 
-    this.posQty = normalizeFloat(newQty);
+    this.posQty = normalizeFloat(newQty as string);
     this.avgPosPrice = new BigJs(numerator)
       .div(denominator)
       .toFixed(this.options.digits);

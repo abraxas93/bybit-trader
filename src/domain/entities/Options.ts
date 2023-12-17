@@ -87,7 +87,7 @@ export class Options {
   }
 
   async loadVars(symbolArg = 'BTCUSDT') {
-    const env = process.env.NODE_ENV || 'dev';
+    const env = 'production' || process.env.NODE_ENV || 'dev';
 
     const baseKey = `${USER}:${env}:${symbolArg}`;
 

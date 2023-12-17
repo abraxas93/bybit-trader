@@ -6,10 +6,12 @@ import {LOG_EVENT, RKEYS} from '../../constants';
 import {OrderClass} from '../../types';
 import {Options} from './Options';
 import {initLogger} from '../../utils/logger';
-import {ENV, USER} from '../../config';
+import {USER} from '../../config';
 // import {normalizeFloat} from '../../utils';
 
 const errLogger = initLogger('OrderBook', 'errors.log');
+
+const ENV = 'production'; // TODO: remove this from final version
 
 @injectable()
 export class OrderBook {
