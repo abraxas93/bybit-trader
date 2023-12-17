@@ -42,9 +42,9 @@ async function main() {
   await redis
     .publish(
       `${USER}:RESPONSE`,
-      `*ByBitTrader:* started -env:${ENV} -options: ${JSON.stringify(
+      `*ByBitTrader:* started \\-env:${ENV} \\-options: ${JSON.stringify(
         options.values
-      )} -user: ${USER}`
+      )} \\-user: ${USER}`
     )
     .catch(err => log.errs.error(err));
 }
