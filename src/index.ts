@@ -45,6 +45,5 @@ process.on('SIGINT', async () => {
 });
 
 // TODO: implement this
-// update
 process.on('uncaughtException', () => {});
 process.on('unhandledRejection', () => {});
