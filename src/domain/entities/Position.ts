@@ -166,6 +166,7 @@ export class Position {
     } else {
       const diffQty = new BigJs(qty).minus(this.lastAvgCumExecQty);
       newQty = new BigJs(this.posQty).add(diffQty).toFixed(this.options.digits);
+      console.log({qty, diffQty, lastAvgCumExecQty: this.lastAvgCumExecQty});
       this.lastAvgCumExecQty = qty;
     }
 
