@@ -5,7 +5,7 @@ import {container} from 'tsyringe';
 import {bootstrapCtx} from './ctx';
 import {ENV, USER} from './config';
 import {log} from './utils';
-import {Options} from './domain/entities';
+import {AppState, Options} from './domain/entities';
 
 import {
   RedisSubscriber,
@@ -28,6 +28,9 @@ async function main() {
   const emitter = container.resolve<EventEmitter>('EventEmitter');
   const wsHandler = container.resolve<WebSocketHandler>('WebSocketHandler');
   const redis = container.resolve<Redis>('Redis');
+  const state = container.resolve<AppState>('AppState');
+
+  state.stop();
 
   wsHandler.setupEventListeners();
   subscriber.subscribeToChannels().catch(err => log.errs.error(err));

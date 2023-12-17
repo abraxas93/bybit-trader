@@ -64,7 +64,12 @@ export class AppStop {
         return;
       }
       if (position?.side === 'None') {
+        this.ws.unsubscribeV5([`tickers.${symbol}`, 'order'], 'linear');
+        this.orderBook.reset();
+        this.position.closePosition();
+        this.candle.clear();
         this.state.stop();
+
         await this.redis
           .publish(`${USER}:RESPONSE`, '*ByBitTrader:* application stopped')
           .catch(err => log.errs.error(err));
