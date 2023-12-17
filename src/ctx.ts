@@ -74,7 +74,8 @@ export async function bootstrapCtx() {
     candleStick,
     orderBook,
     options,
-    position
+    position,
+    redis
   );
 
   // options
