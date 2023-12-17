@@ -5,6 +5,10 @@ import {CandleStick} from './CandleStick';
 import {OrderBook} from './OrderBook';
 import {Options} from './Options';
 import {Position} from './Position';
+import {Redis} from 'ioredis';
+import {ENV, USER} from '../../config';
+import {APP_STATUS} from '../../keys';
+import {log} from '../../utils';
 
 type AppStatus = 'STOPPED' | 'ACTIVE' | 'PAUSED' | 'WAIT_AND_STOP';
 
@@ -27,7 +31,9 @@ export class AppState {
     @inject('Options')
     private readonly options: Options,
     @inject('Position')
-    private readonly position: Position
+    private readonly position: Position,
+    @inject('Redis')
+    private readonly redis: Redis
   ) {}
 
   get canOpenAvgOrder(): boolean {
@@ -66,17 +72,29 @@ export class AppState {
 
   stop = () => {
     this._status = 'STOPPED';
+    this.redis
+      .set(`${USER}:${ENV}:${APP_STATUS}`, 'STOPPED')
+      .catch(err => log.errs.error(err));
   };
 
   start = () => {
     this._status = 'ACTIVE';
+    this.redis
+      .set(`${USER}:${ENV}:${APP_STATUS}`, 'ACTIVE')
+      .catch(err => log.errs.error(err));
   };
 
   pause = () => {
     this._status = 'PAUSED';
+    this.redis
+      .set(`${USER}:${ENV}:${APP_STATUS}`, 'PAUSED')
+      .catch(err => log.errs.error(err));
   };
 
   finishAndStop = () => {
     this._status = 'WAIT_AND_STOP';
+    this.redis
+      .set(`${USER}:${ENV}:${APP_STATUS}`, 'WAIT_AND_STOP')
+      .catch(err => log.errs.error(err));
   };
 }
