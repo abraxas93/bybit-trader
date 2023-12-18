@@ -1,9 +1,17 @@
-import {RestClientV5} from 'bybit-api';
+import {RestClientV5, WebsocketClient} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
-import {AppState, Options, OrderBook, Position} from '../../domain/entities';
+import {
+  AppState,
+  CandleStick,
+  Options,
+  OrderBook,
+  Position,
+} from '../../domain/entities';
 import {ERROR_EVENT, LOG_EVENT, PROFIT_ORDER_FILLED} from '../../constants';
+import {Redis} from 'ioredis';
+import {USER} from '../../config';
 
 const label = 'FilledProfitOrder';
 
@@ -21,7 +29,13 @@ export class FilledProfitOrder {
     @inject('Position')
     private readonly position: Position,
     @inject('AppState')
-    private readonly state: AppState
+    private readonly state: AppState,
+    @inject('WebsocketClient')
+    private readonly ws: WebsocketClient,
+    @inject('CandleStick')
+    private readonly candle: CandleStick,
+    @inject('Redis')
+    private readonly redis: Redis
   ) {}
 
   async execute() {
@@ -50,7 +64,17 @@ export class FilledProfitOrder {
         });
       }
 
-      if (this.state.status === 'WAIT_AND_STOP') this.state.stop();
+      if (this.state.status === 'WAIT_AND_STOP') {
+        this.ws.unsubscribeV5([`tickers.${symbol}`, 'order'], 'linear');
+        this.orderBook.reset();
+        this.position.closePosition();
+        this.candle.clear();
+        this.state.stop();
+
+        await this.redis
+          .publish(`${USER}:RESPONSE`, '*ByBitTrader:* application stopped')
+          .catch(err => log.errs.error(err));
+      }
 
       this.emitter.emit(PROFIT_ORDER_FILLED);
       this.emitter.emit(LOG_EVENT, {label});

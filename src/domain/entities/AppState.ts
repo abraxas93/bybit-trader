@@ -42,7 +42,7 @@ export class AppState {
       this.candle.count >= this.options.minCandles &&
       this.position.exists &&
       this.orderBook.avgOrderCount <= this.options.maxAvgCount &&
-      this._status === 'ACTIVE'
+      (this._status === 'ACTIVE' || this._status == 'WAIT_AND_STOP')
     );
   }
 
@@ -51,12 +51,12 @@ export class AppState {
       this.orderBook.profitTakesCount < this.options.tradeCycles &&
       !this.position.exists &&
       !this.position.partiallyFilled &&
-      this._status === 'ACTIVE'
+      (this._status === 'ACTIVE' || this._status == 'WAIT_AND_STOP')
     );
   }
 
   get canOpenProfitOrder() {
-    return this._status === 'ACTIVE';
+    return this._status === 'ACTIVE' || this._status == 'WAIT_AND_STOP';
   }
 
   resetReopenTimer = () => {
