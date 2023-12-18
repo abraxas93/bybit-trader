@@ -51,7 +51,7 @@ export class SyncExchState {
         return;
       }
       if (position?.side === 'None') {
-        this.orderBook.clearOrderBook();
+        // this.orderBook.clearOrderBook();
         this.position.handleFilledProfitOrder();
         // TODO: clear other stuff
       } else {

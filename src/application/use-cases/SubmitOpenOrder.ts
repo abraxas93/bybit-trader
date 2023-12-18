@@ -66,7 +66,6 @@ export class SubmitOpenOrder {
         });
       }
 
-      this.orderBook.clearOrderBook();
       if (this.candle.lastCandleLowPrice === '0') {
         log.api.info(`${label}:REQUEST|getKline|${symbol} ${category} 1|`);
         const response = await this.client.getKline({
