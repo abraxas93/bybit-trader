@@ -14,6 +14,7 @@ import {
 } from './infrastructure';
 import {AppExit} from './application';
 import {Redis} from 'ioredis';
+import {API_SECRET, API_KEY} from './keys';
 
 const label = '[index.ts]';
 
@@ -29,6 +30,9 @@ async function main() {
   const wsHandler = container.resolve<WebSocketHandler>('WebSocketHandler');
   const redis = container.resolve<Redis>('Redis');
   const state = container.resolve<AppState>('AppState');
+
+  await redis.set(`${USER}:${ENV}:${API_KEY}`, 'false');
+  await redis.set(`${USER}:${ENV}:${API_SECRET}`, 'false');
 
   state.stop();
 

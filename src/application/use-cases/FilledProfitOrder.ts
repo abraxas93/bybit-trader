@@ -65,11 +65,11 @@ export class FilledProfitOrder {
       }
 
       if (this.state.status === 'WAIT_AND_STOP') {
+        this.state.stop();
         this.ws.unsubscribeV5([`tickers.${symbol}`, 'order'], 'linear');
         this.orderBook.reset();
         this.position.closePosition();
         this.candle.clear();
-        this.state.stop();
 
         await this.redis
           .publish(`${USER}:RESPONSE`, '*ByBitTrader:* application stopped')
