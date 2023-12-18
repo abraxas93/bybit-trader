@@ -31,8 +31,8 @@ async function main() {
   const redis = container.resolve<Redis>('Redis');
   const state = container.resolve<AppState>('AppState');
 
-  await redis.set(`${USER}:${ENV}:${API_KEY}`, 'false');
-  await redis.set(`${USER}:${ENV}:${API_SECRET}`, 'false');
+  await redis.set(`${USER}:${ENV}:${API_KEY}`, '');
+  await redis.set(`${USER}:${ENV}:${API_SECRET}`, '');
 
   state.stop();
 
