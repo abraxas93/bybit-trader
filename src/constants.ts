@@ -1,4 +1,4 @@
-import {ENV, USER} from './config';
+// import {ENV, USER} from './config';
 
 // events
 export const EVENT_ERROR = 'EVENT_ERROR';

@@ -12,7 +12,7 @@ import {
   EventListener,
   WebSocketHandler,
 } from './infrastructure';
-import {AppExit, AppStart} from './application';
+import {AppExit} from './application';
 import {Redis} from 'ioredis';
 
 const label = '[index.ts]';
@@ -67,6 +67,14 @@ process.on('SIGTERM', async () => {
   await appExit.execute().catch(err => log.errs.error(err));
 });
 
-// TODO: implement this
-process.on('uncaughtException', () => {});
-process.on('unhandledRejection', () => {});
+process.on('uncaughtException', err => {
+  const data = {
+    message: JSON.stringify(err.message),
+    stack: JSON.stringify(err.stack),
+  };
+  log.errs.error(JSON.stringify(data));
+});
+
+process.on('unhandledRejection', err => {
+  log.errs.error(JSON.stringify(err));
+});

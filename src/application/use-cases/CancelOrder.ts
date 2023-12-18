@@ -2,9 +2,8 @@ import {RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
-import {Options, OrderBook} from '../../domain/entities';
-import {ERROR_EVENT, ORDER_CANCELLED} from '../../constants';
-import {OrderClass} from '../../types';
+import {Options} from '../../domain/entities';
+import {ERROR_EVENT, SUBMIT_PROFIT_ORDER} from '../../constants';
 
 const label = 'CancelOrder';
 @injectable()
@@ -15,30 +14,36 @@ export class CancelOrder {
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
     @inject('Options')
-    private readonly options: Options,
-    @inject('OrderBook')
-    private readonly orderBook: OrderBook
+    private readonly options: Options
   ) {}
 
-  async execute(cls: OrderClass) {
+  async execute(side: string) {
     try {
       const category = this.options.category;
       const symbol = this.options.symbol;
 
-      const orderLinkId = this.orderBook.getOrderIdBy(cls);
-      if (!orderLinkId) {
-        this.emitter.emit(
-          ERROR_EVENT,
-          JSON.stringify({
-            label,
-            data: orderLinkId,
-          })
-        );
-        return;
+      const activeOrdersResponse = await this.client.getActiveOrders({
+        symbol,
+        category,
+      });
+
+      if (activeOrdersResponse.retCode) {
+        this.emitter.emit(ERROR_EVENT, {
+          label,
+          data: JSON.stringify(activeOrdersResponse),
+        });
       }
 
+      const sideOrder = activeOrdersResponse.result.list.find(
+        o => o.side === side
+      );
+
+      if (!sideOrder) {
+        return;
+      }
+      const {orderId} = sideOrder;
       const body = {
-        orderLinkId,
+        orderId,
         symbol,
         category,
       };
@@ -57,9 +62,9 @@ export class CancelOrder {
             data: JSON.stringify(response),
           })
         );
-      } else this.orderBook.removeFromOrdBook(orderLinkId);
+      }
 
-      this.emitter.emit(ORDER_CANCELLED, {cls, orderLinkId});
+      if (side === 'Sell') this.emitter.emit(SUBMIT_PROFIT_ORDER); // Open new profit order
     } catch (error) {
       this.emitter.emit(ERROR_EVENT, {
         label,

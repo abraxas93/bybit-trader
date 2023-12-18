@@ -16,10 +16,9 @@ import {
   AVG_ORDER_FILLED,
   OPEN_ORDER_FILLED,
   PROFIT_ORDER_FILLED,
-  ORDER_CANCELLED,
   SUBMIT_AVG_ORDER,
 } from '../constants';
-import {OrderClass} from '../types';
+
 import {log} from '../utils';
 import {SnapshotBuilder} from '../domain/entities/SnapshotBuilder';
 
@@ -39,75 +38,62 @@ export class EventListener {
   ) {}
 
   startListening(emitter: EventEmitter) {
-    emitter.on(SUBMIT_OPEN_ORDER, this.handleOpenOrder.bind(this));
-    emitter.on(SUBMIT_AVG_ORDER, this.handleAvgOrder.bind(this));
-    emitter.on(SUBMIT_PROFIT_ORDER, this.handleProfitOrder.bind(this));
-    emitter.on(OPEN_ORDER_FILLED, this.handleOpenOrderFilled.bind(this));
-    emitter.on(AVG_ORDER_FILLED, this.handleAvgOrderFilled.bind(this));
-    emitter.on(PROFIT_ORDER_FILLED, this.handleProfitOrderFilled.bind(this));
-    emitter.on(ORDER_CANCELLED, this.handleOrderCancelled.bind(this));
-    emitter.on(CANCEL_ORDER, this.handleCancelOrder.bind(this));
-    emitter.on(ERROR_EVENT, this.handleError.bind(this));
-    emitter.on(CANDLE_CLOSED, this.handleCandleClosed.bind(this));
-    emitter.on(LOG_EVENT, this.handleLogEvent.bind(this));
+    emitter.on(SUBMIT_OPEN_ORDER, this.handleOpenOrder);
+    emitter.on(SUBMIT_AVG_ORDER, this.handleAvgOrder);
+    emitter.on(SUBMIT_PROFIT_ORDER, this.handleProfitOrder);
+    emitter.on(OPEN_ORDER_FILLED, this.handleOpenOrderFilled);
+    emitter.on(AVG_ORDER_FILLED, this.handleAvgOrderFilled);
+    emitter.on(PROFIT_ORDER_FILLED, this.handleProfitOrderFilled);
+    emitter.on(CANCEL_ORDER, this.handleCancelOrder);
+    emitter.on(ERROR_EVENT, this.handleError);
+    emitter.on(CANDLE_CLOSED, this.handleCandleClosed);
+    emitter.on(LOG_EVENT, this.handleLogEvent);
   }
 
-  private async handleOpenOrder() {
+  private handleOpenOrder = async () => {
     await this.submitOpenOrder.execute().catch(err => log.errs.error(err));
-  }
+  };
 
-  private async handleAvgOrder() {
+  private handleAvgOrder = async () => {
     await this.submitAvgOrder.execute().catch(err => log.errs.error(err));
-  }
+  };
 
-  private async handleProfitOrder() {
+  private handleProfitOrder = async () => {
     await this.submitProfitOrder.execute().catch(err => log.errs.error(err));
-  }
+  };
 
-  private async handleOpenOrderFilled() {
+  private handleOpenOrderFilled = async () => {
     await this.submitProfitOrder.execute().catch(err => log.errs.error(err));
-  }
+  };
 
-  private async handleAvgOrderFilled() {
+  private handleAvgOrderFilled = async () => {
     await this.submitProfitOrder.execute().catch(err => log.errs.error(err));
-  }
+  };
 
-  private async handleProfitOrderFilled() {
+  private handleProfitOrderFilled = async () => {
     await this.submitOpenOrder.execute().catch(err => log.errs.error(err));
-  }
+  };
 
-  private async handleOrderCancelled({
-    cls,
-    orderLinkId,
-  }: {
-    cls: OrderClass;
-    orderLinkId: string;
-  }) {
-    if (cls === 'TAKE_PROFIT_ORDER') {
-      await this.submitProfitOrder.execute().catch(err => log.errs.error(err));
-    }
-  }
+  private handleCancelOrder = async (side: string) => {
+    await this.cancelOrder.execute(side).catch(err => log.errs.error(err));
+  };
 
-  private async handleCancelOrder(cls: OrderClass) {
-    await this.cancelOrder.execute(cls).catch(err => log.errs.error(err));
-  }
-
-  private handleError(data: any) {
+  private handleError = (data: any) => {
     log.errs.error(JSON.stringify(data));
-  }
+  };
 
-  private async handleCandleClosed() {
+  private handleCandleClosed = async () => {
     await this.submitAvgOrder.execute().catch(err => log.errs.error(err));
     await this.submitOpenOrder.execute().catch(err => log.errs.error(err));
-  }
+  };
 
-  private handleLogEvent(label: string) {
+  private handleLogEvent = (label: string) => {
     log.candle.info(`${label}:${this.snpBuilder.getStateSnapshot('candle')}`);
     log.order.info(`${label}:${this.snpBuilder.getStateSnapshot('orderBook')}`);
     log.position.info(
       `${label}:${this.snpBuilder.getStateSnapshot('position')}`
     );
-  }
+  };
 }
 
 export function bootstrapEvents() {

@@ -66,7 +66,7 @@ export class AppState {
   reopenProfitOrder = () => {
     this.resetReopenTimer();
     this.timer = setTimeout(() => {
-      this.emitter.emit(CANCEL_ORDER, 'TAKE_PROFIT_ORDER');
+      this.emitter.emit(CANCEL_ORDER, 'Sell');
     }, REOPEN_TIMER); // TODO: add reopen profit take
   };
 
