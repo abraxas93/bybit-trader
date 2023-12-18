@@ -85,12 +85,10 @@ export class AppStop {
         qty: position.size,
       };
 
-      log.api.info(
-        `${label}:REQUEST:getPositionInfo:${JSON.stringify(request)}|`
-      );
+      log.api.info(`${label}:REQUEST:submitOrder:${JSON.stringify(request)}|`);
       const orderResponse = await this.client.submitOrder(request);
       log.api.info(
-        `${label}:RESPONSE:getPositionInfo:${JSON.stringify(orderResponse)}|`
+        `${label}:RESPONSE:submitOrder:${JSON.stringify(orderResponse)}|`
       );
 
       if (orderResponse.retCode) {

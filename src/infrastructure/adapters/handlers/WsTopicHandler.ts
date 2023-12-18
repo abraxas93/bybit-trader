@@ -38,24 +38,13 @@ export class WsTopicHandler {
     if (topic === 'order') {
       const [orderData] = data;
       log.orders.info(JSON.stringify(orderData));
-      const {
-        orderStatus,
-        avgPrice,
-        cumExecQty,
-        cumExecValue,
-        orderLinkId,
-        side,
-      } = orderData as OrderData;
-      // const orderCls = this.orderBook.getOrderClass(orderLinkId);
+      const {orderStatus, avgPrice, cumExecQty, cumExecValue, side} =
+        orderData as OrderData;
 
       if (!this.position.exists && side === 'Buy' && orderStatus === 'Filled') {
-        this.filledOpenOrder.execute({avgPrice, cumExecQty, orderLinkId});
+        this.filledOpenOrder.execute({avgPrice, cumExecQty});
         return;
       }
-
-      // if (orderCls === 'OPEN_ORDER' && orderStatus === 'Filled') {
-      //   this.filledOpenOrder.execute({avgPrice, cumExecQty, orderLinkId});
-      // }
 
       if (
         !this.position.exists &&
@@ -84,7 +73,7 @@ export class WsTopicHandler {
 
       if (this.position.exists && side === 'Buy' && orderStatus === 'Filled') {
         this.filledAvgOrder
-          .execute({orderLinkId, avgPrice, cumExecQty, cumExecValue})
+          .execute({avgPrice, cumExecQty, cumExecValue})
           .catch(err => log.errs.error(JSON.stringify(err)));
         return;
       }

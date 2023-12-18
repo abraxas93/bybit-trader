@@ -125,12 +125,12 @@ export class OrderBook {
     return null;
   };
 
-  clearOrderBook = () => {
-    this._orderBook = {};
-    this.redis
-      .del(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`)
-      .catch(err => errLogger.error(JSON.stringify(err)));
-  };
+  // clearOrderBook = () => {
+  //   this._orderBook = {};
+  //   this.redis
+  //     .del(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`)
+  //     .catch(err => errLogger.error(JSON.stringify(err)));
+  // };
 
   incProfitTakeCount() {
     this._profitTakesCount += 1;
@@ -169,7 +169,7 @@ export class OrderBook {
   };
 
   reset = () => {
-    this.clearOrderBook();
+    // this.clearOrderBook();
     this.isAvgOrderExists = false;
     this.avgOrderCount = 0;
     this.profitTakesCount = 0;

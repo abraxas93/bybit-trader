@@ -42,7 +42,7 @@ export class FilledProfitOrder {
       log.api.info(
         `${label}:RESPONSE:cancelAllOrders|${JSON.stringify(response)}|`
       );
-      this.orderBook.clearOrderBook();
+
       if (response.retCode) {
         this.emitter.emit(ERROR_EVENT, {
           label,

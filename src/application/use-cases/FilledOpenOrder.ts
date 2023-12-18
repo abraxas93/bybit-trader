@@ -18,15 +18,7 @@ export class FilledOpenOrder {
     private readonly position: Position
   ) {}
 
-  execute({
-    avgPrice,
-    cumExecQty,
-    orderLinkId,
-  }: {
-    avgPrice: string;
-    cumExecQty: string;
-    orderLinkId: string;
-  }) {
+  execute({avgPrice, cumExecQty}: {avgPrice: string; cumExecQty: string}) {
     try {
       this.position.handleFilledLongOrder(cumExecQty, avgPrice);
       this.candle.resetCandlesCount();

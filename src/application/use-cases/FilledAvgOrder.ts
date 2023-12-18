@@ -33,12 +33,10 @@ export class FilledAvgOrder {
   ) {}
 
   async execute({
-    orderLinkId,
     avgPrice,
     cumExecQty,
     cumExecValue,
   }: {
-    orderLinkId: string;
     avgPrice: string;
     cumExecQty: string;
     cumExecValue: string;
