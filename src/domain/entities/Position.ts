@@ -166,7 +166,12 @@ export class Position {
     } else {
       const diffQty = new BigJs(qty).minus(this.lastAvgCumExecQty);
       newQty = new BigJs(this.posQty).add(diffQty).toFixed(this.options.digits);
-      console.log({qty, diffQty, lastAvgCumExecQty: this.lastAvgCumExecQty});
+      console.log({
+        qty,
+        diffQty: diffQty.toString(),
+        lastAvgCumExecQty: this.lastAvgCumExecQty,
+        newQty: newQty as string,
+      });
       this.lastAvgCumExecQty = qty;
     }
 
@@ -188,6 +193,8 @@ export class Position {
     this.lastAvgOrderPrice = '0';
     this.exists = false;
     this.lastProfitCumExecQty = '0';
+
+    this.lastAvgCumExecQty = '0';
   };
 
   public closePosition() {
