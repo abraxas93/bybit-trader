@@ -1,7 +1,7 @@
 import {OrderParamsV5, RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
-import {AppState, Options, OrderBook, Position} from '../../domain/entities';
+import {AppState} from '../../domain/entities';
 import {ERROR_EVENT, LOG_EVENT} from '../../constants';
 import {getOrderLinkId, log} from '../../utils';
 
@@ -11,12 +11,6 @@ export class SubmitProfitOrder {
   constructor(
     @inject('RestClientV5')
     private readonly client: RestClientV5,
-    @inject('Options')
-    private readonly options: Options,
-    @inject('OrderBook')
-    private readonly orderBook: OrderBook,
-    @inject('Position')
-    private readonly postion: Position,
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
     @inject('AppState')
@@ -26,10 +20,10 @@ export class SubmitProfitOrder {
   async execute() {
     try {
       if (!this.state.canOpenProfitOrder) return;
-      const category = this.options.category;
-      const symbol = this.options.symbol;
-      const qty = this.postion.posQty;
-      const price = this.postion.profitOrderPrice;
+      const category = this.state.options.category;
+      const symbol = this.state.options.symbol;
+      const qty = this.state.position.posQty;
+      const price = this.state.position.profitOrderPrice;
       const orderLinkId = getOrderLinkId();
 
       const body: OrderParamsV5 = {
@@ -41,12 +35,13 @@ export class SubmitProfitOrder {
         category,
         orderLinkId,
       };
+
       log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
-      // this.orderBook.addToOrdBook(orderLinkId, 'TAKE_PROFIT_ORDER');
       const response = await this.client.submitOrder(body);
       log.api.info(
         `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`
       );
+
       const {retCode, result} = response;
 
       if (retCode) {
@@ -56,7 +51,7 @@ export class SubmitProfitOrder {
         });
       }
 
-      this.orderBook.profitOrderId = result.orderId;
+      this.state.orderBook.profitOrderId = result.orderId;
 
       this.emitter.emit(LOG_EVENT, {
         label,
@@ -68,7 +63,6 @@ export class SubmitProfitOrder {
         message: JSON.stringify((error as Error).message),
         stack: JSON.stringify((error as Error).stack),
       });
-      // TODO: do rollback
     }
   }
 }

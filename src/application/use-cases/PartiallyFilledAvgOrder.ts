@@ -30,6 +30,7 @@ export class PartiallyFilledAvgOrder {
       const qty = this.state.position.posQty;
       const symbol = this.state.options.symbol;
       const category = this.state.options.category;
+      const price = this.state.position.profitOrderPrice;
 
       log.api.info(`${label}:REQUEST|amendOrder|${orderId} ${qty}|`);
       const profitOrderResponse = await this.client.amendOrder({
@@ -37,10 +38,13 @@ export class PartiallyFilledAvgOrder {
         category,
         orderId,
         qty,
+        price,
       } as AmendOrderParamsV5);
       log.api.info(
         `${label}:RESPONSE|amendOrder|${JSON.stringify(profitOrderResponse)}|`
       );
+
+      this.state.position.lastProfitCumExecQty = '0';
 
       if (profitOrderResponse.retCode) {
         this.emitter.emit(ERROR_EVENT, {

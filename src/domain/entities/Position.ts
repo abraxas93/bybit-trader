@@ -20,7 +20,7 @@ export class Position {
   private _exists = false;
   public partiallyFilled = false;
   public lastAvgCumExecQty = '0';
-  private lastProfitCumExecQty = '0';
+  public lastProfitCumExecQty = '0';
   private symbol = '';
 
   constructor(
@@ -167,12 +167,6 @@ export class Position {
     } else {
       const diffQty = new BigJs(qty).minus(this.lastAvgCumExecQty);
       newQty = new BigJs(this.posQty).add(diffQty).toFixed(this.options.digits);
-      console.log({
-        qty,
-        diffQty: diffQty.toString(),
-        lastAvgCumExecQty: this.lastAvgCumExecQty,
-        newQty: newQty as string,
-      });
       this.lastAvgCumExecQty = qty;
     }
 
