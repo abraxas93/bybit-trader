@@ -2,7 +2,7 @@ import {RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
-import {Options} from '../../domain/entities';
+import {Options, OrderBook} from '../../domain/entities';
 import {ERROR_EVENT, SUBMIT_PROFIT_ORDER} from '../../constants';
 
 const label = 'CancelOrder';
@@ -14,7 +14,9 @@ export class CancelOrder {
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
     @inject('Options')
-    private readonly options: Options
+    private readonly options: Options,
+    @inject('OrderBook')
+    private readonly orderBook: OrderBook
   ) {}
 
   async execute(side: string) {
@@ -64,7 +66,10 @@ export class CancelOrder {
         );
       }
 
-      if (side === 'Sell') this.emitter.emit(SUBMIT_PROFIT_ORDER); // Open new profit order
+      if (side === 'Sell') {
+        this.orderBook.profitOrderId = '';
+        this.emitter.emit(SUBMIT_PROFIT_ORDER);
+      }
     } catch (error) {
       this.emitter.emit(ERROR_EVENT, {
         label,

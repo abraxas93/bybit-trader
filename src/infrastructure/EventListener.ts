@@ -5,6 +5,7 @@ import {
   SubmitProfitOrder,
   SubmitAvgOrder,
   CancelOrder,
+  AmmendOrder,
 } from '../application';
 import {
   SUBMIT_OPEN_ORDER,
@@ -17,6 +18,7 @@ import {
   OPEN_ORDER_FILLED,
   PROFIT_ORDER_FILLED,
   SUBMIT_AVG_ORDER,
+  AMMEND_ORDER,
 } from '../constants';
 
 import {log} from '../utils';
@@ -34,7 +36,9 @@ export class EventListener {
     @inject('CancelOrder')
     private readonly cancelOrder: CancelOrder,
     @inject('SnapshotBuilder')
-    private readonly snpBuilder: SnapshotBuilder
+    private readonly snpBuilder: SnapshotBuilder,
+    @inject('AmmendOrder')
+    private readonly ammendOrder: AmmendOrder
   ) {}
 
   startListening(emitter: EventEmitter) {
@@ -48,7 +52,12 @@ export class EventListener {
     emitter.on(ERROR_EVENT, this.handleError);
     emitter.on(CANDLE_CLOSED, this.handleCandleClosed);
     emitter.on(LOG_EVENT, this.handleLogEvent);
+    emitter.on(AMMEND_ORDER, this.handleAmmendOrder);
   }
+
+  private handleAmmendOrder = async (side: string) => {
+    await this.ammendOrder.execute(side).catch(err => log.errs.error(err));
+  };
 
   private handleOpenOrder = async () => {
     await this.submitOpenOrder.execute().catch(err => log.errs.error(err));
@@ -78,7 +87,11 @@ export class EventListener {
     await this.cancelOrder.execute(side).catch(err => log.errs.error(err));
   };
 
-  private handleError = (data: any) => {
+  private handleError = (data: {
+    label: string;
+    message: string;
+    stack: string;
+  }) => {
     log.errs.error(JSON.stringify(data));
   };
 

@@ -11,6 +11,7 @@ import {
 } from 'bybit-api';
 // import {API_KEY, API_SECRET} from './config';
 import {
+  AmmendOrder,
   AppExit,
   AppSetupApiKey,
   AppSetupApiSecret,
@@ -69,14 +70,7 @@ export async function bootstrapCtx() {
   const orderBook = new OrderBook(redis, options, eventEmitter);
   const candleStick = new CandleStick(redis, options, eventEmitter);
   const position = new Position(redis, options);
-  const state = new AppState(
-    eventEmitter,
-    candleStick,
-    orderBook,
-    options,
-    position,
-    redis
-  );
+  const state = new AppState(candleStick, orderBook, options, position, redis);
 
   // options
 
@@ -120,6 +114,7 @@ export async function bootstrapCtx() {
   container.register<SubmitProfitOrder>('SubmitProfitOrder', SubmitProfitOrder);
   container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
   container.register<SyncExchState>('SyncExchState', SyncExchState);
+  container.register<AmmendOrder>('AmmendOrder', AmmendOrder);
 
   container.register<AppSetupApiKey>('AppSetupApiKey', AppSetupApiKey);
   container.register<AppSetupApiSecret>('AppSetupApiSecret', AppSetupApiSecret);

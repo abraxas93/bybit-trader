@@ -1,6 +1,4 @@
 import {inject, injectable} from 'tsyringe';
-import {EventEmitter} from 'events';
-import {CANCEL_ORDER, REOPEN_TIMER} from '../../constants';
 import {CandleStick} from './CandleStick';
 import {OrderBook} from './OrderBook';
 import {Options} from './Options';
@@ -22,18 +20,16 @@ export class AppState {
   }
 
   constructor(
-    @inject('EventEmitter')
-    private readonly emitter: EventEmitter,
     @inject('CandleStick')
-    private readonly candle: CandleStick,
-    @inject('CandleStick')
-    private readonly orderBook: OrderBook,
+    public readonly candle: CandleStick,
+    @inject('OrderBook')
+    public readonly orderBook: OrderBook,
     @inject('Options')
-    private readonly options: Options,
+    public readonly options: Options,
     @inject('Position')
-    private readonly position: Position,
+    public readonly position: Position,
     @inject('Redis')
-    private readonly redis: Redis
+    public readonly redis: Redis
   ) {}
 
   get canOpenAvgOrder(): boolean {
@@ -63,13 +59,6 @@ export class AppState {
     clearTimeout(this.timer);
   };
 
-  reopenProfitOrder = () => {
-    this.resetReopenTimer();
-    this.timer = setTimeout(() => {
-      this.emitter.emit(CANCEL_ORDER, 'Sell');
-    }, REOPEN_TIMER); // TODO: add reopen profit take
-  };
-
   stop = () => {
     this._status = 'STOPPED';
     this.redis
@@ -97,4 +86,15 @@ export class AppState {
       .set(`${USER}:${ENV}:${APP_STATUS}`, 'WAIT_AND_STOP')
       .catch(err => log.errs.error(err));
   };
+
+  setAmmendAvgOrdTimer = (id: NodeJS.Timeout) => {
+    this.timer = id;
+  };
+
+  // ammendAvgOrder = () => {
+  //   this.resetReopenTimer();
+  //   this.timer = setTimeout(() => {
+  //     this.emitter.emit(CANCEL_ORDER, 'Buy');
+  //   }, REOPEN_TIMER);
+  // };
 }

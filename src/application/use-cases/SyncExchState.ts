@@ -71,10 +71,10 @@ export class SyncExchState {
         }
 
         const linkedIds = response.result.list.map(o => o.orderLinkId);
-        const avgOrderId = this.orderBook.getOrderIdBy('AVERAGE_ORDER');
+        const avgOrderId = ''; //  this.orderBook.getOrderIdBy('AVERAGE_ORDER');
         if (avgOrderId && !linkedIds.includes(avgOrderId)) {
           // avg order were filled
-          this.orderBook.removeFromOrdBook(avgOrderId);
+          //this.orderBook.removeFromOrdBook(avgOrderId);
           this.orderBook.isAvgOrderExists = false;
           this.position.lastAvgCumExecQty = '0';
           this.orderBook.incAvgOrderCount();
@@ -95,7 +95,7 @@ export class SyncExchState {
           orderData &&
             (this.position.lastAvgCumExecQty = orderData?.cumExecQty);
 
-          this.state.reopenProfitOrder();
+          // this.state.reopenProfitOrder();
         }
 
         this.position.posQty = position.size;

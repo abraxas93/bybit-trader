@@ -13,7 +13,6 @@ import {
   WebSocketHandler,
 } from './infrastructure';
 import {AppExit} from './application';
-import {Redis} from 'ioredis';
 import {API_SECRET, API_KEY} from './keys';
 
 const label = '[index.ts]';
@@ -28,11 +27,10 @@ async function main() {
   const eventListener = container.resolve<EventListener>('EventListener');
   const emitter = container.resolve<EventEmitter>('EventEmitter');
   const wsHandler = container.resolve<WebSocketHandler>('WebSocketHandler');
-  const redis = container.resolve<Redis>('Redis');
   const state = container.resolve<AppState>('AppState');
 
-  await redis.set(`${USER}:${ENV}:${API_KEY}`, '');
-  await redis.set(`${USER}:${ENV}:${API_SECRET}`, '');
+  await state.redis.set(`${USER}:${ENV}:${API_KEY}`, '');
+  await state.redis.set(`${USER}:${ENV}:${API_SECRET}`, '');
 
   state.stop();
 
@@ -51,7 +49,7 @@ async function main() {
   msg = msg.replace('{', '');
   msg = msg.replace('}', '');
   msg = msg.replaceAll('.', ',');
-  await redis
+  await state.redis
     .publish(
       `${USER}:RESPONSE`,
       `*ByBitTrader:* started \\-env:${ENV} \\-options: ${msg} \\-user: ${USER}`

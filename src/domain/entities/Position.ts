@@ -140,14 +140,15 @@ export class Position {
       newQty = new BigJs(this.posQty).minus(qty).toFixed(this.options.digits);
     } else {
       const diffQty = new BigJs(qty).minus(this.lastProfitCumExecQty);
-      newQty = new BigJs(this.posQty).add(diffQty).toFixed(this.options.digits);
-      this.lastAvgCumExecQty = qty;
+      newQty = new BigJs(this.posQty)
+        .minus(diffQty)
+        .toFixed(this.options.digits);
+      this.lastProfitCumExecQty = qty;
     }
     this.posQty = normalizeFloat(newQty as string);
   };
 
   public handleFilledLongOrder = (qty: string, price: string) => {
-    // this.setBaseQty(qty);
     this.posQty = qty;
     this.avgPosPrice = price;
     this.lastAvgOrderPrice = price;
@@ -192,8 +193,8 @@ export class Position {
     this.avgPosPrice = '0';
     this.lastAvgOrderPrice = '0';
     this.exists = false;
-    this.lastProfitCumExecQty = '0';
 
+    this.lastProfitCumExecQty = '0';
     this.lastAvgCumExecQty = '0';
   };
 

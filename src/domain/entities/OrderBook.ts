@@ -2,7 +2,7 @@ import {Redis} from 'ioredis';
 import {EventEmitter} from 'events';
 // import BigJs from 'big.js';
 import {inject, injectable} from 'tsyringe';
-import {LOG_EVENT, RKEYS} from '../../constants';
+import {RKEYS} from '../../constants';
 import {OrderClass} from '../../types';
 import {Options} from './Options';
 import {initLogger} from '../../utils/logger';
@@ -18,6 +18,8 @@ export class OrderBook {
   private _avgOrderCount = 0;
   private _profitTakesCount = 0;
   private symbol = '';
+  public profitOrderId = '';
+  public avgOrderId = '';
 
   constructor(
     @inject('Redis')
@@ -100,9 +102,9 @@ export class OrderBook {
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
-  get orderIds() {
-    return Object.keys(this._orderBook);
-  }
+  // get orderIds() {
+  //   return Object.keys(this._orderBook);
+  // }
 
   getAvgOrderIndex = () => {
     return this.avgOrderCount + 1;
@@ -118,12 +120,12 @@ export class OrderBook {
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
-  getOrderIdBy = (type: OrderClass) => {
-    for (const [key, value] of Object.entries(this._orderBook)) {
-      if (value === type) return key;
-    }
-    return null;
-  };
+  // getOrderIdBy = (type: OrderClass) => {
+  //   for (const [key, value] of Object.entries(this._orderBook)) {
+  //     if (value === type) return key;
+  //   }
+  //   return null;
+  // };
 
   // clearOrderBook = () => {
   //   this._orderBook = {};
@@ -142,30 +144,29 @@ export class OrderBook {
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
-  addToOrdBook = (orderId: string, type: OrderClass, logged = true) => {
-    this.orderBook[orderId] = type;
-    this.redis
-      .hset(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`, orderId, type)
-      .catch(err => errLogger.error(JSON.stringify(err)));
-    logged && this._emitter.emit(LOG_EVENT, 'addToOrdBook');
-  };
+  // addToOrdBook = (orderId: string, type: OrderClass, logged = true) => {
+  //   this.orderBook[orderId] = type;
+  //   this.redis
+  //     .hset(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`, orderId, type)
+  //     .catch(err => errLogger.error(JSON.stringify(err)));
+  //   logged && this._emitter.emit(LOG_EVENT, 'addToOrdBook');
+  // };
 
-  removeFromOrdBook = (orderId: string, logged = true) => {
-    delete this.orderBook[orderId];
-    this.redis
-      .hdel(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`, orderId)
-      .catch(err => errLogger.error(JSON.stringify(err)));
-    logged && this._emitter.emit(LOG_EVENT, 'removeFromOrdBook');
-  };
-
-  getOrderClass = (orderId: string) => {
-    return this.orderBook[orderId];
-  };
+  // removeFromOrdBook = (orderId: string, logged = true) => {
+  //   delete this.orderBook[orderId];
+  //   this.redis
+  //     .hdel(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`, orderId)
+  //     .catch(err => errLogger.error(JSON.stringify(err)));
+  //   logged && this._emitter.emit(LOG_EVENT, 'removeFromOrdBook');
+  // };
 
   handleFilledProfitOrder = () => {
     this.isAvgOrderExists = false;
     this.incProfitTakeCount();
     this.avgOrderCount = 0;
+
+    this.profitOrderId = '';
+    this.avgOrderId = '';
   };
 
   reset = () => {
@@ -173,5 +174,8 @@ export class OrderBook {
     this.isAvgOrderExists = false;
     this.avgOrderCount = 0;
     this.profitTakesCount = 0;
+
+    this.profitOrderId = '';
+    this.avgOrderId = '';
   };
 }

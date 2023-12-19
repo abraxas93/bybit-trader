@@ -18,6 +18,8 @@ export const ORDER_CANCELLED = 'ORDER_CANCELLED';
 export const ERROR_EVENT = 'ERROR_EVENT';
 export const LOG_EVENT = 'LOG_EVENT';
 
+export const AMMEND_ORDER = 'AMMEND_ORDER';
+
 // consts
 
 export const REOPEN_TIMER = 4000;

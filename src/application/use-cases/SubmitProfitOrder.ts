@@ -47,7 +47,7 @@ export class SubmitProfitOrder {
       log.api.info(
         `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`
       );
-      const {retCode} = response;
+      const {retCode, result} = response;
 
       if (retCode) {
         this.emitter.emit(ERROR_EVENT, {
@@ -55,6 +55,9 @@ export class SubmitProfitOrder {
           data: JSON.stringify(response),
         });
       }
+
+      this.orderBook.profitOrderId = result.orderId;
+
       this.emitter.emit(LOG_EVENT, {
         label,
         data: null,

@@ -24,8 +24,6 @@ export class SubmitOpenOrder {
     private readonly options: Options,
     @inject('CandleStick')
     private readonly candle: CandleStick,
-    @inject('OrderBook')
-    private readonly orderBook: OrderBook,
     @inject('Position')
     private readonly position: Position,
     @inject('AppState')
