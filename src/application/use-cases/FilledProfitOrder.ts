@@ -43,9 +43,6 @@ export class FilledProfitOrder {
       const category = this.options.category;
       const symbol = this.options.symbol;
 
-      this.orderBook.handleFilledProfitOrder();
-      this.position.handleFilledProfitOrder();
-
       log.api.info(
         `${label}:REQUEST:cancelAllOrders:${JSON.stringify({symbol, category})}`
       );
@@ -63,6 +60,9 @@ export class FilledProfitOrder {
           data: JSON.stringify(response),
         });
       }
+
+      this.orderBook.handleFilledProfitOrder();
+      this.position.handleFilledProfitOrder();
 
       if (this.state.status === 'WAIT_AND_STOP') {
         this.state.stop();

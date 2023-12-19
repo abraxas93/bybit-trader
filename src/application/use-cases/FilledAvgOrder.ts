@@ -42,15 +42,6 @@ export class FilledAvgOrder {
     cumExecValue: string;
   }) {
     try {
-      // this.orderBook.removeFromOrdBook(orderLinkId);
-      this.orderBook.isAvgOrderExists = false;
-
-      this.position.handleFilledAvgOrder(cumExecQty, cumExecValue, avgPrice);
-      this.orderBook.incAvgOrderCount();
-
-      this.candle.resetCandlesCount();
-      this.state.resetReopenTimer();
-
       const symbol = this.options.symbol;
       const category = this.options.category;
 
@@ -71,6 +62,11 @@ export class FilledAvgOrder {
           data: JSON.stringify(response),
         });
       }
+
+      this.orderBook.isAvgOrderExists = false;
+      this.position.handleFilledAvgOrder(cumExecQty, cumExecValue, avgPrice);
+      this.orderBook.incAvgOrderCount();
+      this.candle.resetCandlesCount();
 
       this.emitter.emit(AVG_ORDER_FILLED);
       this.emitter.emit(LOG_EVENT, label);
