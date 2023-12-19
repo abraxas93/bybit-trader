@@ -83,7 +83,9 @@ export class WsTopicHandler {
         side === 'Buy' &&
         orderStatus === 'PartiallyFilled'
       ) {
-        this.partFilledAvgOrder.execute({cumExecQty, cumExecValue});
+        this.partFilledAvgOrder
+          .execute({cumExecQty, cumExecValue})
+          .catch(err => log.errs.error(JSON.stringify(err)));
         return;
       }
     }

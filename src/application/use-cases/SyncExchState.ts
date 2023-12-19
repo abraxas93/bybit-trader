@@ -2,14 +2,9 @@ import {RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
-import {
-  AppState,
-  CandleStick,
-  Options,
-  OrderBook,
-  Position,
-} from '../../domain/entities';
+import {AppState} from '../../domain/entities';
 import {ERROR_EVENT} from '../../constants';
+import {PartiallyFilledAvgOrder} from './PartiallyFilledAvgOrder';
 
 const label = 'SyncExchState';
 @injectable()
@@ -19,21 +14,16 @@ export class SyncExchState {
     private readonly emitter: EventEmitter,
     @inject('RestClientV5')
     private readonly client: RestClientV5,
-    @inject('Options')
-    private readonly options: Options,
-    @inject('OrderBook')
-    private readonly orderBook: OrderBook,
     @inject('AppState')
     private readonly state: AppState,
-    @inject('Position')
-    private readonly position: Position,
-    @inject('CandleStick')
-    private readonly candle: CandleStick
+    @inject('PartiallyFilledAvgOrder')
+    private readonly partiallyFilledAvgOrd: PartiallyFilledAvgOrder
   ) {}
   async execute() {
     try {
-      const symbol = this.options.symbol;
-      const category = this.options.category;
+      const symbol = this.state.options.symbol;
+      const category = this.state.options.category;
+
       log.api.info(`${label}:REQUEST:getPositionInfo:${symbol} ${category}|`);
       const response = await this.client.getPositionInfo({
         symbol,
@@ -42,6 +32,7 @@ export class SyncExchState {
       log.api.info(
         `${label}:RESPONSE:getPositionInfo:${JSON.stringify(response)}|`
       );
+
       const position = response.result.list.pop();
       if (!position) {
         this.emitter.emit(ERROR_EVENT, {
@@ -50,14 +41,11 @@ export class SyncExchState {
         });
         return;
       }
-      if (position?.side === 'None') {
-        // this.orderBook.clearOrderBook();
-        this.position.handleFilledProfitOrder();
-        // TODO: clear other stuff
-      } else {
-        const symbol = this.options.symbol;
-        const category = this.options.category;
 
+      if (position?.side === 'None') {
+        this.state.position.handleFilledProfitOrder();
+        return;
+      } else {
         const response = await this.client.getActiveOrders({
           symbol,
           category,
@@ -70,39 +58,36 @@ export class SyncExchState {
           });
         }
 
-        const linkedIds = response.result.list.map(o => o.orderLinkId);
-        const avgOrderId = ''; //  this.orderBook.getOrderIdBy('AVERAGE_ORDER');
-        if (avgOrderId && !linkedIds.includes(avgOrderId)) {
-          // avg order were filled
-          //this.orderBook.removeFromOrdBook(avgOrderId);
-          this.orderBook.isAvgOrderExists = false;
-          this.position.lastAvgCumExecQty = '0';
-          this.orderBook.incAvgOrderCount();
-          this.candle.resetCandlesCount();
-          this.state.resetReopenTimer();
+        const buyOrder = response.result.list.find(o => o.side === 'Buy');
+        const sellOrder = response.result.list.find(o => o.side === 'Sell');
 
-          const orderData = response.result.list.find(
-            o => o.orderLinkId === avgOrderId
+        if (sellOrder && parseFloat(sellOrder.cumExecQty) > 0) {
+          // partially filled profit order
+          this.state.position.handlePartiallyFilledProfitOrder(
+            sellOrder.cumExecQty
           );
-
-          orderData && (this.position.lastAvgOrderPrice = orderData.avgPrice);
         }
-        if (avgOrderId && linkedIds.includes(avgOrderId)) {
+
+        if (!buyOrder && this.state.orderBook.isAvgOrderExists) {
+          // average order filled
+          this.state.orderBook.isAvgOrderExists = false;
+          this.state.position.lastAvgCumExecQty = '0';
+          this.state.orderBook.incAvgOrderCount();
+          this.state.candle.resetCandlesCount();
+
+          this.state.position.lastAvgOrderPrice = buyOrder.avgPrice;
+        }
+
+        if (
+          buyOrder &&
+          this.state.orderBook.isAvgOrderExists &&
+          parseFloat(buyOrder.cumExecQty) > 0
+        ) {
           // avg order were partially filled
-          const orderData = response.result.list.find(
-            o => o.orderLinkId === avgOrderId
-          );
-          orderData &&
-            (this.position.lastAvgCumExecQty = orderData?.cumExecQty);
-
-          // this.state.reopenProfitOrder();
+          const {cumExecQty, cumExecValue} = buyOrder;
+          await this.partiallyFilledAvgOrd.execute({cumExecQty, cumExecValue});
         }
-
-        this.position.posQty = position.size;
-        this.position.avgPosPrice = position.avgPrice;
       }
-
-      // this.state.unpause();
     } catch (error) {
       this.emitter.emit(ERROR_EVENT, {
         label,
