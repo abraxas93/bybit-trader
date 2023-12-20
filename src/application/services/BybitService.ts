@@ -18,6 +18,7 @@ import moment from 'moment';
 @injectable()
 export class BybitService {
   public sessionId: string = v4();
+  public isLogged = process.env.DB_LOGS;
 
   constructor(
     @inject('RestClientV5')
@@ -31,6 +32,7 @@ export class BybitService {
   };
 
   private saveRequest = (label: string, request: object, name: string) => {
+    if (!this.isLogged) return;
     this.mongo
       .db(MONGO_DB)
       .collection(`${ENV}_requests`)
@@ -46,6 +48,7 @@ export class BybitService {
   };
 
   private saveResponse = (label: string, response: object, name: string) => {
+    if (!this.isLogged) return;
     this.mongo
       .db(MONGO_DB)
       .collection(`${ENV}_responses`)

@@ -25,7 +25,6 @@ import {log} from '../utils';
 import {SnapshotBuilder} from '../domain/entities/SnapshotBuilder';
 import {Redis} from 'ioredis';
 import {MONGO_DB, USER} from '../config';
-import {BybitService} from '../application/services';
 import {MongoClient} from 'mongodb';
 
 @injectable()
