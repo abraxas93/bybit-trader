@@ -90,11 +90,4 @@ export class AppState {
   setAmmendAvgOrdTimer = (id: NodeJS.Timeout) => {
     this.timer = id;
   };
-
-  // ammendAvgOrder = () => {
-  //   this.resetReopenTimer();
-  //   this.timer = setTimeout(() => {
-  //     this.emitter.emit(CANCEL_ORDER, 'Buy');
-  //   }, REOPEN_TIMER);
-  // };
 }

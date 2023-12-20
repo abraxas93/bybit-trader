@@ -23,6 +23,8 @@ import {
 
 import {log} from '../utils';
 import {SnapshotBuilder} from '../domain/entities/SnapshotBuilder';
+import {Redis} from 'ioredis';
+import {USER} from '../config';
 
 @injectable()
 export class EventListener {
@@ -38,7 +40,9 @@ export class EventListener {
     @inject('SnapshotBuilder')
     private readonly snpBuilder: SnapshotBuilder,
     @inject('AmmendOrder')
-    private readonly ammendOrder: AmmendOrder
+    private readonly ammendOrder: AmmendOrder,
+    @inject('Redis')
+    private readonly redis: Redis
   ) {}
 
   startListening(emitter: EventEmitter) {
@@ -93,6 +97,12 @@ export class EventListener {
     stack: string;
   }) => {
     log.errs.error(JSON.stringify(data));
+    this.redis
+      .publish(
+        `${USER}:RESPONSE`,
+        `*ByBitTrader Error:* ${data.message} at ${data.label}`
+      )
+      .catch(err => log.errs.error(err));
   };
 
   private handleCandleClosed = async () => {
