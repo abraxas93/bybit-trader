@@ -1,22 +1,11 @@
-import {
-  OrderSideV5,
-  OrderTypeV5,
-  RestClientV5,
-  WebsocketClient,
-} from 'bybit-api';
+import {OrderSideV5, OrderTypeV5, WebsocketClient} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
 import {ERROR_EVENT} from '../../constants';
-import {Redis} from 'ioredis';
 import {USER} from '../../config';
-import {
-  AppState,
-  CandleStick,
-  Options,
-  OrderBook,
-  Position,
-} from '../../domain/entities';
+import {AppState} from '../../domain/entities';
+import {BybitService} from '../services';
 
 const label = 'AppStop';
 @injectable()
@@ -24,36 +13,23 @@ export class AppStop {
   constructor(
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
-    @inject('Redis')
-    private readonly redis: Redis,
-    @inject('RestClientV5')
-    private readonly client: RestClientV5,
+    @inject('BybitService')
+    private readonly service: BybitService,
     @inject('WebsocketClient')
     private readonly ws: WebsocketClient,
-    @inject('Options')
-    private readonly options: Options,
-    @inject('Position')
-    private readonly position: Position,
-    @inject('OrderBook')
-    private readonly orderBook: OrderBook,
-    @inject('CandleStick')
-    private readonly candle: CandleStick,
     @inject('AppState')
     private readonly state: AppState
   ) {}
 
   execute = async () => {
     try {
-      const symbol = this.options.symbol;
-      const category = this.options.category;
-      log.api.info(`${label}:REQUEST:getPositionInfo:${symbol} ${category}|`);
-      const response = await this.client.getPositionInfo({
+      const symbol = this.state.options.symbol;
+      const category = this.state.options.category;
+
+      const response = await this.service.getPositionInfo(label, {
         symbol,
         category,
       });
-      log.api.info(
-        `${label}:RESPONSE:getPositionInfo:${JSON.stringify(response)}|`
-      );
 
       const position = response.result.list.pop();
       if (!position) {
@@ -65,12 +41,12 @@ export class AppStop {
       }
       if (position?.side === 'None') {
         this.ws.unsubscribeV5([`tickers.${symbol}`, 'order'], 'linear');
-        this.orderBook.reset();
-        this.position.closePosition();
-        this.candle.clear();
+        this.state.orderBook.reset();
+        this.state.position.closePosition();
+        this.state.candle.clear();
         this.state.stop();
 
-        await this.redis
+        await this.state.redis
           .publish(`${USER}:RESPONSE`, '*ByBitTrader:* application stopped')
           .catch(err => log.errs.error(err));
         return;
@@ -85,50 +61,23 @@ export class AppStop {
         qty: position.size,
       };
 
-      log.api.info(`${label}:REQUEST:submitOrder:${JSON.stringify(request)}|`);
-      const orderResponse = await this.client.submitOrder(request);
-      log.api.info(
-        `${label}:RESPONSE:submitOrder:${JSON.stringify(orderResponse)}|`
-      );
-
-      if (orderResponse.retCode) {
-        this.emitter.emit(ERROR_EVENT, {
-          label,
-          data: JSON.stringify(orderResponse),
-        });
-      }
-
-      log.api.info(`${label}:REQUEST|cancelAllOrders|${symbol} ${category}|`);
-      const cancelResponse = await this.client.cancelAllOrders({
+      await this.service.submitOrder(label, request);
+      await this.service.cancelAllOrders(label, {
         symbol,
         category,
-      });
-      log.api.info(
-        `${label}:RESPONSE|cancelAllOrders|${JSON.stringify(cancelResponse)}|`
-      );
-
-      this.emitter.emit(ERROR_EVENT, {
-        label,
-        data: JSON.stringify(cancelResponse),
       });
 
       this.ws.unsubscribeV5([`tickers.${symbol}`, 'order'], 'linear');
 
-      this.orderBook.reset();
-      this.position.closePosition();
-      this.candle.clear();
+      this.state.orderBook.reset();
+      this.state.position.closePosition();
+      this.state.candle.clear();
       this.state.stop();
 
-      await this.redis
-        .publish(`${USER}:RESPONSE`, '*ByBitTrader:* application stopped')
+      await this.state.redis
+        .publish(`${USER}:RESPONSE`, '*ByBitTrader:* App stopped')
         .catch(err => log.errs.error(err));
     } catch (error) {
-      await this.redis
-        .publish(
-          `${USER}:RESPONSE`,
-          `*ByBitTrader:* ${(error as Error).message}`
-        )
-        .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
         label,
         message: JSON.stringify((error as Error).message),

@@ -1,33 +1,18 @@
-import {RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
-import {log} from '../../utils';
-import {
-  AppState,
-  CandleStick,
-  Options,
-  OrderBook,
-  Position,
-} from '../../domain/entities';
+import {AppState} from '../../domain/entities';
 import {AVG_ORDER_FILLED, ERROR_EVENT, LOG_EVENT} from '../../constants';
+import {BybitService} from '../services';
 
 const label = 'FilledAvgOrder';
 
 @injectable()
 export class FilledAvgOrder {
   constructor(
-    @inject('RestClientV5')
-    private readonly client: RestClientV5,
+    @inject('BybitService')
+    private readonly service: BybitService,
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
-    @inject('Options')
-    private readonly options: Options,
-    @inject('Position')
-    private readonly position: Position,
-    @inject('OrderBook')
-    private readonly orderBook: OrderBook,
-    @inject('CandleStick')
-    private readonly candle: CandleStick,
     @inject('AppState')
     private readonly state: AppState
   ) {}
@@ -42,31 +27,26 @@ export class FilledAvgOrder {
     cumExecValue: string;
   }) {
     try {
-      const symbol = this.options.symbol;
-      const category = this.options.category;
+      const symbol = this.state.options.symbol;
+      const category = this.state.options.category;
 
-      log.api.info(
-        `${label}:REQUEST:cancelAllOrders:${JSON.stringify({symbol, category})}`
-      );
-      const response = await this.client.cancelAllOrders({
+      const response = await this.service.cancelAllOrders(label, {
         category: category,
         symbol,
       });
-      log.api.info(
-        `${label}:RESPONSE:cancelAllOrders:${JSON.stringify(response)}|`
-      );
 
       if (response.retCode) {
-        this.emitter.emit(ERROR_EVENT, {
-          label: label,
-          data: JSON.stringify(response),
-        });
+        return;
       }
 
-      this.orderBook.isAvgOrderExists = false;
-      this.position.handleFilledAvgOrder(cumExecQty, cumExecValue, avgPrice);
-      this.orderBook.incAvgOrderCount();
-      this.candle.resetCandlesCount();
+      this.state.orderBook.isAvgOrderExists = false;
+      this.state.position.handleFilledAvgOrder(
+        cumExecQty,
+        cumExecValue,
+        avgPrice
+      );
+      this.state.orderBook.incAvgOrderCount();
+      this.state.candle.resetCandlesCount();
 
       this.emitter.emit(AVG_ORDER_FILLED);
       this.emitter.emit(LOG_EVENT, label);

@@ -38,12 +38,6 @@ export class AppSetupApiSecret {
         )
         .catch(err => log.errs.error(err));
     } catch (error) {
-      await this.redis
-        .publish(
-          `${USER}:RESPONSE`,
-          `*ByBitTrader:* ${(error as Error).message}`
-        )
-        .catch(err => log.errs.error(err));
       this.emitter.emit(ERROR_EVENT, {
         label,
         message: JSON.stringify((error as Error).message),

@@ -1,6 +1,6 @@
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
-import {CandleStick, OrderBook, Position} from '../../domain/entities';
+import {AppState} from '../../domain/entities';
 import {ERROR_EVENT, LOG_EVENT, OPEN_ORDER_FILLED} from '../../constants';
 
 const label = 'FilledOpenOrder';
@@ -10,18 +10,14 @@ export class FilledOpenOrder {
   constructor(
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
-    @inject('CandleStick')
-    private readonly candle: CandleStick,
-    @inject('OrderBook')
-    private readonly orderBook: OrderBook,
-    @inject('Position')
-    private readonly position: Position
+    @inject('AppState')
+    private readonly state: AppState
   ) {}
 
   execute({avgPrice, cumExecQty}: {avgPrice: string; cumExecQty: string}) {
     try {
-      this.position.handleFilledLongOrder(cumExecQty, avgPrice);
-      this.candle.resetCandlesCount();
+      this.state.position.handleFilledLongOrder(cumExecQty, avgPrice);
+      this.state.candle.resetCandlesCount();
       this.emitter.emit(OPEN_ORDER_FILLED);
       this.emitter.emit(LOG_EVENT, label);
     } catch (error) {

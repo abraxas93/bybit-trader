@@ -108,7 +108,7 @@ export class Position {
       .mul(this.options.avgRate)
       .toFixed(this.options.digits);
     if (parseFloat(price) >= parseFloat(this._lastPrice)) return this.bid1Price;
-    return price;
+    return normalizeFloat(price);
   }
 
   get profitOrderPrice() {
@@ -116,7 +116,7 @@ export class Position {
       .mul(this.options.profitRate)
       .toFixed(this.options.digits);
     if (parseFloat(price) <= parseFloat(this._lastPrice)) return this.ask1Price;
-    return price;
+    return normalizeFloat(price);
   }
 
   get exists(): boolean {

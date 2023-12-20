@@ -2,8 +2,8 @@ import {inject, injectable} from 'tsyringe';
 import {EventEmitter} from 'events';
 import {AppState} from '../../domain/entities';
 import {ERROR_EVENT, LOG_EVENT} from '../../constants';
-import {AmendOrderParamsV5, RestClientV5} from 'bybit-api';
-import {log} from '../../utils';
+import {AmendOrderParamsV5} from 'bybit-api';
+import {BybitService} from '../services';
 
 const label = 'PartiallyFilledAvgOrder';
 @injectable()
@@ -13,8 +13,8 @@ export class PartiallyFilledAvgOrder {
     private readonly emitter: EventEmitter,
     @inject('AppState')
     private readonly state: AppState,
-    @inject('RestClientV5')
-    private readonly client: RestClientV5
+    @inject('BybitService')
+    private readonly service: BybitService
   ) {}
 
   async execute({
@@ -32,26 +32,15 @@ export class PartiallyFilledAvgOrder {
       const category = this.state.options.category;
       const price = this.state.position.profitOrderPrice;
 
-      log.api.info(`${label}:REQUEST|amendOrder|${orderId} ${qty}|`);
-      const profitOrderResponse = await this.client.amendOrder({
+      await this.service.amendOrder(label, {
         symbol,
         category,
         orderId,
         qty,
         price,
       } as AmendOrderParamsV5);
-      log.api.info(
-        `${label}:RESPONSE|amendOrder|${JSON.stringify(profitOrderResponse)}|`
-      );
 
       this.state.position.lastProfitCumExecQty = '0';
-
-      if (profitOrderResponse.retCode) {
-        this.emitter.emit(ERROR_EVENT, {
-          label,
-          data: JSON.stringify(profitOrderResponse),
-        });
-      }
 
       this.emitter.emit(LOG_EVENT, {
         label,

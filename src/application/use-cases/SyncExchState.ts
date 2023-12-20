@@ -1,10 +1,9 @@
-import {RestClientV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
-import {log} from '../../utils';
 import {AppState} from '../../domain/entities';
 import {ERROR_EVENT} from '../../constants';
 import {PartiallyFilledAvgOrder} from './PartiallyFilledAvgOrder';
+import {BybitService} from '../services';
 
 const label = 'SyncExchState';
 @injectable()
@@ -12,8 +11,8 @@ export class SyncExchState {
   constructor(
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
-    @inject('RestClientV5')
-    private readonly client: RestClientV5,
+    @inject('BybitService')
+    private readonly service: BybitService,
     @inject('AppState')
     private readonly state: AppState,
     @inject('PartiallyFilledAvgOrder')
@@ -24,14 +23,10 @@ export class SyncExchState {
       const symbol = this.state.options.symbol;
       const category = this.state.options.category;
 
-      log.api.info(`${label}:REQUEST:getPositionInfo:${symbol} ${category}|`);
-      const response = await this.client.getPositionInfo({
+      const response = await this.service.getPositionInfo(label, {
         symbol,
         category,
       });
-      log.api.info(
-        `${label}:RESPONSE:getPositionInfo:${JSON.stringify(response)}|`
-      );
 
       const position = response.result.list.pop();
       if (!position) {
@@ -46,17 +41,10 @@ export class SyncExchState {
         this.state.position.handleFilledProfitOrder();
         return;
       } else {
-        const response = await this.client.getActiveOrders({
+        const response = await this.service.getActiveOrders(label, {
           symbol,
           category,
         });
-
-        if (response.retCode) {
-          this.emitter.emit(ERROR_EVENT, {
-            label,
-            data: JSON.stringify(response),
-          });
-        }
 
         const buyOrder = response.result.list.find(o => o.side === 'Buy');
         const sellOrder = response.result.list.find(o => o.side === 'Sell');

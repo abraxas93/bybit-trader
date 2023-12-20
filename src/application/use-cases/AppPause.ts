@@ -28,10 +28,6 @@ export class AppPause {
       await this.redis
         .publish(`${USER}:RESPONSE`, `${(error as Error).message}`)
         .catch(err => log.errs.error((err as Error).message));
-      this.emitter.emit(ERROR_EVENT, {
-        label,
-        data: (error as Error).message,
-      });
     }
   };
 }

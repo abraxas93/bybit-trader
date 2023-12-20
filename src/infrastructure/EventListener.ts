@@ -24,7 +24,9 @@ import {
 import {log} from '../utils';
 import {SnapshotBuilder} from '../domain/entities/SnapshotBuilder';
 import {Redis} from 'ioredis';
-import {USER} from '../config';
+import {MONGO_DB, USER} from '../config';
+import {BybitService} from '../application/services';
+import {MongoClient} from 'mongodb';
 
 @injectable()
 export class EventListener {
@@ -42,7 +44,9 @@ export class EventListener {
     @inject('AmmendOrder')
     private readonly ammendOrder: AmmendOrder,
     @inject('Redis')
-    private readonly redis: Redis
+    private readonly redis: Redis,
+    @inject('MongoClient')
+    private readonly mongo: MongoClient
   ) {}
 
   startListening(emitter: EventEmitter) {
@@ -97,6 +101,11 @@ export class EventListener {
     stack: string;
   }) => {
     log.errs.error(JSON.stringify(data));
+    this.mongo
+      .db(MONGO_DB)
+      .collection('errors')
+      .insertOne(data)
+      .catch(err => log.errs.error(err));
     this.redis
       .publish(
         `${USER}:RESPONSE`,
@@ -111,11 +120,11 @@ export class EventListener {
   };
 
   private handleLogEvent = (label: string) => {
-    log.candle.info(`${label}:${this.snpBuilder.getStateSnapshot('candle')}`);
-    log.order.info(`${label}:${this.snpBuilder.getStateSnapshot('orderBook')}`);
-    log.position.info(
-      `${label}:${this.snpBuilder.getStateSnapshot('position')}`
-    );
+    // log.candle.info(`${label}:${this.snpBuilder.getStateSnapshot('candle')}`);
+    // log.order.info(`${label}:${this.snpBuilder.getStateSnapshot('orderBook')}`);
+    // log.position.info(
+    //   `${label}:${this.snpBuilder.getStateSnapshot('position')}`
+    // );
   };
 }
 

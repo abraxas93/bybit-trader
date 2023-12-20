@@ -1,16 +1,17 @@
-import {OrderParamsV5, RestClientV5} from 'bybit-api';
+import {OrderParamsV5} from 'bybit-api';
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {AppState} from '../../domain/entities';
 import {ERROR_EVENT, LOG_EVENT} from '../../constants';
-import {getOrderLinkId, log} from '../../utils';
+import {getOrderLinkId} from '../../utils';
+import {BybitService} from '../services';
 
 const label = 'SubmitProfitOrder';
 @injectable()
 export class SubmitProfitOrder {
   constructor(
-    @inject('RestClientV5')
-    private readonly client: RestClientV5,
+    @inject('BybitService')
+    private readonly service: BybitService,
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
     @inject('AppState')
@@ -36,20 +37,9 @@ export class SubmitProfitOrder {
         orderLinkId,
       };
 
-      log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
-      const response = await this.client.submitOrder(body);
-      log.api.info(
-        `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`
-      );
+      const response = await this.service.submitOrder(label, body);
 
-      const {retCode, result} = response;
-
-      if (retCode) {
-        this.emitter.emit(ERROR_EVENT, {
-          label,
-          data: JSON.stringify(response),
-        });
-      }
+      const {result} = response;
 
       this.state.orderBook.profitOrderId = result.orderId;
 

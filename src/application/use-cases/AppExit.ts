@@ -1,10 +1,10 @@
 import {EventEmitter} from 'events';
 import {inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
-import {RKEYS} from '../../constants';
+import {ERROR_EVENT, RKEYS} from '../../constants';
 import {Redis} from 'ioredis';
 import {Options} from '../../domain/entities';
-import {RestClientV5} from 'bybit-api';
+import {BybitService} from '../services';
 
 const label = 'AppExit';
 @injectable()
@@ -16,8 +16,8 @@ export class AppExit {
     private readonly redis: Redis,
     @inject('Options')
     private readonly options: Options,
-    @inject('RestClientV5')
-    private readonly client: RestClientV5
+    @inject('BybitService')
+    private readonly service: BybitService
   ) {}
 
   execute = async () => {
@@ -25,16 +25,23 @@ export class AppExit {
       const symbol = this.options.symbol;
       const category = this.options.category;
 
-      const response = await this.client.cancelAllOrders({symbol, category});
-      log.api.info(response);
+      const response = await this.service.cancelAllOrders(label, {
+        symbol,
+        category,
+      });
+
       if (response.retCode) {
-        log.errs.error(`${label}:` + JSON.stringify(response));
+        return;
       } else {
         await this.redis.set(RKEYS.AVG_ORDER_EXISTS, 'false');
         await this.redis.set(RKEYS.PROFIT_TAKES_COUNT, '0');
       }
     } catch (error) {
-      log.errs.error(`${label}:` + (error as Error).message);
+      this.emitter.emit(ERROR_EVENT, {
+        label,
+        message: JSON.stringify((error as Error).message),
+        stack: JSON.stringify((error as Error).stack),
+      });
     } finally {
       // eslint-disable-next-line no-process-exit
       process.exit(0);

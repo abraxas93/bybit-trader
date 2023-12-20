@@ -12,7 +12,7 @@ import {
   EventListener,
   WebSocketHandler,
 } from './infrastructure';
-import {AppExit} from './application';
+import {AppStart, AppStop} from './application';
 import {API_SECRET, API_KEY} from './keys';
 
 const label = '[index.ts]';
@@ -29,8 +29,8 @@ async function main() {
   const wsHandler = container.resolve<WebSocketHandler>('WebSocketHandler');
   const state = container.resolve<AppState>('AppState');
 
-  await state.redis.set(`${USER}:${ENV}:${API_KEY}`, '');
-  await state.redis.set(`${USER}:${ENV}:${API_SECRET}`, '');
+  // await state.redis.set(`${USER}:${ENV}:${API_KEY}`, '');
+  // await state.redis.set(`${USER}:${ENV}:${API_SECRET}`, '');
 
   state.stop();
 
@@ -55,18 +55,23 @@ async function main() {
       `*ByBitTrader:* started \\-env:${ENV} \\-options: ${msg} \\-user: ${USER}`
     )
     .catch(err => log.errs.error(err));
+
+  setTimeout(() => {
+    const c = container.resolve<AppStart>('AppStart');
+    c.execute().catch(e => console.error(e));
+  }, 4000);
 }
 
 process.on('SIGINT', async () => {
   console.log('Received SIGINT, shutting down gracefully');
-  const appExit = container.resolve<AppExit>('AppExit');
-  await appExit.execute().catch(err => log.errs.error(err));
+  const appStop = container.resolve<AppStop>('AppStop');
+  await appStop.execute().catch(err => log.errs.error(err));
 });
 
 process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, shutting down gracefully');
-  const appExit = container.resolve<AppExit>('AppExit');
-  await appExit.execute().catch(err => log.errs.error(err));
+  const appStop = container.resolve<AppStop>('AppStop');
+  await appStop.execute().catch(err => log.errs.error(err));
 });
 
 process.on('uncaughtException', err => {

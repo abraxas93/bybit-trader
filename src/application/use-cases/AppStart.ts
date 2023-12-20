@@ -5,11 +5,11 @@ import {EventEmitter} from 'events';
 import {container, inject, injectable} from 'tsyringe';
 import {log} from '../../utils';
 import {ERROR_EVENT} from '../../constants';
-import {Redis} from 'ioredis';
 import {ENV, USER} from '../../config';
-import {AppState, Options} from '../../domain/entities';
+import {AppState} from '../../domain/entities';
 import {SubmitOpenOrder} from './SubmitOpenOrder';
 import {API_KEY, API_SECRET} from '../../keys';
+import {BybitService} from '../services';
 
 const START_TIME = 6000;
 
@@ -19,26 +19,24 @@ export class AppStart {
   constructor(
     @inject('EventEmitter')
     private readonly emitter: EventEmitter,
-    @inject('Redis')
-    private readonly redis: Redis,
+    @inject('BybitService')
+    private readonly service: BybitService,
     @inject('RestClientV5')
     private readonly client: RestClientV5,
     @inject('WebsocketClient')
     private readonly ws: WebsocketClient,
-    @inject('Options')
-    private readonly options: Options,
     @inject('AppState')
     private readonly state: AppState
   ) {}
 
   execute = async () => {
     try {
-      const symbol = this.options.symbol;
-      const category = this.options.category;
-      const isApiKeyExists = await this.redis.get(
+      const symbol = this.state.options.symbol;
+      const category = this.state.options.category;
+      const isApiKeyExists = await this.state.redis.get(
         `${USER}:${ENV}:${API_KEY || ''}`
       );
-      const isApiSecretExists = await this.redis.get(
+      const isApiSecretExists = await this.state.redis.get(
         `${USER}:${ENV}:${API_SECRET || ''}`
       );
 
@@ -68,22 +66,20 @@ export class AppStart {
       ws.subscribeV5([`tickers.${symbol}`, 'order'], category).catch(err =>
         log.errs.error(JSON.stringify(err))
       );
-
+      this.service.newSession();
       setTimeout(async () => {
         const useCase = container.resolve<SubmitOpenOrder>('SubmitOpenOrder');
         await useCase.execute();
         message += 'Started';
-        await this.redis
+        await this.state.redis
           .publish(`${USER}:RESPONSE`, message)
           .catch(err => log.errs.error(err));
       }, START_TIME);
     } catch (error) {
-      await this.redis
-        .publish(`${USER}:RESPONSE`, `${(error as Error).message}`)
-        .catch(err => log.errs.error(err.message));
       this.emitter.emit(ERROR_EVENT, {
         label,
-        data: (error as Error).message,
+        message: JSON.stringify((error as Error).message),
+        stack: JSON.stringify((error as Error).stack),
       });
     }
   };
