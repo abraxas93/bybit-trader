@@ -75,8 +75,10 @@ process.on('uncaughtException', err => {
     stack: JSON.stringify(err.stack),
   };
   log.errs.error(JSON.stringify(data));
+  process.exit();
 });
 
 process.on('unhandledRejection', err => {
   log.errs.error(JSON.stringify(err));
+  process.exit();
 });
