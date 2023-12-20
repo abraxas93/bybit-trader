@@ -11,7 +11,7 @@ export async function createMongoClient(): Promise<MongoClient> {
   const user = MONGO_USER;
   const password = MONGO_PASSWORD;
 
-  if (!url) throw new Error(`ENV_VAR: mongodb url is ${url as string}`);
+  if (!url) throw new Error(`ENV_VAR: mongodb url is ${url}`);
 
   const client = await MongoClient.connect(url, {
     auth: {username: user, password},

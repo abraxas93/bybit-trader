@@ -46,10 +46,13 @@ import {
   WebSocketHandler,
 } from './infrastructure';
 import {API_KEY, API_SECRET, REDIS_HOST} from './config';
+import {createMongoClient} from './infrastructure/database/mongo/createMongoClient';
+import {MongoClient} from 'mongodb';
 
 export async function bootstrapCtx() {
   const eventEmitter = new EventEmitter();
   const redis = new Redis({port: 6379, host: REDIS_HOST});
+  const mongodb = await createMongoClient();
 
   const wsOptions: WSClientConfigurableOptions = {
     key: API_KEY,
@@ -81,6 +84,7 @@ export async function bootstrapCtx() {
 
   // infra
   container.register<EventEmitter>('EventEmitter', {useValue: eventEmitter});
+  container.register<MongoClient>('MongoClient', {useValue: mongodb});
   container.register<SnapshotBuilder>('SnapshotBuilder', SnapshotBuilder);
   container.register<RedisSubscriber>('RedisSubscriber', RedisSubscriber);
   container.register<EventListener>('EventListener', EventListener);
