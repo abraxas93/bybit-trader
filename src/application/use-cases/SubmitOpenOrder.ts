@@ -81,7 +81,6 @@ export class SubmitOpenOrder {
       };
 
       log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
-      // this.orderBook.addToOrdBook(orderLinkId, 'OPEN_ORDER');
       const response = await this.client.submitOrder(body);
       log.api.info(
         `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`

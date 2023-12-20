@@ -48,6 +48,7 @@ import {
 import {API_KEY, API_SECRET, REDIS_HOST} from './config';
 import {createMongoClient} from './infrastructure/database/mongo/createMongoClient';
 import {MongoClient} from 'mongodb';
+import {BybitService} from './application/services';
 
 export async function bootstrapCtx() {
   const eventEmitter = new EventEmitter();
@@ -74,6 +75,7 @@ export async function bootstrapCtx() {
   const candleStick = new CandleStick(redis, options, eventEmitter);
   const position = new Position(redis, options);
   const state = new AppState(candleStick, orderBook, options, position, redis);
+  const bybitService = new BybitService(bybitClient, mongodb);
 
   // options
 
@@ -93,6 +95,7 @@ export async function bootstrapCtx() {
   // services
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
+  container.register<BybitService>('BybitService', {useValue: bybitService});
 
   // state
   container.register<Position>('Position', {useValue: position});

@@ -30,6 +30,8 @@ export const API_KEY =
 export const API_SECRET =
   ENV === 'prod' ? process.env.API_SECRET : process.env.API_SECRET_TEST;
 
+// db
+
 // config
 
 export const SYMBOL = 'USTCUSDT';
