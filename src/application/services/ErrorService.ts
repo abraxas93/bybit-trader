@@ -16,7 +16,7 @@ export class ErrorService {
     private readonly mongo: MongoClient
   ) {}
 
-  addError = (message: string, label: string) => {
+  addError = (message: string, label: string, stack: string) => {
     if (this.errors[message]) return;
 
     this.errors[message] = true;
@@ -25,6 +25,17 @@ export class ErrorService {
         `${USER}:RESPONSE`,
         `*ByBitTrader Error:* ${message} at ${label}`
       )
+      .catch(err => log.errs.error(err));
+    this.mongo
+      .db(MONGO_DB)
+      .collection(`${ENV}_errors`)
+      .insertOne({
+        message,
+        userId: USER,
+        label,
+        stack,
+        createdAt: moment().utc().format(),
+      })
       .catch(err => log.errs.error(err));
     setTimeout(() => {
       delete this.errors[message];

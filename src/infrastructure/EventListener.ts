@@ -96,7 +96,7 @@ export class EventListener {
     stack: string;
   }) => {
     log.errs.error(JSON.stringify(data));
-    this.errService.addError(data.message, data.label);
+    this.errService.addError(data.message, data.label, data.stack);
   };
 
   private handleCandleClosed = async () => {
