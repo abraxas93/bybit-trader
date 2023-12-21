@@ -22,7 +22,11 @@ export const PASSWORD_LENGTH = parseInt(process.env.PASSWORD_LENGTH || '');
 export const ENV = process.env.NODE_ENV || '';
 export const USER = process.env.USER_ID || '';
 
-export const REDIS_HOST = process.env.NODE_ENV === 'development' ? 'redis' : '';
+export const REDIS_HOST =
+  process.env.NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'production'
+    ? 'redis'
+    : '';
 
 // ByBit secrets
 export const API_KEY =
