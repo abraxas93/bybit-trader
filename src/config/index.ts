@@ -30,6 +30,9 @@ export const API_KEY =
 export const API_SECRET =
   ENV === 'prod' ? process.env.API_SECRET : process.env.API_SECRET_TEST;
 
+// logs
+export const DB_LOGS = process.env.DB_LOGS;
+export const FILE_LOGS = process.env.FILE_LOGS;
 // db
 
 // config

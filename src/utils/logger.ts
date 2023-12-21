@@ -42,7 +42,7 @@ export function initLogger(label: string, logFileName: string, mute = false) {
       }),
       new transports.File({
         filename: path.join(folderPath, logFileName),
-        silent: process.env.LOGS ? false : true,
+        silent: process.env.FILE_LOGS ? false : true,
         format: fileFormat,
       }),
     ],

@@ -26,6 +26,8 @@ export class AppStop {
       const symbol = this.state.options.symbol;
       const category = this.state.options.category;
 
+      this.ws.unsubscribeV5([`tickers.${symbol}`, 'order'], 'linear');
+
       const response = await this.service.getPositionInfo(label, {
         symbol,
         category,
@@ -66,8 +68,6 @@ export class AppStop {
         symbol,
         category,
       });
-
-      this.ws.unsubscribeV5([`tickers.${symbol}`, 'order'], 'linear');
 
       this.state.orderBook.reset();
       this.state.position.closePosition();
