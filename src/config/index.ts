@@ -48,3 +48,6 @@ export const CANDLES_TO_WAIT = 1;
 export const DIGITS_AFTER_COMMA = 6;
 export const CATEGORY = 'linear';
 export const TRADE_CYCLES = 10;
+
+// errors
+export const TIME_TO_DELETE = 60000;

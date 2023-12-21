@@ -23,13 +23,13 @@ import {
 
 import {log} from '../utils';
 import {SnapshotBuilder} from '../domain/entities/SnapshotBuilder';
-import {Redis} from 'ioredis';
-import {MONGO_DB, USER} from '../config';
-import {MongoClient} from 'mongodb';
+import {ErrorService} from '../application/services';
 
 @injectable()
 export class EventListener {
   constructor(
+    @inject('ErrorService')
+    private readonly errService: ErrorService,
     @inject('SubmitOpenOrder')
     private readonly submitOpenOrder: SubmitOpenOrder,
     @inject('SubmitProfitOrder')
@@ -41,11 +41,7 @@ export class EventListener {
     @inject('SnapshotBuilder')
     private readonly snpBuilder: SnapshotBuilder,
     @inject('AmmendOrder')
-    private readonly ammendOrder: AmmendOrder,
-    @inject('Redis')
-    private readonly redis: Redis,
-    @inject('MongoClient')
-    private readonly mongo: MongoClient
+    private readonly ammendOrder: AmmendOrder
   ) {}
 
   startListening(emitter: EventEmitter) {
@@ -100,17 +96,7 @@ export class EventListener {
     stack: string;
   }) => {
     log.errs.error(JSON.stringify(data));
-    this.mongo
-      .db(MONGO_DB)
-      .collection('errors')
-      .insertOne(data)
-      .catch(err => log.errs.error(err));
-    this.redis
-      .publish(
-        `${USER}:RESPONSE`,
-        `*ByBitTrader Error:* ${data.message} at ${data.label}`
-      )
-      .catch(err => log.errs.error(err));
+    this.errService.addError(data.message, data.label);
   };
 
   private handleCandleClosed = async () => {

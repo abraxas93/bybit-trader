@@ -48,7 +48,7 @@ import {
 import {API_KEY, API_SECRET, REDIS_HOST} from './config';
 import {createMongoClient} from './infrastructure/database/mongo/createMongoClient';
 import {MongoClient} from 'mongodb';
-import {BybitService} from './application/services';
+import {BybitService, ErrorService} from './application/services';
 
 export async function bootstrapCtx() {
   const eventEmitter = new EventEmitter();
@@ -58,7 +58,7 @@ export async function bootstrapCtx() {
   const wsOptions: WSClientConfigurableOptions = {
     key: API_KEY,
     secret: API_SECRET,
-    testnet: process.env.NODE_ENV === 'prod' ? false : true,
+    testnet: process.env.NODE_ENV === 'production' ? false : true,
     market: 'v5',
   };
 
@@ -66,7 +66,7 @@ export async function bootstrapCtx() {
   const bybitClient = new RestClientV5({
     key: API_KEY,
     secret: API_SECRET,
-    testnet: process.env.NODE_ENV === 'prod' ? false : true,
+    testnet: process.env.NODE_ENV === 'production' ? false : true,
   });
 
   const options = new Options(redis);
@@ -75,7 +75,8 @@ export async function bootstrapCtx() {
   const candleStick = new CandleStick(redis, options, eventEmitter);
   const position = new Position(redis, options);
   const state = new AppState(candleStick, orderBook, options, position, redis);
-  const bybitService = new BybitService(bybitClient, mongodb);
+  const errService = new ErrorService(state, mongodb);
+  const bybitService = new BybitService(errService, bybitClient, mongodb);
 
   // options
 
@@ -96,6 +97,7 @@ export async function bootstrapCtx() {
   container.register<WebsocketClient>('WebsocketClient', {useValue: bybitWs});
   container.register<RestClientV5>('RestClientV5', {useValue: bybitClient});
   container.register<BybitService>('BybitService', {useValue: bybitService});
+  container.register<ErrorService>('ErrorService', {useValue: errService});
 
   // state
   container.register<Position>('Position', {useValue: position});

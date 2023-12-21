@@ -14,6 +14,7 @@ import {inject, injectable} from 'tsyringe';
 import {getOrderLinkId, log} from '../../utils';
 import {ENV, MONGO_DB, USER} from '../../config';
 import moment from 'moment';
+import {ErrorService} from './ErrorService';
 
 @injectable()
 export class BybitService {
@@ -21,6 +22,8 @@ export class BybitService {
   public isLogged = process.env.DB_LOGS;
 
   constructor(
+    @inject('ErrorService')
+    private readonly errService: ErrorService,
     @inject('RestClientV5')
     private readonly client: RestClientV5,
     @inject('MongoClient')
@@ -64,8 +67,9 @@ export class BybitService {
   };
 
   async cancelOrder(label: string, params: CancelOrderParamsV5) {
+    const name = 'cancelOrder';
     log.api.info(`${label}:REQUEST|cancelOrder|${JSON.stringify(params)}|`);
-    this.saveRequest(label, params, 'cancelOrder');
+    this.saveRequest(label, params, name);
 
     const response = await this.client.cancelOrder(params);
 
@@ -73,6 +77,14 @@ export class BybitService {
     if (response.retCode) {
       log.api.error(
         `${label}:RESPONSE|cancelOrder|${JSON.stringify(response)}|`
+      );
+      this.errService.addApiError(
+        response.retCode,
+        label,
+        this.sessionId,
+        response.retMsg,
+        name,
+        response
       );
     } else {
       log.api.info(
@@ -84,13 +96,22 @@ export class BybitService {
   }
 
   async cancelAllOrders(label: string, params: CancelAllOrdersParamsV5) {
+    const name = 'cancelAllOrders';
     log.api.info(`${label}:REQUEST|cancelAllOrders|${JSON.stringify(params)}|`);
-    this.saveRequest(label, params, 'cancelAllOrders');
+    this.saveRequest(label, params, name);
     const response = await this.client.cancelAllOrders(params);
 
     if (response.retCode) {
       log.api.error(
         `${label}:RESPONSE|cancelAllOrders|${JSON.stringify(response)}|`
+      );
+      this.errService.addApiError(
+        response.retCode,
+        label,
+        this.sessionId,
+        response.retMsg,
+        name,
+        response
       );
     } else {
       log.api.info(
@@ -103,6 +124,7 @@ export class BybitService {
   }
 
   async submitOrder(label: string, params: OrderParamsV5) {
+    const name = 'submitOrder';
     const id = getOrderLinkId();
     const body = {
       ...params,
@@ -111,13 +133,21 @@ export class BybitService {
 
     log.api.info(`${label}:REQUEST|submitOrder|${JSON.stringify(body)}|`);
 
-    this.saveRequest(label, body, 'submitOrder');
+    this.saveRequest(label, body, name);
 
     const response = await this.client.submitOrder(body);
 
     if (response.retCode) {
       log.api.error(
         `${label}:RESPONSE|submitOrder|${JSON.stringify(response)}|`
+      );
+      this.errService.addApiError(
+        response.retCode,
+        label,
+        this.sessionId,
+        response.retMsg,
+        name,
+        response
       );
     } else {
       log.api.info(
@@ -131,13 +161,22 @@ export class BybitService {
   }
 
   async amendOrder(label: string, params: AmendOrderParamsV5) {
+    const name = 'amendOrder';
     log.api.info(`${label}:REQUEST|amendOrder|${JSON.stringify(params)}|`);
-    this.saveRequest(label, params, 'amendOrder');
+    this.saveRequest(label, params, name);
     const response = await this.client.amendOrder(params);
 
     if (response.retCode) {
       log.api.error(
         `${label}:RESPONSE|amendOrder|${JSON.stringify(response)}|`
+      );
+      this.errService.addApiError(
+        response.retCode,
+        label,
+        this.sessionId,
+        response.retMsg,
+        name,
+        response
       );
     } else {
       log.api.info(`${label}:RESPONSE|amendOrder|${JSON.stringify(response)}|`);
@@ -148,12 +187,21 @@ export class BybitService {
   }
 
   async getKline(label: string, params: GetKlineParamsV5) {
+    const name = 'getKline';
     log.api.info(`${label}:REQUEST|getKline|${JSON.stringify(params)} 1|`);
-    this.saveRequest(label, params, 'getKline');
+    this.saveRequest(label, params, name);
     const response = await this.client.getKline(params);
 
     if (response.retCode) {
       log.api.error(`${label}:RESPONSE|getKline|${JSON.stringify(response)}|`);
+      this.errService.addApiError(
+        response.retCode,
+        label,
+        this.sessionId,
+        response.retMsg,
+        name,
+        response
+      );
     } else {
       log.api.info(`${label}:RESPONSE|getKline|${JSON.stringify(response)}|`);
     }
@@ -163,34 +211,52 @@ export class BybitService {
   }
 
   async getPositionInfo(label: string, params: PositionInfoParamsV5) {
+    const name = 'getPositionInfo';
     log.api.info(`${label}:REQUEST|getPositionInfo|${JSON.stringify(params)}|`);
-    this.saveRequest(label, params, 'getPositionInfo');
+    this.saveRequest(label, params, name);
     const response = await this.client.getPositionInfo(params);
 
     if (response.retCode) {
       log.api.error(
         `${label}:RESPONSE|getPositionInfo|${JSON.stringify(response)}|`
       );
+      this.errService.addApiError(
+        response.retCode,
+        label,
+        this.sessionId,
+        response.retMsg,
+        name,
+        response
+      );
     } else {
       log.api.info(
         `${label}:RESPONSE|getPositionInfo|${JSON.stringify(response)}|`
       );
     }
-    this.saveResponse(label, response, 'getPositionInfo');
+    this.saveResponse(label, response, name);
 
     return response;
   }
 
   async getActiveOrders(label: string, params: GetAccountOrdersParamsV5) {
+    const name = 'getActiveOrders';
     log.api.info(`${label}:REQUEST|getActiveOrders|${JSON.stringify(params)}|`);
 
-    this.saveRequest(label, params, 'getActiveOrders');
+    this.saveRequest(label, params, name);
 
     const response = await this.client.getActiveOrders(params);
 
     if (response.retCode) {
       log.api.error(
         `${label}:RESPONSE|getActiveOrders:|${JSON.stringify(response)}|`
+      );
+      this.errService.addApiError(
+        response.retCode,
+        label,
+        this.sessionId,
+        response.retMsg,
+        name,
+        response
       );
     } else {
       log.api.info(
