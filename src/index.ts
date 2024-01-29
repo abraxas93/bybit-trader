@@ -14,30 +14,12 @@ import {
 } from './infrastructure';
 import {AppStop} from './application';
 import {API_SECRET, API_KEY} from './keys';
-import {RestClientV5} from 'bybit-api';
 
 const label = '[index.ts]';
 
-// main().catch(err => {
-//   log.errs.error(err);
-// });
-
-(async () => {
-  try {
-    await bootstrapCtx();
-    const cli = container.resolve<RestClientV5>('RestClientV5');
-    const data = await cli
-      .getKline({
-        symbol: '1000PEPEUSDT',
-        category: 'linear',
-        interval: '1',
-      })
-      .catch(err => console.log(err));
-    console.log(data.result.list);
-  } catch (error) {
-    console.log(error);
-  }
-})();
+main().catch(err => {
+  log.errs.error(err);
+});
 
 async function main() {
   await bootstrapCtx();
