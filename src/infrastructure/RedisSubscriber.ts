@@ -11,6 +11,7 @@ import {
   AppSyncStore,
   AppWaitAndStop,
   AppSwitchSymbol,
+  UpdateDigitsAfter,
 } from '../application';
 
 const parse = (str: string) => {
@@ -26,6 +27,7 @@ export const APP_WAIT_AND_EXIT = 'APP_WAIT_AND_EXIT';
 export const APP_SYNC_CONFIG = 'APP_SYNC_CONFIG';
 export const APP_SYNC_STORE = 'APP_SYNC_STORE';
 export const CHANGE_CURRENT_SYMBOL = 'CHANGE_CURRENT_SYMBOL';
+export const CHANGE_DIGIT_AFTER = 'CHANGE_DIGIT_AFTER';
 
 // Move the Redis subscription logic to a separate class
 @injectable()
@@ -78,6 +80,8 @@ export class RedisSubscriber {
         return container.resolve<AppSyncStore>('AppSyncStore');
       case CHANGE_CURRENT_SYMBOL:
         return container.resolve<AppSwitchSymbol>('AppSwitchSymbol');
+      case CHANGE_DIGIT_AFTER:
+        return container.resolve<UpdateDigitsAfter>('UpdateDigitsAfter>');
       default:
         return null;
     }

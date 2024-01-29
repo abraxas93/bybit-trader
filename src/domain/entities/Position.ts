@@ -4,7 +4,7 @@ import BigJs from 'big.js';
 import {initLogger} from '../../utils/logger';
 import {RKEYS} from '../../constants';
 import {Options} from './Options';
-import {normalizeFloat} from '../../utils';
+import {normalizeFloat, normalizeQty} from '../../utils';
 import {ENV, USER} from '../../config';
 
 const errLogger = initLogger('Position', 'errors.log');
@@ -22,6 +22,8 @@ export class Position {
   public lastAvgCumExecQty = '0';
   public lastProfitCumExecQty = '0';
   private symbol = '';
+
+  public digitsAfter = '2';
 
   constructor(
     @inject('Redids')
@@ -70,7 +72,7 @@ export class Position {
     const qty = new BigJs(this.posQty)
       .mul(this.options.martinGale)
       .toFixed(this.options.digits);
-    return normalizeFloat(qty);
+    return normalizeQty(normalizeFloat(qty), this.digitsAfter);
   }
 
   get lastAvgOrderPrice() {

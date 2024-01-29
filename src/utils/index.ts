@@ -17,3 +17,9 @@ export function getOrderLinkId() {
 }
 
 export const log: AppLogger = new AppLogger();
+
+export function normalizeQty(qty: string, afterComma: string) {
+  const arr = qty.split('.');
+  arr[1] = arr[1].slice(0, parseInt(afterComma));
+  return arr.join('.');
+}

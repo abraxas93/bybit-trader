@@ -30,6 +30,7 @@ import {
   SubmitOpenOrder,
   SubmitProfitOrder,
   SyncExchState,
+  UpdateDigitsAfter,
 } from './application';
 import {WsTopicHandler} from './infrastructure/adapters/handlers/WsTopicHandler';
 import {Options} from './domain/entities/Options';
@@ -124,6 +125,7 @@ export async function bootstrapCtx() {
   container.register<SubmitAvgOrder>('SubmitAvgOrder', SubmitAvgOrder);
   container.register<SyncExchState>('SyncExchState', SyncExchState);
   container.register<AmmendOrder>('AmmendOrder', AmmendOrder);
+  container.register<UpdateDigitsAfter>('UpdateDigitsAfter', UpdateDigitsAfter);
 
   container.register<AppSetupApiKey>('AppSetupApiKey', AppSetupApiKey);
   container.register<AppSetupApiSecret>('AppSetupApiSecret', AppSetupApiSecret);
