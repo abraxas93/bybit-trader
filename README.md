@@ -1,2 +1,3 @@
 # node-ts-boilerplate
-A node / typescript application template
+An ByBit trader app bot
+Requires telegram UI app for configuration
