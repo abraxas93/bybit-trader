@@ -1,3 +1,7 @@
-# node-ts-boilerplate
-An ByBit trader app bot
+# ByBit Trading algorithm
+- TypeScript
+- Redis
+- Docker
+- Node
+
 Requires telegram UI app for configuration
