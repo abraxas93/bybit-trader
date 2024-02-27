@@ -114,9 +114,7 @@ export class CandleStick {
     this._nextCandleIn += this.options.period;
     this._isNewCandle = true;
     this._count += 1;
-    // logger.info(
-    //   `Candle closed: ${this.lastCandleLowPrice}, next candle: ${this._nextCandleIn}, count: ${this._count}`
-    // );
+
     const current =
       this._nextCandleIn > 0 ? this._nextCandleIn - this.options.period : 50;
 
@@ -136,9 +134,7 @@ export class CandleStick {
       this._isNewCandle = true;
       nearest = roundToNearestTen(seconds);
       this._nextCandleIn = (nearest as number) + this.options.period;
-      // logger.info(
-      //   `Candle klineStarted: ${this._currentLowPrice}, next candle in: ${this._nextCandleIn} and seconds: ${seconds}, ts: ${ts}`
-      // );
+
       this._emitter.emit(LOG_EVENT, 'updateLastCandleLowPrice');
     }
 
