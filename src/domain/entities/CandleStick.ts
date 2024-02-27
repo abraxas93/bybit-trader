@@ -9,6 +9,9 @@ import {roundToNearestTen} from '../../utils';
 
 // const logger = initLogger('CandleStick', 'logs.log');
 
+const ONE_MINUTE_SECONDS = 60;
+const LAST_MIN_CYCLE_INTERVAL_SECONDS = 50;
+
 @injectable()
 export class CandleStick {
   private _klineStarted = false;
@@ -116,13 +119,18 @@ export class CandleStick {
     this._count += 1;
 
     const current =
-      this._nextCandleIn > 0 ? this._nextCandleIn - this.options.period : 50;
+      this._nextCandleIn > 0
+        ? this._nextCandleIn - this.options.period
+        : LAST_MIN_CYCLE_INTERVAL_SECONDS;
 
     if (this._candles[current]) return;
     this._emitter.emit(CANDLE_CLOSED);
     this._emitter.emit(LOG_EVENT, 'updateLastCandleData');
     this._candles[current] = true;
-    const previous = current > 0 ? current - this.options.period : 50;
+    const previous =
+      current > 0
+        ? current - this.options.period
+        : LAST_MIN_CYCLE_INTERVAL_SECONDS;
     delete this._candles[previous];
   };
 
@@ -147,7 +155,7 @@ export class CandleStick {
         this.closeCandleStick();
       }
 
-      if (this._nextCandleIn === 60) {
+      if (this._nextCandleIn === ONE_MINUTE_SECONDS) {
         this._nextCandleIn = 0;
       }
 
