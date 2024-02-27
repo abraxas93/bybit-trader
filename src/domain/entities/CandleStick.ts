@@ -95,11 +95,6 @@ export class CandleStick {
     this._count = 0;
   };
 
-  // setLastLowCandlePrice = (price: string) => {
-  //   this._lastCandleLowPrice = price;
-  //   this._emitter.emit(LOG_EVENT, 'setLastLowCandlePrice');
-  // };
-
   updateLowPrice = (lastPrice: string | undefined): boolean => {
     if (!this._klineStarted) return false;
     if (this._isNewCandle && lastPrice) {
