@@ -144,22 +144,6 @@ export class OrderBook {
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
-  // addToOrdBook = (orderId: string, type: OrderClass, logged = true) => {
-  //   this.orderBook[orderId] = type;
-  //   this.redis
-  //     .hset(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`, orderId, type)
-  //     .catch(err => errLogger.error(JSON.stringify(err)));
-  //   logged && this._emitter.emit(LOG_EVENT, 'addToOrdBook');
-  // };
-
-  // removeFromOrdBook = (orderId: string, logged = true) => {
-  //   delete this.orderBook[orderId];
-  //   this.redis
-  //     .hdel(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`, orderId)
-  //     .catch(err => errLogger.error(JSON.stringify(err)));
-  //   logged && this._emitter.emit(LOG_EVENT, 'removeFromOrdBook');
-  // };
-
   handleFilledProfitOrder = () => {
     this.isAvgOrderExists = false;
     this.incProfitTakeCount();
