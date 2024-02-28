@@ -102,10 +102,6 @@ export class OrderBook {
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
 
-  // get orderIds() {
-  //   return Object.keys(this._orderBook);
-  // }
-
   getAvgOrderIndex = () => {
     return this.avgOrderCount + 1;
   };
@@ -119,20 +115,6 @@ export class OrderBook {
       )
       .catch(err => errLogger.error(JSON.stringify(err)));
   }
-
-  // getOrderIdBy = (type: OrderClass) => {
-  //   for (const [key, value] of Object.entries(this._orderBook)) {
-  //     if (value === type) return key;
-  //   }
-  //   return null;
-  // };
-
-  // clearOrderBook = () => {
-  //   this._orderBook = {};
-  //   this.redis
-  //     .del(`${USER}:${ENV}:${this.symbol}:${RKEYS.ORDERBOOK}`)
-  //     .catch(err => errLogger.error(JSON.stringify(err)));
-  // };
 
   incProfitTakeCount() {
     this._profitTakesCount += 1;
