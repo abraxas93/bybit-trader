@@ -6,6 +6,8 @@ import {AppState} from '../../domain/entities';
 import {inject, injectable} from 'tsyringe';
 import moment from 'moment';
 
+const DELAY_TIME = 120000;
+
 @injectable()
 export class ErrorService {
   public errors = {};
@@ -62,7 +64,7 @@ export class ErrorService {
 
     setTimeout(() => {
       delete this.errors[retCode];
-    }, 120000);
+    }, DELAY_TIME);
 
     this.mongo
       .db(MONGO_DB)
